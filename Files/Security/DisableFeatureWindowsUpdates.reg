@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
+"TargetReleaseVersion"=dword:00000001
+"TargetReleaseVersionInfo"="22H2"
+"ActiveHoursStart"=dword:00000008
+"ActiveHoursEnd"=dword:00000011
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings]
+"BranchReadinessLevel"=dword:00000010
+"DeferFeatureUpdatesPeriodInDays"=dword:0000016d
+"DeferQualityUpdatesPeriodInDays"=dword:00000000
