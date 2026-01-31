@@ -13,7 +13,7 @@ try {
     exit 1
 }
 
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 3
 
 try {
     $lastRestorePoint = Get-ComputerRestorePoint | 
@@ -27,4 +27,5 @@ try {
     }
 } catch {
     Write-Warning "Could not retrieve restore point information: $($_.Exception.Message)"
+	exit 1
 }

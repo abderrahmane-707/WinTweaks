@@ -1,35 +1,39 @@
 Windows Registry Editor Version 5.00
 
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
 "EnableFeeds"=-
 
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "HideSCAMeetNow"=-
 
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
 "DisableSearchOnline"=-
+"DisableSearchBoxSuggestions"=-
 
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors]
+"DisableLocation"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
 "AllowCloudSearch"=-
-"AllowSearchToUseLocation"=-
 "ConnectedSearchUseWeb"=-
 "DisableWebSearch"=-
-"ConnectedSearchPrivacy"=-
+"BingSearchEnabled"=-
 
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
 "DisableWindowsConsumerFeatures"=-
+"DisableThirdPartySuggestions"=-
 "DisableSoftLanding"=-
 "DisableWindowsTips"=-
 
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
-"ScoobeSystemSettingEnabled"=-
-
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\OOBE]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
 "DisablePrivacyExperience"=-
 "DisableSettingsSndNeighbor"=-
 
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
 "AllowGameDVR"=-
 
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
 "Flags"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
+"EnableFeaturedSoftware"=-

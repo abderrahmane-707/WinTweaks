@@ -40,7 +40,7 @@ foreach ($profileName in $profiles) {
             $password = $value
         }
     } catch {
-        $password = "  Access denied"
+        $password = " Access denied"
     }
 
     Write-Host " Password:  $password"

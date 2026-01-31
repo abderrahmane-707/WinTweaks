@@ -26,9 +26,6 @@ Windows Registry Editor Version 5.00
 "MaxTelemetryAllowed"=-
 "DisableTelemetryOptInChangeNotification"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Diagnostics\DiagTrack]
-"DisableDiagTrack"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows]
 "CEIPEnable"=-
 
@@ -36,21 +33,8 @@ Windows Registry Editor Version 5.00
 "Disabled"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
-"AllowCloudSearch"=-
 "AllowSearchToUseLocation"=-
-"ConnectedSearchUseWeb"=-
-"DisableWebSearch"=-
 "ConnectedSearchPrivacy"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy]
-"LetAppsAccessLocation"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors]
-"DisableLocation"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location]
-"Value"=-
-"LastUsedTimeStop"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableActivityFeed"=-
@@ -60,26 +44,13 @@ Windows Registry Editor Version 5.00
 "UploadUserActivities"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
-"DisableSoftLanding"=-
-"DisableWindowsConsumerFeatures"=-
 "DisableTailoredExperiencesWithDiagnosticData"=-
-"DisableThirdPartySuggestions"=-
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment]
 "POWERSHELL_TELEMETRY_OPTOUT"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
-"EnableFeeds"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\TabletPC]
 "PreventHandwritingDataSharing"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
-"DisablePrivacyExperience"=-
-"DisableSettingsSndNeighbor"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
-"DisableSearchOnline"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppCompat]
 "DisableUAR"=-

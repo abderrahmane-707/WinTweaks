@@ -1,0 +1,14 @@
+HKLM\SYSTEM,HKLM_SYSTEM.reg
+HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile,HKLM_SystemProfile.reg
+HKLM\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run,HKLM_WOW6432_Run.reg
+HKLM\SOFTWARE\Microsoft\WindowsUpdate,HKLM_WindowsUpdate.reg
+HKLM\SOFTWARE\Policies,HKLM_Policies.reg
+HKLM\SOFTWARE\Microsoft\Windows Defender,HKLM_WindowsDefender.reg
+HKLM\SOFTWARE\Microsoft\Security Center,HKLM_SecurityCenter.reg
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion,HKLM_CurrentVersion.reg
+HKLM\SOFTWARE\Microsoft\.NETFramework,HKLM_NETFramework.reg
+HKLM\SOFTWARE\WOW6432Node\Microsoft\.NETFramework,HKLM_WOW6432_NETFramework.reg
+HKLM\SOFTWARE\Microsoft\PolicyManager,HKLM_PolicyManager.reg
+HKCU\SOFTWARE\Policies,HKCU_Policies.reg
+HKCU\Software\Microsoft\Windows\CurrentVersion,HKCU_CurrentVersion.reg
+HKCU\Control Panel,HKCU_ControlPanel.reg

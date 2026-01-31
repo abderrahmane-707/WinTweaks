@@ -75,7 +75,6 @@ function Get-GPUInfo {
             'AdapterRAM (MB)'          = if ($adapterRAMMB) { "$adapterRAMMB MB" } else { "N/A" }
             'CurrentResolution'        = if ($currentRes) { $currentRes } else { "N/A" }
             'VideoModeDescription'     = if ($g.VideoModeDescription) { $g.VideoModeDescription } else { "N/A" }
-            'InstalledDisplayDrivers'  = if ($g.InstalledDisplayDrivers) { $g.InstalledDisplayDrivers } else { "N/A" }
             'Status'                   = if ($g.Status) { $g.Status } else { "N/A" }
         }
         $result += $obj
@@ -133,12 +132,8 @@ if ($gpuInfo -and $gpuInfo.Count -gt 0) {
         Write-Output "  Video Mode Description:  $($g.VideoModeDescription)"
         
         Write-Output ""
-        Write-Output " Driver Information:"
-        Write-Output "  Driver Version:  $($g.DriverVersion)"
-        Write-Output "  Installed Drivers:  $($g.InstalledDisplayDrivers)"
-        
-        Write-Output ""
         Write-Output " Technical Details:"
+        Write-Output "  Driver Version:  $($g.DriverVersion)"
         Write-Output "  Device ID:  $($g.Index)"
         Write-Output "  PNP Device ID:  $($g.PNPDeviceID)"
         $i++

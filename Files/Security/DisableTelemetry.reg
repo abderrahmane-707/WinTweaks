@@ -26,9 +26,6 @@ Windows Registry Editor Version 5.00
 "MaxTelemetryAllowed"=dword:00000000
 "DisableTelemetryOptInChangeNotification"=dword:00000001
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Diagnostics\DiagTrack]
-"DisableDiagTrack"=dword:00000001
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows]
 "CEIPEnable"=dword:00000000
 
@@ -36,21 +33,8 @@ Windows Registry Editor Version 5.00
 "Disabled"=dword:00000001
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
-"AllowCloudSearch"=dword:00000000
 "AllowSearchToUseLocation"=dword:00000000
-"ConnectedSearchUseWeb"=dword:00000000
-"DisableWebSearch"=dword:00000001
 "ConnectedSearchPrivacy"=dword:00000003
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy]
-"LetAppsAccessLocation"=dword:00000002
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors]
-"DisableLocation"=dword:00000001
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location]
-"Value"="Deny"
-"LastUsedTimeStop"=hex(b):00,00,00,00,00,00,00,00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableActivityFeed"=dword:00000000
@@ -60,26 +44,13 @@ Windows Registry Editor Version 5.00
 "UploadUserActivities"=dword:00000000
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
-"DisableSoftLanding"=dword:00000001
-"DisableWindowsConsumerFeatures"=dword:00000001
 "DisableTailoredExperiencesWithDiagnosticData"=dword:00000001
-"DisableThirdPartySuggestions"=dword:00000001
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment]
 "POWERSHELL_TELEMETRY_OPTOUT"="1"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
-"EnableFeeds"=dword:00000000
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\TabletPC]
 "PreventHandwritingDataSharing"=dword:00000001
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
-"DisablePrivacyExperience"=dword:00000001
-"DisableSettingsSndNeighbor"=dword:00000001
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
-"DisableSearchOnline"=dword:00000001
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppCompat]
 "DisableUAR"=dword:00000001

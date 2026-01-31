@@ -9,7 +9,6 @@ Write-Host "`nArchitecture And Specifications:"
 Write-Host " Architecture:  $($cpuInfo.AddressWidth)-bit"
 Write-Host " Cores:  $($cpuInfo.NumberOfCores)"
 Write-Host " Logical Processors:  $($cpuInfo.NumberOfLogicalProcessors)"
-Write-Host " Virtualization (Active):  $((Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -ErrorAction SilentlyContinue).State -eq 'Enabled')"
 
 Write-Host "`nClock Speed:"
 Write-Host " Current Clock:  $([math]::Round($cpuInfo.CurrentClockSpeed, 2)) MHz"

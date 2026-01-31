@@ -1,25 +1,31 @@
 Windows Registry Editor Version 5.00
 
+; Removes history of Run commands, Search bar queries, and typed address bar paths
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths]
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
+
+; Wipes the memory of which folders you visited and "Open/Save" dialog history
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store]
+[-HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\BagMRU]
+[-HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags]
+
+; Clears the hidden logs of which apps you launched, when, and how often
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\UserAssist]
 [-HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\SOFTWARE\Microsoft\Windows\Shell\MuiCache]
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store]
+
+; Clears "Recent Files" for Paint, Wordpad, and Windows Media Player
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\MediaPlayer\Player\RecentFileList]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\MediaPlayer\Player\RecentURLList]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Paint\Recent File List]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Wordpad\Recent File List]
+
+; Clears the Windows Timeline (TaskFlow) and Clipboard history
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\TaskFlow]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\UserAssist]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\MediaPlayer\Player\RecentFileList]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\MediaPlayer\Player\RecentURLList]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Paint\Recent File List]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Clipboard\History]
-[-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search\RecentApps]
-[-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search\Flighting]
-[-HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\BagMRU]
-[-HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags]
+
+; Wipes the list of Wi-Fi networks and Ethernet connections ever joined
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles]
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged]

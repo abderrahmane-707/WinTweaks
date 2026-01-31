@@ -1,4 +1,4 @@
-Write-Host "Testing the connection on DNS servers:"
+Write-Host "Testing connection on DNS servers:"
 if (-not $hasGlobalIPv6) {
     $ipv6Test = Test-Connection "2606:4700:4700::1111" -Count 1 -ErrorAction SilentlyContinue
     if ($ipv6Test) {

@@ -2,8 +2,7 @@ Write-Host "Username: $env:USERNAME"
 Write-Host "Domain: $env:USERDOMAIN"
 
 Write-Host "`nConnection tests:"
-$connected = Test-Connection -ComputerName "8.8.8.8" -Count 1 -Quiet -ErrorAction SilentlyContinue
-if ($connected) {
+if (Test-Connection -ComputerName "8.8.8.8" -Count 3 -Quiet -ErrorAction SilentlyContinue) {
     Write-Host " Connected"
 }
 else {
@@ -90,18 +89,18 @@ $ipv6Addresses = Get-NetIPAddress -AddressFamily IPv6 -ErrorAction SilentlyConti
         $_.IPAddress -notmatch '^::ffff:' 
     }
 if ($ipv6Addresses) {
-    Write-Host "  Active"
+    Write-Host " Active"
     $ipv6Addresses | Select-Object -First 3 | ForEach-Object {
         Write-Host "   $($_.IPAddress) [$($_.InterfaceAlias)]"
     }
     if ($ipv6Addresses.Count -gt 3) {
-        Write-Host "  ... and $($ipv6Addresses.Count - 3) more"
+        Write-Host " $($ipv6Addresses.Count - 3) more"
     }
 } else {
     Write-Host " Inactive or not configured"
 }
 
-Write-Host "Active TCP Connections:"
+Write-Host "`nActive TCP Connections:"
 $connections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue
 
 if ($connections) {
@@ -127,28 +126,26 @@ else {
 
 $procs = Get-Process | Select-Object Id, ProcessName
 
-Write-Host "`nTCP Ports:"
-Write-Host " Port".PadRight(10) "Process"
-Write-Host " ----".PadRight(10) "-------"
+Write-Host "`nTCP Port".PadRight(20) "Process"
+Write-Host "--------".PadRight(19) "--------"
 $tcp = Get-NetTCPConnection -State Listen |
        Select-Object LocalPort, OwningProcess -Unique |
        Sort-Object LocalPort
 
 $tcp | ForEach-Object {
     $procName = ($procs | Where-Object Id -eq $_.OwningProcess).ProcessName
-    Write-Host " $($_.LocalPort.ToString().PadRight(10)) $($procName -or 'Unknown')"
+    Write-Host " $($_.LocalPort.ToString().PadRight(18)) $($procName -or 'Unknown')"
 }
 
-Write-Host "`nUDP Ports:"
-Write-Host " Port".PadRight(10) "Process"
-Write-Host " ----".PadRight(10) "-------"
+Write-Host "`nUDP Port".PadRight(20) "Process"
+Write-Host "--------".PadRight(19) "--------"
 $udp = Get-NetUDPEndpoint |
        Select-Object LocalPort, OwningProcess -Unique |
        Sort-Object LocalPort
 
 $udp | ForEach-Object {
     $procName = ($procs | Where-Object Id -eq $_.OwningProcess).ProcessName
-    Write-Host " $($_.LocalPort.ToString().PadRight(10)) $($procName -or 'Unknown')"
+    Write-Host " $($_.LocalPort.ToString().PadRight(18)) $($procName -or 'Unknown')"
 }
 
 Write-Host "`nFirewall Status:"
@@ -162,17 +159,17 @@ $vpnConnections = Get-VpnConnection -AllUserConnection -ErrorAction SilentlyCont
 if ($vpnConnections) {
     $vpnConnections | Format-Table Name, ServerAddress, ConnectionStatus -AutoSize
 } else {
-    Write-Host "  No VPN connections"
+    Write-Host " No VPN connections"
 }
 
 Write-Host "`nProxy Status:"
 $proxy = netsh winhttp show proxy 2>$null
 if ($proxy -match 'Direct access') {
-    Write-Host "  No proxy configured"
+    Write-Host " No proxy configured"
 } else {
     $proxyLines = $proxy -split "`n" | Where-Object { $_ -match ':' }
     foreach ($line in $proxyLines) {
-        Write-Host "  $($line.Trim())"
+        Write-Host " $($line.Trim())"
     }
 }
 

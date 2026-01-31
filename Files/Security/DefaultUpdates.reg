@@ -2,21 +2,16 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
 "NoAutoUpdate"=-
-"AUOptions"=-
 "NoAutoRebootWithLoggedOnUsers"=-
-"UseWUServer"=-
 "DoNotConnectToWindowsUpdateInternetLocations"=-
 "DisableWindowsUpdateAccess"=-
 "ElevateNonAdmins"=-
-"TargetGroup"=-
-"TargetGroupEnabled"=-
-"WUServer"=-
-"WUStatusServer"=-
 "DisableOSUpgrade"=-
-"TargetReleaseVersion"=-
-"TargetReleaseVersionInfo"=-
 "ActiveHoursStart"=-
 "ActiveHoursEnd"=-
+"UseWUServer"=-
+"WUServer"=-
+"WUStatusServer"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings]
 "PauseFeatureUpdatesEndTime"=-
@@ -29,10 +24,3 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
 "IncludeRecommendedUpdates"=-
 "EnableFeaturedSoftware"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config]
-"DODownloadMode"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\WindowsStore]
-"AutoDownload"=-
-"DisableAutoDownload"=-

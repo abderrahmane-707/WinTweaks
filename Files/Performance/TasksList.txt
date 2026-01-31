@@ -1,57 +1,14 @@
-\Microsoft\Office\Office 15 Subscription Heartbeat
-\Microsoft\Office\OfficeTelemetryAgentFallBack2016
-\Microsoft\Office\OfficeTelemetryAgentLogOn
-\Microsoft\Office\OfficeTelemetryAgentLogOn2016
-\Microsoft\Windows\AppID\SmartScreenSpecific
-\Microsoft\Windows\Application Data\appuriverifierdaily
-\Microsoft\Windows\Application Data\DsSvcCleanup
-\Microsoft\Windows\CloudExperienceHost\CreateObjectTask
-\Microsoft\Windows\Diskcleanup\SilentCleanup
-\Microsoft\Windows\ExploitGuard\ExploitGuard MDM policy Refresh
-\Microsoft\Windows\FileHistory\File History (maintenance mode)
-\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures
-\Microsoft\Windows\Flighting\FeatureConfig\UsageDataFlushing
-\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReporting
-\Microsoft\Windows\Input\InputSettingsRestoreDataAvailable
-\Microsoft\Windows\Input\LocalUserSyncDataAvailable
-\Microsoft\Windows\Input\MouseSyncDataAvailable
-\Microsoft\Windows\Input\PenSyncDataAvailable
-\Microsoft\Windows\Input\syncpensettings
-\Microsoft\Windows\Input\TouchpadSyncDataAvailable
-\Microsoft\Windows\InstallService\ScanForUpdates
-\Microsoft\Windows\InstallService\ScanForUpdatesAsUser
-\Microsoft\Windows\Location\Notifications
-\Microsoft\Windows\Location\WindowsActionDialog
+\Microsoft\Windows\Application Experience\AitAgent
+\Microsoft\Windows\Application Experience\MareBackup
+\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser
+\Microsoft\Windows\Customer Experience Improvement Program\BthSQM
+\Microsoft\Windows\Customer Experience Improvement Program\Consolidator
+\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask
+\Microsoft\Windows\Customer Experience Improvement Program\Uploader
+\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip
+\Microsoft\Windows\Feedback\Siuf\DmClient
+\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload
 \Microsoft\Windows\Maintenance\WinSAT
-\Microsoft\Windows\Maps\MapsToastTask
-\Microsoft\Windows\Maps\MapsUpdateTask
-\Microsoft\Windows\MemoryDiagnostic\ProcessMemoryDiagnosticEvents
-\Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic
+\Microsoft\Windows\PerfTrack\BackgroundConfigSurveyor
 \Microsoft\Windows\PI\Sqm-Tasks
-\Microsoft\Windows\Registry\RegIdleBackup
-\Microsoft\Windows\Shell\IndexerAutomaticMaintenance
-\Microsoft\Windows\StateRepository\MaintenanceTasks
-\Microsoft\Windows\SystemRestore\SR
-\Microsoft\Windows\Time Synchronization\ForceSynchronizeTime
-\Microsoft\Windows\Time Synchronization\SynchronizeTime
-\Microsoft\Windows\WDI\ResolutionHost
-\Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance
-\Microsoft\Windows\Windows Defender\Windows Defender Cleanup
-\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan
-\Microsoft\Windows\Windows Defender\Windows Defender Verification
 \Microsoft\Windows\Windows Error Reporting\QueueReporting
-\Microsoft\Windows\WindowsUpdate\Automatic App Update
-\Microsoft\Office\OfficeTelemetryAgentFallBack
-\Microsoft\Office\Office Automatic Updates 2.0
-\Microsoft\Office\Office Feature Updates
-\Microsoft\Office\Office Feature Updates Logon
-\Microsoft\Windows\AppListBackup\BackupNonMaintenance
-\Microsoft\Windows\AppListBackup\Backup
-\Microsoft\Windows\ConsentUX\UnifiedConsent\UnifiedConsentSyncTask
-\Microsoft\XblGameSave\XblGameSaveTask
-\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner
-\Microsoft\Windows\DUSM\dusmtask
-\Microsoft\Windows\Application Experience\PcaWallpaperAppDetect
-\Microsoft\Windows\Device Information\Device User
-\Microsoft\Windows\Device Setup\Metadata Refresh
-\Microsoft\Windows\Flighting\OneSettings\RefreshCache

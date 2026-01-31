@@ -28,23 +28,13 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\UI]
 "DisableScanProgressUI"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender\Features]
-"TamperProtection"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Security Center]
-"DisableNotifications"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender Security Center]
 "DisableNotifications"=-
 "DisableVirusUI"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer]
-"SmartScreenEnabled"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableSmartScreen"=-
 "ShellSmartScreenLevel"=-
-"EnableCdp"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\MicrosoftEdge\PhishingFilter]
 "EnabledV9"=-
