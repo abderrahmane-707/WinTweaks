@@ -12,3 +12,4 @@ HKLM\SOFTWARE\Microsoft\PolicyManager,HKLM_PolicyManager.reg
 HKCU\SOFTWARE\Policies,HKCU_Policies.reg
 HKCU\Software\Microsoft\Windows\CurrentVersion,HKCU_CurrentVersion.reg
 HKCU\Control Panel,HKCU_ControlPanel.reg
+HKEY_USERS\.DEFAULT,HKU_DEFAULT.reg

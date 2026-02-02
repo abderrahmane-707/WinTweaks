@@ -1,3 +1,4 @@
+# Retrieve CPU information using WMI (Windows Management Instrumentation)
 $cpuInfo = Get-WmiObject Win32_Processor
 
 Write-Host "Processor Details:"

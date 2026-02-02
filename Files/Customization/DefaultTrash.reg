@@ -10,9 +10,6 @@ Windows Registry Editor Version 5.00
 "DisableSearchOnline"=-
 "DisableSearchBoxSuggestions"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors]
-"DisableLocation"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
 "AllowCloudSearch"=-
 "ConnectedSearchUseWeb"=-
@@ -27,13 +24,55 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
 "DisablePrivacyExperience"=-
-"DisableSettingsSndNeighbor"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
 "AllowGameDVR"=-
 
-[HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
-"Flags"=-
+; Restore default Sticky Keys behavior - Enables Sticky Keys accessibility feature with default settings
+[HKEY_LOCAL_MACHINE\Control Panel\Accessibility\StickyKeys]
+"Flags"="58"
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
 "EnableFeaturedSoftware"=-
+
+; Re-enable Game DVR and broadcasting features - Turns on Xbox game recording functionality
+[HKEY_CURRENT_USER\System\GameConfigStore]
+"GameDVR_FSEBehavior"=dword:00000001
+"GameDVR_Enabled"=dword:00000001
+"GameDVR_HonorUserFSEBehaviorMode"=dword:00000000
+"GameDVR_EFSEFeatureFlags"=dword:00000001
+
+; Enable automatic map updates - Turns on Maps app background updates
+[HKEY_LOCAL_MACHINE\SYSTEM\Maps]
+"AutoUpdateEnabled"=dword:00000001
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"ShowTaskViewButton"=-
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Feeds]
+"ShellFeedsTaskbarViewMode"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules]
+"NumberOfSIUFInPeriod"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config]
+"DODownloadMode"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
+"DODownloadMode"=-
+
+; Show People button on taskbar - Restores the People hub on the taskbar
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People]
+"PeopleBand"=dword:00000001
+
+; Disable Long Path support - Restricts file paths back to traditional 260 character limit
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem]
+"LongPathsEnabled"=dword:00000000
+
+; Enable Scoobe (Get Started) experiences - Allows "Get Started" feature suggestions to appear
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
+"ScoobeSystemSettingEnabled"=dword:00000001
+
+; Enable Background Access Applications - Allows apps to run in background when not in use
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications]
+"GlobalUserDisabled"=dword:00000000

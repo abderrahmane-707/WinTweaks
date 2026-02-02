@@ -1,79 +1,109 @@
 Windows Registry Editor Version 5.00
 
+; Configure strong Diffie-Hellman key exchange - Enforce minimum 2048-bit keys (0x800 = 2048)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\Diffie-Hellman]
 "ServerMinKeyBitLength"=dword:00000800
 
+; Configure strong PKCS key exchange - Enforce minimum 2048-bit keys (0x800 = 2048)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\PKCS]
 "ServerMinKeyBitLength"=dword:00000800
 
+; Disable insecure RC4 cipher suites - Both 128-bit and 64-bit RC4 variants are vulnerable
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 128/128]
 "Enabled"=dword:00000000
 
+; Disable 64-bit RC4 cipher suite
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 64/128]
 "Enabled"=dword:00000000
 
+; Disable DES cipher suite - DES is cryptographically broken with 56-bit keys
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\DES 56/56]
 "Enabled"=dword:00000000
 
+; Disable Triple DES cipher suite - Though stronger than DES, still vulnerable to attacks
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\Triple DES 168]
 "Enabled"=dword:00000000
 
+; Disable MD5 hash algorithm - MD5 is cryptographically broken and vulnerable to collision attacks
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\MD5]
 "Enabled"=dword:00000000
 
+; Disable legacy SSL 2.0 protocol - Highly insecure with multiple known vulnerabilities
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 2.0\Server]
 "Enabled"=dword:00000000
 
+; Disable legacy SSL 3.0 protocol - Vulnerable to POODLE attack and other weaknesses
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Server]
 "Enabled"=dword:00000000
 
+; Disable TLS 1.0 protocol - Old protocol with known security limitations
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server]
 "Enabled"=dword:00000000
 
+; Disable TLS 1.1 protocol - Older protocol with known security limitations
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server]
 "Enabled"=dword:00000000
 
+; Enable TLS 1.2 protocol - Modern secure protocol with strong cryptography
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server]
 "Enabled"=dword:00000001
 
+; Enable TLS 1.3 protocol - Latest and most secure TLS protocol
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server]
 "Enabled"=dword:00000001
 
+; SMBv1=0: Disables insecure SMBv1 protocol which has multiple vulnerabilities
+; restrictnullsessaccess=1: Restricts null session access for enhanced security
+; AutoShareWks=0: Disables automatic workstation sharing
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
 "SMBv1"=dword:00000000
 "restrictnullsessaccess"=dword:00000001
 "AutoShareWks"=dword:00000000
 
+; Configure strong cryptography for .NET Framework v2.0
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v2.0.50727]
 "SchUseStrongCrypto"=dword:00000001
 
+; Configure strong cryptography for .NET Framework v4.0
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319]
 "SchUseStrongCrypto"=dword:00000001
 
+; Configure strong cryptography for 32-bit .NET Framework v2.0 on 64-bit systems
 [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v2.0.50727]
 "SchUseStrongCrypto"=dword:00000001
 
+; Configure strong cryptography for 32-bit .NET Framework v4.0 on 64-bit systems
 [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v4.0.30319]
 "SchUseStrongCrypto"=dword:00000001
 
+; Disable Basic authentication in Terminal Services - Requires stronger authentication methods
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services]
 "AllowBasic"=dword:00000000
 
+; NoAutorun=1: Disables autorun functionality to prevent malware execution
+; NoDriveTypeAutoRun=255 (0xFF): Disables autorun for all drive types
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "NoAutorun"=dword:00000001
 "NoDriveTypeAutoRun"=dword:000000ff
 
+; LmCompatibilityLevel=5: Enforces NTLMv2 responses only, rejects LM and NTLM
+; NoLMHash=1: Prevents storage of LM hash for new passwords
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
 "LmCompatibilityLevel"=dword:00000005
 "NoLMHash"=dword:00000001
 
+; fAllowFullControl=0: Disables full control remote assistance
+; fAllowToGetHelp=0: Disables getting help through remote assistance
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Remote Assistance]
 "fAllowFullControl"=dword:00000000
 "fAllowToGetHelp"=dword:00000000
 
+; Disable ICMP redirect - Prevents routing table manipulation attacks
+; EnableICMPRedirect=0: Disables acceptance of ICMP redirect messages
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters]
 "EnableICMPRedirect"=dword:00000000
 
+; Configure User Account Control (UAC) settings - Enhanced privilege escalation protection
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 "EnableLUA"=dword:00000001
 "ConsentPromptBehaviorAdmin"=dword:00000005
@@ -83,35 +113,43 @@ Windows Registry Editor Version 5.00
 "EnableVirtualization"=dword:00000001
 "FilterAdministratorToken"=dword:00000000
 
+; Configure firewall profiles - Enable comprehensive firewall protection
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile]
 "EnableFirewall"=dword:00000001
 "DefaultInboundAction"=dword:00000001
 "DefaultOutboundAction"=dword:00000000
 "DisableNotifications"=dword:00000000
 
+; Standard profile firewall configuration
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile]
 "EnableFirewall"=dword:00000001
 "DefaultInboundAction"=dword:00000001
 "DefaultOutboundAction"=dword:00000000
 "DisableNotifications"=dword:00000000
 
+; Public profile firewall configuration
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile]
 "EnableFirewall"=dword:00000001
 "DefaultInboundAction"=dword:00000001
 "DefaultOutboundAction"=dword:00000000
 "DisableNotifications"=dword:00000000
 
+; Configure remote SCM endpoints - Keep DCOM endpoints enabled for system functionality
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
 "DisableRemoteScmEndpoints"=dword:00000000
 
+; Disable WiFi Sense hotspots - Prevents automatic connection to public hotspots
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots]
 "value"=dword:00000000
 
+; Disable automatic OEM WiFi connections - Prevents automatic network connections
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WlanSvc\WlanConfig]
 "AutoConnectAllowedOEM"=dword:00000000
 
+; Configure WiFi network manager settings - Disable open hotspot registration
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WlanSvc\AnqpCache]
 "OsuRegistrationStatus"=dword:00000000
 
+; Disable WiFi hotspot login - Prevents automatic login to public networks
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WifiNetworkManager\HotspotLogin]
 "IsEnabled"=dword:00000000

@@ -1,19 +1,28 @@
 Windows Registry Editor Version 5.00
 
+; AllowInputPersonalization=0: Turns off personalized typing and writing recognition
+; RestrictImplicitInkCollection=1: Blocks collection of handwriting data
+; RestrictImplicitTextCollection=1: Blocks collection of text input data
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\InputPersonalization]
 "AllowInputPersonalization"=dword:00000000
 "RestrictImplicitInkCollection"=dword:00000001
 "RestrictImplicitTextCollection"=dword:00000001
 
+; Disable advertising ID tracking - Prevents apps from using advertising identifier
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo]
 "DisabledByGroupPolicy"=dword:00000001
 
+; Disable tailored experiences with diagnostic data - Stops personalized content based on usage data
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Privacy]
 "TailoredExperiencesWithDiagnosticDataEnabled"=dword:00000000
 
+; Disable WiFi hotspot reporting - Prevents sharing WiFi location data
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting]
 "value"=dword:00000000
 
+; All Allow* settings set to 0: Disables all forms of data collection and telemetry
+; DoNotShowFeedbackNotifications=1: Hides feedback prompts
+; DisableTelemetryOptInChangeNotification=1: Suppresses telemetry change notifications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
 "AllowTelemetry"=dword:00000000
 "AllowCommercialDataPipeline"=dword:00000000
@@ -26,16 +35,25 @@ Windows Registry Editor Version 5.00
 "MaxTelemetryAllowed"=dword:00000000
 "DisableTelemetryOptInChangeNotification"=dword:00000001
 
+; Disable Customer Experience Improvement Program - Turns off SQM (Software Quality Metrics) data collection
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows]
 "CEIPEnable"=dword:00000000
 
+; Disable Windows Error Reporting - Prevents error reports from being sent to Microsoft
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting]
 "Disabled"=dword:00000001
 
+; AllowSearchToUseLocation=0: Disables location-aware search
+; ConnectedSearchPrivacy=3: Sets highest privacy level for connected search
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
 "AllowSearchToUseLocation"=dword:00000000
 "ConnectedSearchPrivacy"=dword:00000003
 
+; EnableActivityFeed=0: Turns off Activity History feed
+; EnableCdp=0: Disables Cross Device Platform (clipboard sync, etc.)
+; EnableMmx=0: Disables My Music eXperience features
+; PublishUserActivities=0: Prevents activity publishing
+; UploadUserActivities=0: Prevents activity uploading to cloud
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableActivityFeed"=dword:00000000
 "EnableCdp"=dword:00000000
@@ -43,21 +61,32 @@ Windows Registry Editor Version 5.00
 "PublishUserActivities"=dword:00000000
 "UploadUserActivities"=dword:00000000
 
+; Disable tailored experiences with diagnostic data - Prevents Microsoft from using your data for customization
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
 "DisableTailoredExperiencesWithDiagnosticData"=dword:00000001
 
+; Opt out of PowerShell telemetry - Prevents PowerShell from sending usage data
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment]
 "POWERSHELL_TELEMETRY_OPTOUT"="1"
 
+; Prevent handwriting data sharing - Blocks sharing of handwritten input data
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\TabletPC]
 "PreventHandwritingDataSharing"=dword:00000001
 
+; Disable User Account Rating - Turns off application compatibility telemetry
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppCompat]
 "DisableUAR"=dword:00000001
 
+; Disable instrumentation in Explorer - Turns off instrumentation features in file explorer
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "NoInstrumentation"=dword:00000001
 
+; SpynetReporting=0: Disables threat detection reporting
+; SubmitSamplesConsent=2: Sets to never submit samples automatically
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet]
 "SpynetReporting"=dword:00000000
 "SubmitSamplesConsent"=dword:00000002
+
+; Ensures telemetry is completely disabled at another policy level
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection]
+"AllowTelemetry"=dword:00000000

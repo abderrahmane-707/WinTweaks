@@ -1,30 +1,37 @@
 function Get-GPUInfo {
     try {
+        # Query WMI for video controller information (primary GPU details)
         $gpus = Get-CimInstance -ClassName Win32_VideoController -ErrorAction Stop
     } catch {
         Write-Output "Unable to query Win32_VideoController: $($_.Exception.Message)"
-        return @()
+        return @()  # Return empty array if query fails
     }
 
     try {
+        # Query WMI for signed display drivers to get driver-specific information
         $drivers = Get-CimInstance -ClassName Win32_PnPSignedDriver -ErrorAction Stop |
                    Where-Object { ($_.DeviceClass -eq 'DISPLAY') -or 
                                  ($_.DeviceName -like '*Display*') -or 
                                  ($_.DeviceName -like '*Video*') }
     } catch {
         Write-Output "Unable to query Win32_PnPSignedDriver: $($_.Exception.Message)"
-        $drivers = @()
+        $drivers = @()  # Initialize empty array if driver query fails
     }
 
-    $result = @()
+    $result = @()  # Initialize empty array to store GPU information objects
+    
+    # Process each GPU found in the system
     foreach ($g in $gpus) {
         $matchingDriver = $null
+        
+        # Attempt to find a matching driver for this GPU using device IDs or names
         if ($g.PNPDeviceID -and $drivers) {
             $matchingDriver = $drivers | Where-Object { 
                 $_.DeviceID -like "*$($g.PNPDeviceID)*" -or
                 $_.DeviceID -eq $g.PNPDeviceID
-            } | Select-Object -First 1
+            } | Select-Object -First 1  # Take the first matching driver
             
+            # Fallback: Try to match by device name if device ID didn't match
             if (-not $matchingDriver) {
                 $matchingDriver = $drivers | Where-Object { 
                     $_.DeviceName -like "*$($g.Name)*" -or
@@ -33,12 +40,14 @@ function Get-GPUInfo {
             }
         }
 
+        # Process driver date information (convert from WMI date format if possible)
         $driverDate = $null
         if ($matchingDriver -and $matchingDriver.DriverDate) {
             try {
+                # Convert WMI datetime format to standard DateTime object
                 $driverDate = [System.Management.ManagementDateTimeConverter]::ToDateTime($matchingDriver.DriverDate)
             } catch {
-                $driverDate = $matchingDriver.DriverDate
+                $driverDate = $matchingDriver.DriverDate  # Use raw value if conversion fails
             }
         } elseif ($g.DriverDate) {
             try {
@@ -48,23 +57,27 @@ function Get-GPUInfo {
             }
         }
 
+        # Get INF file name (driver installation file) if available
         $infName = if ($matchingDriver) { 
             $matchingDriver.InfName 
         } else { 
             "N/A" 
         }
 
+        # Convert adapter RAM from bytes to megabytes for readability
         $adapterRAMMB = $null
         if ($g.AdapterRAM -ne $null) {
             $adapterRAMMB = [math]::Round($g.AdapterRAM / 1MB, 2)
         }
 
+        # Format current resolution and refresh rate information
         $currentRes = if ($g.CurrentHorizontalResolution -and $g.CurrentVerticalResolution) {
             "$($g.CurrentHorizontalResolution) x $($g.CurrentVerticalResolution) @ $($g.CurrentRefreshRate)Hz"
         } else {
-            $g.VideoModeDescription
+            $g.VideoModeDescription  # Fallback to video mode description
         }
 
+        # Create a custom object with all GPU properties for this GPU
         $obj = [PSCustomObject]@{
             'Index'                    = if ($g.DeviceID) { $g.DeviceID } else { "N/A" }
             'Name'                     = if ($g.Name) { $g.Name } else { "N/A" }
@@ -77,35 +90,41 @@ function Get-GPUInfo {
             'VideoModeDescription'     = if ($g.VideoModeDescription) { $g.VideoModeDescription } else { "N/A" }
             'Status'                   = if ($g.Status) { $g.Status } else { "N/A" }
         }
-        $result += $obj
+        $result += $obj  # Add this GPU object to the results array
     }
 
-    return $result
+    return $result  # Return array of GPU information objects
 }
 
+# Function to retrieve display driver information specifically
 function Get-GPUDrivers {
     try {
+        # Query WMI for signed display drivers (filtering for display/video devices)
         $drivers = Get-CimInstance -ClassName Win32_PnPSignedDriver -ErrorAction Stop |
                    Where-Object { ($_.DeviceClass -eq 'DISPLAY') -or 
                                  ($_.DeviceName -like '*Display*') -or 
                                  ($_.DeviceName -like '*Video*') }
     } catch {
         Write-Output "WARNING: Unable to query Win32_PnPSignedDriver: $($_.Exception.Message)"
-        return @()
+        return @()  # Return empty array on error
     }
+    
+    # Return selected driver properties
     $drivers | Select-Object DeviceName, Manufacturer, DriverVersion, DriverProviderName, DeviceID
 }
 
+# Function to retrieve DirectX version from Windows Registry
 function Get-DirectXVersion {
     try {
+        # Read DirectX version from Windows Registry (HKLM = HKEY_LOCAL_MACHINE)
         $dx = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\DirectX' -ErrorAction Stop
         if ($dx -and $dx.Version) {
-            return $dx.Version
+            return $dx.Version  # Return DirectX version if found
         } else {
-            return $null
+            return $null  # Return null if version key exists but is empty
         }
     } catch {
-        return $null
+        return $null  # Return null if registry key doesn't exist or access is denied
     }
 }
 

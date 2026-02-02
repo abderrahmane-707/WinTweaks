@@ -12,3 +12,7 @@
 \Microsoft\Windows\PerfTrack\BackgroundConfigSurveyor
 \Microsoft\Windows\PI\Sqm-Tasks
 \Microsoft\Windows\Windows Error Reporting\QueueReporting
+\Microsoft\Windows\Autochk\Proxy
+\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector
+\Microsoft\Windows\Application Experience\StartupAppTask
+\Microsoft\Windows\Application Experience\PcaPatchDbTask

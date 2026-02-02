@@ -1,21 +1,32 @@
 Windows Registry Editor Version 5.00
 
+; DisableAntiSpyware=1: Turns off antispyware protection
+; DisableAntiVirus=1: Turns off antivirus protection  
+; PUATProtection=0: Disables Potentially Unwanted Application Tracking
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender]
 "DisableAntiSpyware"=dword:00000001
 "DisableAntiVirus"=dword:00000001
 "PUATProtection"=dword:00000000
 
+; DisableRealtimeMonitoring=1: Disables continuous file scanning
+; DisableBehaviorMonitoring=1: Turns off behavioral analysis of running programs
+; DisableOnAccessProtection=1: Disables protection that scans files when accessed
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection]
 "DisableRealtimeMonitoring"=dword:00000001
 "DisableBehaviorMonitoring"=dword:00000001
 "DisableOnAccessProtection"=dword:00000001
 
+; DisableRoutinelyTakingAction=1: Disables automated threat remediation actions
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager]
 "DisableRoutinelyTakingAction"=dword:00000001
 
+; DisableEnhancedNotifications=1: Turns off enhanced security notifications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Reporting]
 "DisableEnhancedNotifications"=dword:00000001
 
+; Scan configuration disablement - Disables various scanning capabilities
+; Multiple scan types disabled including email, archive, removable drives, and network scanning
+; CheckForSignaturesBeforeRunningScan=0: Skips signature verification before scans
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Scan]
 "DisableHeuristics"=dword:00000001
 "CheckForSignaturesBeforeRunningScan"=dword:00000000
@@ -25,19 +36,26 @@ Windows Registry Editor Version 5.00
 "DisableScanningMappedNetworkDrivesForFullScan"=dword:00000001
 "DisableScanningNetworkFiles"=dword:00000001
 
+; DisableScanProgressUI=1: Hides scan progress windows and UI elements
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\UI]
 "DisableScanProgressUI"=dword:00000001
 
+; DisableNotifications=1: Disables all Windows Security notifications
+; DisableVirusUI=1: Hides virus and threat protection UI elements
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender Security Center]
 "DisableNotifications"=dword:00000001
 "DisableVirusUI"=dword:00000001
 
+; EnableSmartScreen=0: Disables SmartScreen filter for file downloads
+; ShellSmartScreenLevel="Off": Sets SmartScreen to completely off state
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableSmartScreen"=dword:00000000
 "ShellSmartScreenLevel"="Off"
 
+; EnabledV9=0: Turns off SmartScreen and phishing protection in Microsoft Edge
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\MicrosoftEdge\PhishingFilter]
 "EnabledV9"=dword:00000000
 
+; SmartScreenEnabled=0: Disables SmartScreen protection in Edge browser
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge]
 "SmartScreenEnabled"=dword:00000000

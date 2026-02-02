@@ -1,5 +1,14 @@
 Windows Registry Editor Version 5.00
 
+; NoAutoUpdate=1: Completely disables automatic update installation
+; NoAutoRebootWithLoggedOnUsers=1: Prevents automatic reboots when users are logged in
+; DoNotConnectToWindowsUpdateInternetLocations=1: Blocks all connections to Microsoft update servers
+; DisableWindowsUpdateAccess=1: Removes access to Windows Update interface entirely
+; ElevateNonAdmins=0: Prevents non-administrators from accessing update features
+; DisableOSUpgrade=1: Blocks major OS version upgrades (feature updates, version changes)
+; UseWUServer=1: Forces Windows to use a local WSUS server instead of Microsoft
+; WUServer="127.0.0.1": Points update server to localhost (local machine, no actual server)
+; WUStatusServer="127.0.0.1": Points status server to localhost as well
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
 "NoAutoUpdate"=dword:00000001
 "NoAutoRebootWithLoggedOnUsers"=dword:00000001
@@ -11,11 +20,16 @@ Windows Registry Editor Version 5.00
 "WUServer"="127.0.0.1"
 "WUStatusServer"="127.0.0.1"
 
+; PauseFeatureUpdatesEndTime: Pauses feature updates indefinitely (until year 2099)
+; PauseQualityUpdatesEndTime: Pauses quality updates indefinitely (until year 2099)
+; PauseUpdatesExpiryTime: Sets update pause expiration to distant future (year 2099)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings]
 "PauseFeatureUpdatesEndTime"="2099-12-31T00:00:00.000Z"
 "PauseQualityUpdatesEndTime"="2099-12-31T00:00:00.000Z"
 "PauseUpdatesExpiryTime"="2099-12-31T00:00:00.000Z"
 
+; IncludeRecommendedUpdates=0: Excludes recommended updates from installation
+; EnableFeaturedSoftware=0: Prevents featured software recommendations from appearing
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
 "IncludeRecommendedUpdates"=dword:00000000
 "EnableFeaturedSoftware"=dword:00000000

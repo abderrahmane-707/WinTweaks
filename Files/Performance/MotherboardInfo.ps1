@@ -1,10 +1,13 @@
+# Helper function to convert byte arrays to readable strings, removing null terminators
 function Convert-ByteArrayToString {
   param([byte[]]$Bytes)
   return [System.Text.Encoding]::ASCII.GetString($Bytes).TrimEnd("`0")
 }
 
+# Display motherboard information from WMI
 Write-Host "Motherboard Information:"
 try {
+  # Get motherboard/baseboard information using WMI
   $motherboard = Get-WmiObject Win32_BaseBoard
   
   if ($motherboard) {
@@ -13,6 +16,7 @@ try {
     Write-Host " Version:  $($motherboard.Version)"
     Write-Host " Serial Number:  $($motherboard.SerialNumber)"
     
+    # Display additional motherboard characteristics
     Write-Host " Hosting Board:  $($motherboard.HostingBoard)"
     Write-Host " Hot Swappable:  $($motherboard.HotSwappable)"
     Write-Host " Removable:  $($motherboard.Removable)"
@@ -25,8 +29,10 @@ try {
   Write-Host " Error accessing motherboard information: $($_.Exception.Message)"
 }
 
+# Display BIOS/UEFI firmware information
 Write-Host "`nBIOS/UEFI Information:"
 try {
+  # Determine firmware type (UEFI vs Legacy BIOS)
   $firmware = Get-WmiObject Win32_ComputerSystem | Select-Object -ExpandProperty PCSystemType
   if ($firmware -eq 2) {
     Write-Host " Firmware Type:  UEFI"
@@ -38,6 +44,8 @@ try {
 } catch {
     Write-Host " Firmware Type:  Could not determine"
 }
+
+# Display BIOS details
 try {
   $bios = Get-WmiObject Win32_BIOS
   
@@ -52,14 +60,18 @@ try {
   Write-Host " Error accessing BIOS information $($_.Exception.Message)"
 }
 
+# Display SMBIOS (System Management BIOS) information
 Write-Host "`nSMBIOS Information:"
 try {
+  # Check if SMBIOS information is available
   $smbios = Get-WmiObject Win32_SMBIOSMemory -ErrorAction SilentlyContinue
   
   if ($smbios) {    
+    # Access raw SMBIOS tables from a different WMI namespace for detailed information
     $smbiosData = Get-WmiObject -Namespace root\wmi -Class MSSmBios_RawSMBiosTables -ErrorAction SilentlyContinue
     
     if ($smbiosData) {
+      # SMBIOS version consists of major and minor version numbers
       $smbiosVersion = "$($smbiosData.SmbiosMajorVersion).$($smbiosData.SmbiosMinorVersion)"
       Write-Host " SMBIOS Version:  $smbiosVersion"
       Write-Host " SMBIOS Data Length:  $($smbiosData.Size) bytes"

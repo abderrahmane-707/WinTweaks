@@ -174,7 +174,6 @@ call :GO PERFORMANCE_MENU
 call :TIME_STAMP_FILE "Performance" "ServiceStartupStatus"
 
 echo. & echo Exporting the service startup status
-:: Runs a PowerShell script to query and format the current service list
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\ExportServices.ps1" >> "%REPORT_FILE%" 2>&1
 
 echo Report file saved in: %REPORT_FILE%
@@ -206,7 +205,7 @@ call :PATH "Performance" "BootTweaks"
 echo. & echo Import Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
-:: Wipe out all (shortcut) files that launch when the user logs in
+:: Wipe out all startup programs
 echo Deleting startup shortcuts
 del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
 del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
@@ -253,6 +252,14 @@ if "!BROWSERS_OPEN!"=="1" (
 )
 
 :: Chromium-based browsers cleanup
+:: Default\Cache              :: Standard web cache
+:: Default\Code Cache         :: Compiled JS and site code
+:: Default\GPUCache           :: Graphics processor shader cache
+:: ShaderCache                :: Hardware-specific render cache
+:: Default\File System        :: Persistent local storage for web apps
+:: Default\Service Worker     :: Background scripts and offline data
+:: Default\Application Cache  :: Offline app data
+:: Default\Media Cache        :: Audio/Video streaming fragments
 for %%B in (
     "Google\Chrome|Google Chrome"
     "Microsoft\Edge|Microsoft Edge"
@@ -275,14 +282,17 @@ for %%B in (
                     rd /s /q "%LOCALAPPDATA%\%%A\User Data\%%~D" >nul 2>&1
                 )
             )
-
-            :: Delete *.tmp files created by browser
             del /f /q "%LOCALAPPDATA%\%%A\User Data\*.tmp" >nul 2>&1
         )
     )
 )
 
 :: Mozilla Firefox cleanup
+:: cache2        :: Primary Firefox web cache
+:: thumbnails    :: Previews of visited websites (New Tab page)
+:: jumpListCache :: Windows Taskbar task history for Firefox
+:: OfflineCache  :: Data stored for offline web application usage
+:: minidumps     :: Small crash log files
 for %%B in (
     "Mozilla\Firefox|Mozilla Firefox"
 ) do (
@@ -303,8 +313,6 @@ for %%B in (
                     )
                 )
             )
-
-            :: Crash Reports: Stored Firefox crash reports
             if exist "%APPDATA%\%%A\Crash Reports" (
                 rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
             )
@@ -348,9 +356,8 @@ echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-
 pause
 goto POWER_PLAN_MENU
 
-:: Unlock and add the "Ultimate Performance" plan to the system
+:: Unlock and add the "Ultimate Performance" plan
 :ADD_ULTIMATE_PLAN
-:: Uses PowerShell to trigger the 'powercfg -duplicatescheme' command for the Ultimate GUID
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\AddUltimatePerformance.ps1"
 call :GO POWER_PLAN_MENU
 
@@ -456,12 +463,12 @@ call :GO HW_INFO_MENU
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\HardDiskInfo.ps1"
 call :GO HW_INFO_MENU
 
-:: Display RAM details
+:: Display RAM information
 :RAM_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MemoryInfo.ps1"
 call :GO HW_INFO_MENU
 
-:: Display Motherboard specs
+:: Display Motherboard information
 :MOTHERBOARD_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MotherboardInfo.ps1"
 call :GO HW_INFO_MENU
@@ -532,21 +539,25 @@ echo. & echo Disable windows telemetry via registry
 reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling windows telemetry services
+
+:: DiagTrack      :: Connected User Experiences and Telemetry
+:: dmwappushsvc   :: WAP Push Message Routing Service
+:: WerSvc         :: Windows Error Reporting Service
 for %%S in (
     "DiagTrack"
     "dmwappushsvc"
     "WerSvc"
-    "lfsvc"
 ) do call :SC_CONFIGURE "%%S" "disabled"
 
 echo Blocking windows telemetry and trash domains
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
-
+:: Add empty line to host file first
+echo. >> "%HOSTS_PATH%"
 for /f "usebackq delims=" %%L in ("%~dp0Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
 	:: Check if domain entry already exists in hosts file
     if errorlevel 1 (
-	    :: Append domain entry to redirect to localhost (blocking)
+	    :: Append domain entry to redirect to localhost
         echo %%L >> "%HOSTS_PATH%"
     )
 )
@@ -570,7 +581,6 @@ for %%S in (
     "DiagTrack"
     "dmwappushsvc"
     "WerSvc"
-    "lfsvc"
 ) do call :SC_CONFIGURE "%%S" "demand"
 
 echo Delete windows telemetry and trash domains
@@ -633,13 +643,13 @@ reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
 call :CLEANING_FUNCTION
 
-:: Delete Windows Prefetch files to clear application launch history and start fresh
+:: Clear application launch history and start fresh
 echo Cleaning prefetch files
-del /f /s /q "%SYSTEMROOT%\Prefetch\*.*" >nul 2>&1
+del /f /s /q "%SYSTEMROOT%\Prefetch\*" >nul 2>&1
 
-:: Clean System Log files from multiple Windows directories
+:: Clean System Log files
 echo Cleaning system log files
-for /d %%G in ("%SYSTEMROOT%\Logs\*.*" "%SYSTEMROOT%\System32\LogFiles\*.*" ) do (
+for /d %%G in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do (
     :: Take ownership of the directory recursively
     takeown /f "%%G" /r /d y >nul 2>&1
     :: Grant full control to the Administrators group
@@ -695,7 +705,7 @@ reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 echo Disabling Windows Update services
 for %%S in (
     "BITS"
-    "dosvc"
+    "DoSvc"
     "UsoSvc"
     "WaaSMedicSvc"
     "wuauserv"
@@ -729,10 +739,17 @@ echo. & echo Reset Update Registry
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stop update services
+
+:: BITS          :: Background Intelligent Transfer Service
+:: CryptSvc      :: manages certificate validation and system file signatures
+:: DoSvc         :: Delivery Optimization
+:: UsoSvc        :: Update Orchestrator Service
+:: WaaSMedicSvc  :: Windows Update Medic Service
+:: wuauserv      :: Windows Update Service
 for %%S in (
     "BITS"
     "CryptSvc"
-    "dosvc"
+    "DoSvc"
     "UsoSvc"
     "WaaSMedicSvc"
     "wuauserv"
@@ -779,7 +796,7 @@ echo Enabling windows update services
 for %%S in (
     "BITS"
 	"CryptSvc"
-    "dosvc"
+    "DoSvc"
     "UsoSvc"
     "WaaSMedicSvc"
     "wuauserv"
@@ -821,7 +838,7 @@ reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 echo Enabling windows update services
 for %%S in (
     "BITS"
-    "dosvc"
+    "DoSvc"
     "UsoSvc"
     "WaaSMedicSvc"
     "wuauserv"
@@ -844,6 +861,14 @@ echo Disable windows defender via registry
 reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disable windows defender services
+
+:: WinDefend             :: Microsoft Defender Antivirus Service
+:: WdNisSvc              :: Microsoft Defender Antivirus Network Inspection Service
+:: wscsvc                :: Windows Security Center Service
+:: SecurityHealthService :: Windows Security Health Service (Dashboard and Tray icon)
+:: Sense                 :: Windows Defender Advanced Threat Protection (Endpoint Detection)
+:: webthreatdefsvc       :: Microsoft Defender Antivirus Web Threat Protection
+:: webthreatdefusersvc   :: User-specific Web Threat Protection service
 for %%S in (
     "WinDefend"
     "WdNisSvc"
@@ -891,6 +916,14 @@ echo. & echo Enhance security via registry
 reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling unsafe windows features
+
+:: MicrosoftWindowsPowerShellV2     :: Legacy PowerShell version (lacks modern security logging)
+:: MicrosoftWindowsPowerShellV2Root :: Root components for PowerShell 2.0
+:: SMB1Protocol                     :: Old file sharing protocol (vulnerable to ransomware like WannaCry)
+:: SmbDirect                        :: Remote Direct Memory Access (RDMA) for SMB
+:: TFTP                             :: Trivial File Transfer Protocol (unsecured file transfer)
+:: TelnetClient                     :: Unencrypted remote login client
+:: WCF-TCP-PortSharing45            :: .NET Framework 4.5 TCP Port Sharing service
 for %%F in (
     "MicrosoftWindowsPowerShellV2"
     "MicrosoftWindowsPowerShellV2Root"
@@ -911,6 +944,11 @@ for %%F in (
 )
 
 echo Disabling unsafe windows services
+
+:: mrxsmb10       :: SMB 1.0/CIFS File Server Driver (High security risk)
+:: RemoteRegistry :: Allows remote users to modify Windows Registry settings
+:: SNMP           :: Simple Network Management Protocol (Often used for network reconnaissance)
+:: SNMPTRAP       :: Receives trap messages generated by local or remote SNMP agents
 for %%S in (
     "mrxsmb10"
     "RemoteRegistry"
@@ -980,6 +1018,10 @@ echo. & echo Improve network settings via registry
 reg import "Files\Network\NetworkTweaks.reg" >> "%LOG_FILE%" 2>&1
 
 echo Optimizing TCP Global Parameters
+
+:: fastopen=enabled         :: TCP Fast Open (TFO) - Speeds up successive TCP connections
+:: fastopenfallback=enabled :: Allows fallback to standard TCP if Fast Open fails
+:: rss=enabled              :: Receive Side Scaling - Distributes network processing across multiple CPU cores
 for %%P in (
     "fastopen=enabled"
     "fastopenfallback=enabled"
@@ -1127,6 +1169,8 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
+
+:: Google DNS: Highly reliable and fast global infrastructure
 if "%choice%"=="1" (
     set DNS_NAME=Google Public DNS
     set DNS_IPv4_1=8.8.8.8
@@ -1135,6 +1179,8 @@ if "%choice%"=="1" (
     set DNS_IPv6_2=2001:4860:4860::8844
     goto SET_DNS
 )
+
+:: Cloudflare DNS: Focused on speed and strict user privacy
 if "%choice%"=="2" (
     set DNS_NAME=Cloudflare DNS
     set DNS_IPv4_1=1.1.1.1
@@ -1143,6 +1189,8 @@ if "%choice%"=="2" (
     set DNS_IPv6_2=2606:4700:4700::1001
     goto SET_DNS
 )
+
+:: Cloudflare Family: Blocks malware and adult content automatically
 if "%choice%"=="3" (
     set DNS_NAME=Cloudflare Family DNS
     set DNS_IPv4_1=1.1.1.3
@@ -1151,6 +1199,8 @@ if "%choice%"=="3" (
     set DNS_IPv6_2=2606:4700:4700::1003
     goto SET_DNS
 )
+
+:: AdGuard DNS: Filters out ads and trackers at the network level
 if "%choice%"=="4" (
     set DNS_NAME=AdGuard DNS
     set DNS_IPv4_1=94.140.14.14
@@ -1159,6 +1209,8 @@ if "%choice%"=="4" (
     set DNS_IPv6_2=2a10:50c0::ad2:ff
     goto SET_DNS
 )
+
+:: Clean Browsing: Optimized for family safety and security filtering
 if "%choice%"=="5" (
     set DNS_NAME=Clean Browsing DNS
     set DNS_IPv4_1=185.228.168.168
@@ -1167,6 +1219,8 @@ if "%choice%"=="5" (
     set DNS_IPv6_2=2a0d:2a00:2::
     goto SET_DNS
 )
+
+:: Quad9 DNS: Strong emphasis on blocking malicious domains and phishing
 if "%choice%"=="6" (
     set DNS_NAME=Quad9 DNS
     set DNS_IPv4_1=9.9.9.9
@@ -1175,6 +1229,8 @@ if "%choice%"=="6" (
     set DNS_IPv6_2=2620:fe::9
     goto SET_DNS
 )
+
+:: OpenDNS: Provides customizable web filtering and high uptime
 if "%choice%"=="7" (
     set DNS_NAME=OpenDNS
     set DNS_IPv4_1=208.67.222.222
@@ -1260,10 +1316,10 @@ pause
 goto PROGRAMS_MANAGER
 
 :WHERE_CHOCO
-:: Check if Chocolatey (choco) is already installed
+:: Check if Chocolatey (Package Manager) is already installed
 where choco >nul 2>&1 && goto PROGRAMS_MENU_VAR
 
-:: Install choco If not found
+:: Install Chocolatey If not found
 cls & echo Install Chocolatey package manager
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
 
@@ -1277,6 +1333,7 @@ where choco >nul 2>&1 || (
 :PROGRAMS_MENU_VAR
 set "ON=(YES)"
 set "OFF=(NO)"
+
 :: Initialize all 18 options to "OFF" by default
 for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "opt%%A=%OFF%"
 
@@ -1312,7 +1369,7 @@ if /i "%choice%"=="0" goto PROGRAMS_MANAGER
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
 
-:: Process numerical input to toggle selections (supports multiple numbers like 1,2,5)
+:: Process numerical input to toggle selections (0-18)
 set "tokens=%choice:,= %"
 for %%G in (%tokens%) do (
     for %%N in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do (
@@ -1452,7 +1509,8 @@ goto :eof
 
 :UPDATE_PROGRAMS
 cls & echo Update all installed programs from chocolatey
-:: Choco must be available to upgrade the programs
+
+:: Chocolatey must be available to upgrade the programs
 where choco >nul 2>&1 || (
     echo Choco not found
 	pause
@@ -1463,6 +1521,7 @@ where choco >nul 2>&1 || (
 choco upgrade all -y
 call :GO PROGRAMS_MANAGER
 
+:: Get information about all installed and startup programs
 :PROGRAMS_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1"
 call :GO PROGRAMS_MANAGER
@@ -1479,7 +1538,7 @@ echo                           [5] Classic Photo Viewer                         
 echo.
 echo                           [7] Num Lock                                          [8] Notification
 echo.
-echo                           [9] UTC Time                                          [10] Context Menu              
+echo                           [9] UTC Time                                          [10] Context Menu
 echo.
 echo                                                          [0] Back
 echo.
@@ -1504,8 +1563,8 @@ if "%choice%"=="3" (
     goto SUB_MENU
 )
 if "%choice%"=="4" (
-    set ROUTINE=SHORTCUT_ARROW
-    set REV_ROUTINE=REV_SHORTCUT_ARROW
+    set ROUTINE=HIDE_SHORTCUT_ARROW
+    set REV_ROUTINE=SHOW_SHORTCUT_ARROW
     set APPLY=Remove arrow from shortcut
 	set REVERT=Default arrow shortcut
     set MENU=CUSTOMIZATION_MENU
@@ -1528,8 +1587,8 @@ if "%choice%"=="6" (
     goto SUB_MENU
 )
 if "%choice%"=="7" (
-    set ROUTINE=DIS_NUM_LOCK
-    set REV_ROUTINE=ENA_NUM_LOCK
+    set ROUTINE=NUM_LOCK_OFF
+    set REV_ROUTINE=NUM_LOCK_ON
     set APPLY=Disable num lock when logging in
 	set REVERT=Enable num lock when logging in
     set MENU=CUSTOMIZATION_MENU
@@ -1573,7 +1632,7 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set ROUTINE=SHOW_EXTENSIONS
-    set REV_ROUTINE=DIS_SHOW_EXTENSIONS
+    set REV_ROUTINE=HIDE_EXTENSIONS
     set APPLY=Show files extensions
 	set REVERT=Disable display files extensions
     set MENU=FILE_EXPLORER_MENU
@@ -1581,14 +1640,14 @@ if "%choice%"=="1" (
 )
 if "%choice%"=="2" (
     set ROUTINE=SHOW_HIDDEN
-    set REV_ROUTINE=DIS_SHOW_HIDDEN
+    set REV_ROUTINE=DIS_HIDDEN
     set APPLY=Show hidden files
 	set REVERT=Disable display hidden files
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
 if "%choice%"=="3" (
-    set ROUTINE=DIS_SHOW_RECENT
+    set ROUTINE=HIDE__RECENT
     set REV_ROUTINE=SHOW_RECENT
     set APPLY=Disable display recent files
 	set REVERT=Show recent files
@@ -1614,39 +1673,38 @@ goto FILE_EXPLORER_MENU
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO FILE_EXPLORER_MENU
 
-:: Hide file extensions (standard Windows default behavior)
-:DIS_SHOW_EXTENSIONS
+:: Hide file extensions
+:HIDE_EXTENSIONS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 1 /f >nul 2>&1
 call :GO FILE_EXPLORER_MENU
 
-:: Show both hidden files and protected operating system files (SuperHidden)
+:: Show both hidden files and protected operating system files
 :SHOW_HIDDEN
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 1 /f >nul 2>&1
 call :GO FILE_EXPLORER_MENU
 
-:: Hide hidden files (Value 2) and protected system files (Value 0)
-:DIS_SHOW_HIDDEN
+:: Hide hidden files and protected system files
+:DIS_HIDDEN
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO FILE_EXPLORER_MENU
 
 :: Disable "Recent Files" and "Frequent Folders" in Quick Access and the Start Menu
-:DIS_SHOW_RECENT
+:HIDE__RECENT
+reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d 0 /f
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d 0 /f >nul 2>&1
 goto ON_THIS_PC
 
 :: Re-enable "Recent Files" and "Frequent Folders" history tracking
 :SHOW_RECENT
+reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 1 /f >nul 2>&1reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d 1 /f >nul 2>&1
 goto ON_QUICK_ACCESS
 
 :: Configure File Explorer to open to "This PC" by default
@@ -1681,59 +1739,59 @@ call :GO CUSTOMIZATION_MENU
 rd /s /q "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Remove/Change the small arrow icon that appears on desktop shortcuts
-:SHORTCUT_ARROW
+:: Remove the small arrow icon that appears on desktop shortcuts
+:HIDE_SHORTCUT_ARROW
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /d "C:\Windows\System32\imageres.dll,197" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /t REG_BINARY /d 00000000 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Restore the default Windows shortcut arrow icon
-:REV_SHORTCUT_ARROW
+:SHOW_SHORTCUT_ARROW
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Restore the classic Windows Photo Viewer (from Windows 7 era) via .reg file import
+:: Restore the classic Windows Photo Viewer
 :PHOTO_VIEWER
-reg import "Files\Customization\RestoreOldWindowsPhotoViewer.reg" >nul 2>&1
+reg import "Files\Customization\RestoreClassicPhotoViewer.reg" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Remove the classic Windows Photo Viewer registry entries
 :REMOVE_PHOTO_VIEWER
-reg import "Files\Customization\RemovingOldWindowsPhotoViewer.reg" >nul 2>&1
+reg import "Files\Customization\RemovingClassicPhotoViewer.reg" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Disable Windows Telemetry and other "Trash" (unnecessary) background data collection
+:: Disable Trash feature
 :TRASH
 reg import "Files\Customization\DisableTrash.reg" >nul 2>&1
 reg import "Files\Security\DisableTelemetry.reg" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Restore default Windows Telemetry and standard data collection settings
+:: Restore default Windows Trash
 :DEF_TRASH
 reg import "Files\Customization\DefaultTrash.reg" >nul 2>&1
 reg import "Files\Security\DefaultTelemetry.reg" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Ensure NumLock is OFF at the login screen and for the current user
-:DIS_NUM_LOCK
+:NUM_LOCK_OFF
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Ensure NumLock is ON at the login screen and for the current user
-:ENA_NUM_LOCK
+:NUM_LOCK_ON
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Disable the Action Center (Notification Center) and all Toast notifications
+:: Disable notifications
 :DIS_NOTIFICATION
 reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Re-enable the Notification Center and allow Toast notifications
+:: Re-enable notification
 :ENA_NOTIFICATION
 reg delete "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 1 /f >nul 2>&1
@@ -1868,11 +1926,11 @@ goto SYSTEM_MENU
 cls
 call :PATH "System" "RestorePoint"
 
-:: Execute a PowerShell script to create the actual restore point
+:: Execute a PowerShell script to create restore point
 echo Creating System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-:: Error Handling: If the restore point fails (ErrorLevel not 0), begin the repair sequence
+:: If the restore point fails (ErrorLevel not 0), begin the repair sequence
 if %errorlevel% neq 0 (
     echo Creating a restore point failed. Attempting to fix system dependencies
     
@@ -1884,18 +1942,18 @@ if %errorlevel% neq 0 (
     echo Updating policies
     gpupdate /force >> "%LOG_FILE%" 2>&1
     
-    :: Reset and Configure the required services: 
-    :: VSS (Volume Shadow Copy), swprv (Provider), and Schedule (Task Scheduler)
     echo Starting restore point services
-    for %%S in (
-    "VSS"
-    "swprv"
-    "Schedule"
-    ) do (
-    call :SC_CONFIGURE "%%S" "demand"
-    call :SC_CONTROL "%%S" "start" 
-    )
 	
+	:: VSS      :: Volume Shadow Copy Service (Manages data backup/snapshots)
+    :: swprv    :: Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
+    for %%S in (
+        "VSS"
+        "swprv"
+    ) do (
+        call :SC_CONFIGURE "%%S" "demand"
+        call :SC_CONTROL "%%S" "start"
+    )
+
     echo Creating system restore point
     powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 )
@@ -1923,11 +1981,19 @@ pause
 goto REGISTRY_BACKUP
 
 :FULL_BACKUP
-cls & echo Creating Full Registry Backup
+cls
 call :PATH "System" "FullRegistryBackup"
 call :TIME_STAMP_DIR "System" "FullRegistryBackup"
 
 :: Define the main system Hives for binary export
+echo Creating Full Registry Backup
+
+:: HKLM\SYSTEM,SYSTEM"             :: Hardware configuration and service settings
+:: HKLM\SOFTWARE,SOFTWARE"         :: Installed application settings and OS configuration
+:: HKLM\SAM,SAM"                   :: Security Accounts Manager (User passwords/credentials)
+:: HKLM\SECURITY,SECURITY"         :: System-wide security policies and permissions
+:: HKU\.DEFAULT,DEFAULT"           :: Default user profile template for new accounts
+:: HKCU\Software\Classes,UsrClass" :: User-specific file associations and COM settings
 for %%A in (
     "HKLM\SYSTEM,SYSTEM"
     "HKLM\SOFTWARE,SOFTWARE"
@@ -1945,7 +2011,7 @@ for %%A in (
 if exist "%BACKUP_DIR%\*.hive" (
     choice /C YN /N /M "Compress files? (Y/N): "
     if errorlevel 2 (
-        echo Backup files saved in: %BACKUP_DIR%
+        echo. & echo Backup files saved in: %BACKUP_DIR%
     ) else (
 	    :: Call PowerShell to zip the large binary hives to save space
         powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
@@ -1958,12 +2024,12 @@ echo More details in: %LOG_FILE%
 call :GO REGISTRY_BACKUP
 
 :IMPORTANT_BACKUP
-cls & echo Creating Important Registry Backup
+cls
 call :PATH "System" "ImportantRegistryBackup"
 call :TIME_STAMP_DIR "System" "ImportantRegistryBackup"
 
+echo Creating Important Registry Backup
 :: Read specific keys from an external text file for a targeted backup
-:: This allows backing up only key Which the script may have modified
 for /f "usebackq tokens=1,2 delims=," %%K in ("Files\System\RegKey.txt") do (
     echo  Export: %%K
     reg export "%%K" "%BACKUP_DIR%\%%L" /y >>"%LOG_FILE%" 2>&1
@@ -1972,7 +2038,7 @@ for /f "usebackq tokens=1,2 delims=," %%K in ("Files\System\RegKey.txt") do (
 if exist "%BACKUP_DIR%\*.reg" (
     choice /C YN /N /M "Compress files? (Y/N): "
     if errorlevel 2 (
-        echo Backup files saved in: %BACKUP_DIR%
+        echo. & echo Backup files saved in: %BACKUP_DIR%
     ) else (
         powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
     )
@@ -2002,15 +2068,18 @@ echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-
 pause
 goto ACTIVATION_MENU
 
+:: Activating Windows and Microsoft Office using MAS script
 :RUN_ACTIVATION
-cls & echo Activating Windows and Microsoft Office using MAS script
+cls & echo Activating Windows and Microsoft Office
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
 call :GO ACTIVATION_MENU
 
+:: Check if the Machin is Activated or not
 :CHECK_ACTIVATION
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivateStatus.ps1"
 call :GO ACTIVATION_MENU
 
+:: Display basic system information 
 :SYSTEM_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\SystemInfo.ps1"
 call :GO SYSTEM_MENU
@@ -2044,6 +2113,7 @@ echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-
 pause
 goto TOOLS_MENU
 
+:: Scan and verify the integrity of all protected system files and repair corrupted
 :SFC_SCAN
 cls & echo Running sfc scan
 sfc /scannow
@@ -2112,6 +2182,7 @@ for %%d in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
 )
 
 echo. & set /p "drive=Enter drive letter to check: "
+
 :: Clean the input: remove quotes and grab only the first character
 set "DRIVE=%DRIVE:"=%"
 set "DRIVE=%DRIVE:~0,1%"
@@ -2147,7 +2218,7 @@ echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-
 pause
 goto CHECK_MENU
 
-:: Scans for errors but does fix anything
+:: Scans for errors but does not fix anything
 :DISK_STATUS
 cls & echo Displays status of drive: %DRIVE%
 timeout /t 2 >nul
@@ -2171,14 +2242,17 @@ timeout /t 2 >nul
 chkdsk %DRIVE%: /r
 call :GO CHECK_MENU
 
+:: Launch Memory Diagnostic
 :MEMORY_DIAG
 start "" mdsched.exe
 goto TOOLS_MENU
 
+:: Launch Disk Cleanup
 :CLEAN_MGR
 cleanmgr.exe /d C: /VERYLOWDISK
 goto TOOLS_MENU
 
+:: Delete "%ProgramData%\Win_Tweaks" folder
 :DELETE_SCRIPT_DATA
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1"
 call :GO TOOLS_MENU
@@ -2205,15 +2279,18 @@ echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-
 pause
 goto OTHER_MENU
 
+:: launch CTT
 :CTT
 cls & echo Running chris titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
 call :GO OTHER_MENU
 
+:: Downlod and launch O&O Shutup 10 ++
 :OO_SHUTUP
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1"
 call :GO OTHER_MENU
 
+:: Downlod and launch Speedtest CLI 
 :NET_SPEED_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeedNetSpeed.ps1"
 call :GO OTHER_MENU
@@ -2239,7 +2316,7 @@ for /f "usebackq delims=" %%i in ("%~2") do (
             schtasks /change /tn "%%i" /enable >nul 2>&1
         )
 
-        :: Check if the command failed
+        :: Check if the command is failed
         if errorlevel 1 (
             set "TASK_RESULT=FAILED"
         )
@@ -2254,13 +2331,11 @@ goto :eof
 echo Cleaning Temp
 for %%F in (
     "%TEMP%"
-    "%APPDATA%\TEMP"
     "%SYSTEMROOT%\TEMP"
-    "%ALLUSERSPROFILE%\TEMP"
 ) do (
     if exist "%%~F" (
         :: Delete all files in the directory
-        del /f /q "%%~F\*.*" >nul 2>&1
+        del /f /q "%%~F\*" >nul 2>&1
         :: Remove all sub-directories
         for /d %%D in ("%%~F\*") do (
             rd /s /q "%%D" >nul 2>&1
@@ -2319,8 +2394,6 @@ goto :eof
 :SC_CONTROL
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)
-
-:: Verify the service exists
 sc query "%~1" >nul 2>&1
 if %errorlevel% equ 0 (
     if /i "%~2"=="stop" (
@@ -2346,11 +2419,8 @@ goto :eof
 :SC_CONFIGURE
 :: %~1 = Service Name
 :: %~2 = Start Type
-
-:: Verify the service exists
 sc query "%~1" >nul 2>&1
 if %errorlevel% equ 0 (
-    :: Apply the configuration change
     sc config "%~1" start= %~2 >nul 2>&1
     if %errorlevel% equ 0 (
         echo [SUCCESS] %~1 >>"%LOG_FILE%" 2>&1
@@ -2358,7 +2428,6 @@ if %errorlevel% equ 0 (
         echo [FAILED] %~1 >>"%LOG_FILE%" 2>&1
     )
 ) else (
-    :: Log if the service doesn't exist
     echo [NOT FOUND] %~1 >>"%LOG_FILE%" 2>&1
 )
 goto :eof
@@ -2370,7 +2439,7 @@ goto :eof
 :: Check if the service key exists
 reg query "HKLM\SYSTEM\CurrentControlSet\Services\%1" >nul 2>&1
 if %errorlevel% equ 0 (
-    :: Set the Start value
+    :: Set the Start Type value
     reg add "HKLM\SYSTEM\CurrentControlSet\Services\%1" /v Start /t REG_DWORD /d %2 /f >nul 2>&1
     if %errorlevel% equ 0 (
         echo [SUCCESS] %1 >> "%LOG_FILE%" 2>&1
@@ -2422,7 +2491,7 @@ goto :eof
 set "TARGET_DIR=%ProgramData%\Win_Tweaks\%~1"
 
 :: Create the folder if it not exist
-:: Prompt to exit if failed
+:: Prompt to exit if creation is failed
 if not exist "%TARGET_DIR%" (
     mkdir "%TARGET_DIR%" >nul 2>&1
     if errorlevel 1 (

@@ -1,0 +1,100 @@
+Windows Registry Editor Version 5.00
+
+; Remove the entire FileAssociations key - Removes all extension mappings for Photo Viewer
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations]
+
+; Remove the open shell command for photoviewer.dll application
+[-HKEY_CLASSES_ROOT\Applications\photoviewer.dll\shell\open]
+
+; Remove specific file type associations (Bitmap, JFIF, JPEG, GIF, PNG, WDP)
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Bitmap]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.JFIF]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Jpeg]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Gif]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Png]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Wdp]
+
+; Remove the Image Preview command from system file associations
+[-HKEY_CLASSES_ROOT\SystemFileAssociations\image\shell\Image Preview]
+
+; This removes the specific drag-and-drop handlers for these formats
+[HKEY_CLASSES_ROOT\jpegfile\shell\open\DropTarget]
+"Clsid"=-
+
+[HKEY_CLASSES_ROOT\pngfile\shell\open\DropTarget]
+"Clsid"=-
+
+; This clears the file type associations for these extensions
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.bmp]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.ico]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.jfif]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.jpg]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.jpeg]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.gif]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.png]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.tif]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.tiff]
+@=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\.wdp]
+@=-
+
+; This removes Photo Viewer from the list of programs that can open these file types
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.bmp\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.gif\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.ico\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpeg\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jfif\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpeg\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.jpg\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.png\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.tif\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.tiff\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.wdp\OpenWithProgids]
+"PhotoViewer.FileAssoc.Tiff"=-
+
+; This keeps Photo Viewer registered but without file associations
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities]
+"ApplicationDescription"="@%ProgramFiles%\\Windows Photo Viewer\\photoviewer.dll,-3069"
+"ApplicationName"="@%ProgramFiles%\\Windows Photo Viewer\\photoviewer.dll,-3009"
+
+; This creates a minimal Photo Viewer setup with only TIFF support
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations]
+".tif"="PhotoViewer.FileAssoc.Tiff"
+".tiff"="PhotoViewer.FileAssoc.Tiff"

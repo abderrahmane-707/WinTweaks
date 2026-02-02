@@ -1,10 +1,21 @@
 Windows Registry Editor Version 5.00
 
+; This stops Windows from periodically searching for available Wi-Fi networks when connected
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
 "BackgroundScanEnabled"=dword:00000000
 
+; SystemResponsiveness = 0: Reduces latency for real-time applications and games
+; NetworkThrottlingIndex = 0xFFFFFFFF: Removes network bandwidth limits for multimedia applications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile]
+"SystemResponsiveness"=dword:00000000
 "NetworkThrottlingIndex"=dword:ffffffff
 
+; Value 0x20 (32 decimal) specifically disables Teredo tunneling while keeping native IPv6 enabled
+; This helps avoid potential connectivity issues with IPv6 transition mechanisms
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters]
 "DisabledComponents"=dword:00000020
+
+; Increase server IRP stack size - Enhances file sharing performance for large directory operations
+; Value 30 (0x1E) increases the stack size from default 15 to handle more complex network file operations
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
+"IRPStackSize"=dword:0000001e
