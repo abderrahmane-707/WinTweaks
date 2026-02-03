@@ -84,7 +84,7 @@ if "%choice%"=="5" goto POWER_PLAN_MENU
 if "%choice%"=="6" goto HW_INFO_MENU
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-7)
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-6)
 pause
 goto PERFORMANCE_MENU
 
@@ -224,7 +224,6 @@ call :GO PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
-
 :: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set BROWSERS_OPEN=0
@@ -251,15 +250,14 @@ if "!BROWSERS_OPEN!"=="1" (
     )
 )
 
-:: Chromium-based browsers cleanup
-:: Default\Cache              :: Standard web cache
-:: Default\Code Cache         :: Compiled JS and site code
-:: Default\GPUCache           :: Graphics processor shader cache
-:: ShaderCache                :: Hardware-specific render cache
-:: Default\File System        :: Persistent local storage for web apps
-:: Default\Service Worker     :: Background scripts and offline data
-:: Default\Application Cache  :: Offline app data
-:: Default\Media Cache        :: Audio/Video streaming fragments
+:: Cache :              Standard web cache
+:: Code Cache :         Compiled JS and site code
+:: GPUCache :           Graphics processor shader cache
+:: ShaderCache :        Hardware-specific render cache
+:: File System :        Persistent local storage for web apps
+:: Service Worker:      Background scripts and offline data
+:: Application Cache :  Offline app data
+:: Media Cache :        Audio/Video streaming fragments
 for %%B in (
     "Google\Chrome|Google Chrome"
     "Microsoft\Edge|Microsoft Edge"
@@ -287,12 +285,11 @@ for %%B in (
     )
 )
 
-:: Mozilla Firefox cleanup
-:: cache2        :: Primary Firefox web cache
-:: thumbnails    :: Previews of visited websites (New Tab page)
-:: jumpListCache :: Windows Taskbar task history for Firefox
-:: OfflineCache  :: Data stored for offline web application usage
-:: minidumps     :: Small crash log files
+:: cache2 :          Primary Firefox web cache
+:: thumbnails :      Previews of visited websites (New Tab page)
+:: jumpListCache :   Windows Taskbar task history for Firefox
+:: OfflineCache :    Data stored for offline web application usage
+:: minidumps :       Small crash log files
 for %%B in (
     "Mozilla\Firefox|Mozilla Firefox"
 ) do (
@@ -361,7 +358,7 @@ goto POWER_PLAN_MENU
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\AddUltimatePerformance.ps1"
 call :GO POWER_PLAN_MENU
 
-:: Remove the "Ultimate Performance" plan from the list of options
+:: Remove the "Ultimate Performance" plan
 :REMOVE_ULTIMATE_PLAN
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\RemoveUltimatePerformance.ps1"
 call :GO POWER_PLAN_MENU
@@ -540,9 +537,9 @@ reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling windows telemetry services
 
-:: DiagTrack      :: Connected User Experiences and Telemetry
-:: dmwappushsvc   :: WAP Push Message Routing Service
-:: WerSvc         :: Windows Error Reporting Service
+:: DiagTrack :      Connected User Experiences and Telemetry
+:: dmwappushsvc :   WAP Push Message Routing Service
+:: WerSvc :         Windows Error Reporting Service
 for %%S in (
     "DiagTrack"
     "dmwappushsvc"
@@ -555,9 +552,8 @@ set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 echo. >> "%HOSTS_PATH%"
 for /f "usebackq delims=" %%L in ("%~dp0Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
-	:: Check if domain entry already exists in hosts file
     if errorlevel 1 (
-	    :: Append domain entry to redirect to localhost
+	    :: Add domain if exist
         echo %%L >> "%HOSTS_PATH%"
     )
 )
@@ -740,12 +736,12 @@ reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stop update services
 
-:: BITS          :: Background Intelligent Transfer Service
-:: CryptSvc      :: manages certificate validation and system file signatures
-:: DoSvc         :: Delivery Optimization
-:: UsoSvc        :: Update Orchestrator Service
-:: WaaSMedicSvc  :: Windows Update Medic Service
-:: wuauserv      :: Windows Update Service
+:: BITS :          Background Intelligent Transfer Service
+:: CryptSvc :      System files signatures
+:: DoSvc :         Delivery Optimization
+:: UsoSvc :        Update Orchestrator Service
+:: WaaSMedicSvc :  Windows Update Medic Service
+:: wuauserv :      Windows Update Service
 for %%S in (
     "BITS"
     "CryptSvc"
@@ -757,7 +753,7 @@ for %%S in (
     call :SC_CONTROL "%%S" "stop"  
 )
 
-:: This removes pending updates and update history
+:: Remove pending updates and update history
 echo Deleting SoftwareDistribution
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
@@ -772,7 +768,7 @@ del /f /q "%ALLUSERSPROFILE%\Application Data\Microsoft\Network\Downloader\qmgr*
 echo Delete update log file
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
-:: Restore the default Security Descriptors (Permissions) for BITS and Windows Update services
+:: Restore default Security Descriptors (Permissions) for BITS and Windows Update services
 :: This fixes "Access Denied" errors that prevent services from starting
 echo Resetting service security descriptors
 sc sdset bits D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;AU)(A;;CCLCSWRPWPDTLOCRRC;;;PU) >> "%LOG_FILE%" 2>&1
@@ -862,13 +858,13 @@ reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disable windows defender services
 
-:: WinDefend             :: Microsoft Defender Antivirus Service
-:: WdNisSvc              :: Microsoft Defender Antivirus Network Inspection Service
-:: wscsvc                :: Windows Security Center Service
-:: SecurityHealthService :: Windows Security Health Service (Dashboard and Tray icon)
-:: Sense                 :: Windows Defender Advanced Threat Protection (Endpoint Detection)
-:: webthreatdefsvc       :: Microsoft Defender Antivirus Web Threat Protection
-:: webthreatdefusersvc   :: User-specific Web Threat Protection service
+:: WinDefend :              Microsoft Defender Antivirus Service
+:: WdNisSvc :               Microsoft Defender Antivirus Network Inspection Service
+:: wscsvc :                 Windows Security Center Service
+:: SecurityHealthService :  Windows Security Health Service (Dashboard and Tray icon)
+:: Sense :                  Windows Defender Advanced Threat Protection (Endpoint Detection)
+:: webthreatdefsvc :        Microsoft Defender Antivirus Web Threat Protection
+:: webthreatdefusersvc :    User-specific Web Threat Protection service
 for %%S in (
     "WinDefend"
     "WdNisSvc"
@@ -917,13 +913,13 @@ reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling unsafe windows features
 
-:: MicrosoftWindowsPowerShellV2     :: Legacy PowerShell version (lacks modern security logging)
-:: MicrosoftWindowsPowerShellV2Root :: Root components for PowerShell 2.0
-:: SMB1Protocol                     :: Old file sharing protocol (vulnerable to ransomware like WannaCry)
-:: SmbDirect                        :: Remote Direct Memory Access (RDMA) for SMB
-:: TFTP                             :: Trivial File Transfer Protocol (unsecured file transfer)
-:: TelnetClient                     :: Unencrypted remote login client
-:: WCF-TCP-PortSharing45            :: .NET Framework 4.5 TCP Port Sharing service
+:: MicrosoftWindowsPowerShellV2 :      Legacy PowerShell version
+:: MicrosoftWindowsPowerShellV2Root :  Root components for PowerShell 2.0
+:: SMB1Protocol :                      Old file sharing protocol (vulnerable to ransomware like WannaCry)
+:: SmbDirect:                          Remote Direct Memory Access (RDMA) for SMB
+:: TFTP:                               Trivial File Transfer Protocol (unsecured file transfer)
+:: TelnetClient :                      Unencrypted remote login client
+:: WCF-TCP-PortSharing45 :             .NET Framework 4.5 TCP Port Sharing service
 for %%F in (
     "MicrosoftWindowsPowerShellV2"
     "MicrosoftWindowsPowerShellV2Root"
@@ -945,10 +941,10 @@ for %%F in (
 
 echo Disabling unsafe windows services
 
-:: mrxsmb10       :: SMB 1.0/CIFS File Server Driver (High security risk)
-:: RemoteRegistry :: Allows remote users to modify Windows Registry settings
-:: SNMP           :: Simple Network Management Protocol (Often used for network reconnaissance)
-:: SNMPTRAP       :: Receives trap messages generated by local or remote SNMP agents
+:: mrxsmb10:        SMB 1.0/CIFS File Server Driver (High security risk)
+:: RemoteRegistry : Allows remote users to modify Windows Registry settings
+:: SNMP:            Simple Network Management Protocol (Often used for network reconnaissance)
+:: SNMPTRAP:        Receives trap messages generated by local or remote SNMP agents
 for %%S in (
     "mrxsmb10"
     "RemoteRegistry"
@@ -1019,9 +1015,9 @@ reg import "Files\Network\NetworkTweaks.reg" >> "%LOG_FILE%" 2>&1
 
 echo Optimizing TCP Global Parameters
 
-:: fastopen=enabled         :: TCP Fast Open (TFO) - Speeds up successive TCP connections
-:: fastopenfallback=enabled :: Allows fallback to standard TCP if Fast Open fails
-:: rss=enabled              :: Receive Side Scaling - Distributes network processing across multiple CPU cores
+:: fastopen=enabled :          Speeds up successive TCP connections
+:: fastopenfallback=enabled :  Allows fallback to standard TCP if Fast Open fails
+:: rss=enabled :               Distributes network processing across multiple CPU cores
 for %%P in (
     "fastopen=enabled"
     "fastopenfallback=enabled"
@@ -1256,16 +1252,12 @@ cls & echo Set %DNS_NAME% server on all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
     echo  - Configure: %%b
     
-    :: Set the Primary IPv4 DNS server
+    :: Set the Primary and Secondary IPv4 DNS server
     netsh interface ipv4 set dns name="%%b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
-    
-    :: Add the Secondary IPv4 DNS server
     netsh interface ipv4 add dns name="%%b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
     
-    :: Set the Primary IPv6 DNS server
+    :: Set the Primary and Secondary IPv6 DNS server
     netsh interface ipv6 set dns name="%%b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
-    
-    :: Add the Secondary IPv6 DNS server
     netsh interface ipv6 add dns name="%%b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
 )
 
@@ -1530,15 +1522,15 @@ call :GO PROGRAMS_MANAGER
 cls & echo. & echo.
 echo                        ------------------------------ Customization ------------------------------
 echo.
-echo                           [1] File Explorer                                     [2] Dark Mode
+echo                           [1] File Explorer                                    [2] Dark Mode
 echo.
-echo                           [3] Power Setting                                     [4] Shortcut Arrow
+echo                           [3] Notification                                     [4] Shortcut Arrow
 echo.
-echo                           [5] Classic Photo Viewer                              [6] Trash Options 
+echo                           [5] Num Lock                                         [6] UTC Time
 echo.
-echo                           [7] Num Lock                                          [8] Notification
+echo                           [7] Power Setting                                    [8] Trash Options 
 echo.
-echo                           [9] UTC Time                                          [10] Context Menu
+echo                           [9] Classic Photo Viewer                             [10] Context Menu
 echo.
 echo                                                          [0] Back
 echo.
@@ -1555,10 +1547,10 @@ if "%choice%"=="2" (
     goto SUB_MENU
 )
 if "%choice%"=="3" (
-    set ROUTINE=POWER_SETTINGS
-    set REV_ROUTINE=REMOVE_POWER_SETTINGS
-    set APPLY=Activate power settings
-	set REVERT=Deleting power settings
+    set ROUTINE=DIS_NOTIFICATION
+    set REV_ROUTINE=ENA_NOTIFICATION
+    set APPLY=Disable notification center
+	set REVERT=Enable notification center
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1571,22 +1563,6 @@ if "%choice%"=="4" (
     goto SUB_MENU
 )
 if "%choice%"=="5" (
-    set ROUTINE=PHOTO_VIEWER
-    set REV_ROUTINE=REMOVE_PHOTO_VIEWER
-    set APPLY=Restore classic windows photo viewer
-	set REVERT=Remove classic windows photo viewer
-    set MENU=CUSTOMIZATION_MENU
-    goto SUB_MENU
-)
-if "%choice%"=="6" (
-    set ROUTINE=TRASH
-    set REV_ROUTINE=DEF_TRASH
-    set APPLY=Disable unnecessary windows features
-	set REVERT=Default unnecessary windows features
-    set MENU=CUSTOMIZATION_MENU
-    goto SUB_MENU
-)
-if "%choice%"=="7" (
     set ROUTINE=NUM_LOCK_OFF
     set REV_ROUTINE=NUM_LOCK_ON
     set APPLY=Disable num lock when logging in
@@ -1594,19 +1570,35 @@ if "%choice%"=="7" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="8" (
-    set ROUTINE=DIS_NOTIFICATION
-    set REV_ROUTINE=ENA_NOTIFICATION
-    set APPLY=Disable notification center
-	set REVERT=Enable notification center
-    set MENU=CUSTOMIZATION_MENU
-    goto SUB_MENU
-)
-if "%choice%"=="9" (
+if "%choice%"=="6" (
     set ROUTINE=UTC
     set REV_ROUTINE=Local_Time
     set APPLY=Set Time to UTC recommended for Dual Boot with Linux Systems
 	set REVERT=Set Time to Local Time
+    set MENU=CUSTOMIZATION_MENU
+    goto SUB_MENU
+)
+if "%choice%"=="7" (
+    set ROUTINE=POWER_SETTINGS
+    set REV_ROUTINE=REMOVE_POWER_SETTINGS
+    set APPLY=Activate power settings
+	set REVERT=Deleting power settings
+    set MENU=CUSTOMIZATION_MENU
+    goto SUB_MENU
+)
+if "%choice%"=="8" (
+    set ROUTINE=TRASH
+    set REV_ROUTINE=DEF_TRASH
+    set APPLY=Disable unnecessary windows features
+	set REVERT=Default unnecessary windows features
+    set MENU=CUSTOMIZATION_MENU
+    goto SUB_MENU
+)
+if "%choice%"=="9" (
+    set ROUTINE=PHOTO_VIEWER
+    set REV_ROUTINE=REMOVE_PHOTO_VIEWER
+    set APPLY=Restore classic windows photo viewer
+	set REVERT=Remove classic windows photo viewer
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1692,7 +1684,6 @@ call :GO FILE_EXPLORER_MENU
 
 :: Disable "Recent Files" and "Frequent Folders" in Quick Access and the Start Menu
 :HIDE__RECENT
-reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 0 /f >nul 2>&1
@@ -1701,10 +1692,10 @@ goto ON_THIS_PC
 
 :: Re-enable "Recent Files" and "Frequent Folders" history tracking
 :SHOW_RECENT
-reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 1 /f >nul 2>&1reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d 1 /f >nul 2>&1
 goto ON_QUICK_ACCESS
 
 :: Configure File Explorer to open to "This PC" by default
@@ -1811,9 +1802,11 @@ call :GO CUSTOMIZATION_MENU
 cls & echo. & echo.
 echo                        ------------------------------- Context Menu ------------------------------
 echo.
-echo                          [1] Command Prompt                                  [2] Restart Explorer
+echo                          [1] Command Prompt                                 [2] Command Prompt As Admin                             
 echo. 
-echo                          [3] Kill Frozen                                     [0] Back
+echo                          [3] Kill Frozen                                    [2] Restart Explorer
+echo.
+echo                                                          [0] Back
 echo.    
 echo                        ---------------------------------------------------------------------------
 
@@ -1821,12 +1814,20 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set ROUTINE=CMD_CONTEXT
     set REV_ROUTINE=REV_CMD_CONTEXT
-    set APPLY=Add "Open Command Prompt Here (Admin)" options to context menu
+    set APPLY=Add "Open CMD Here" options to context menu
 	set REVERT=Remove options
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
 if "%choice%"=="2" (
+    set ROUTINE=CMD_CONTEXT_ADMIN
+    set REV_ROUTINE=REV_CMD_CONTEXT_ADMIN
+    set APPLY=Add "Open CMD Here (Admin)" options to context menu
+	set REVERT=Remove options
+    set MENU=CONTEXT_MENU
+    goto SUB_MENU
+)
+if "%choice%"=="3" (
     set ROUTINE=EXPLORER_RESTART_CONTEXT
     set REV_ROUTINE=REV_EXPLORER_RESTART_CONTEXT
     set APPLY=Add "Restart Explorer" option to context menu
@@ -1834,7 +1835,7 @@ if "%choice%"=="2" (
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
-if "%choice%"=="3" (
+if "%choice%"=="4" (
     set ROUTINE=KILL_FROZEN_CONTEXT
     set REV_ROUTINE=REV_KILL_FROZEN_CONTEXT
     set APPLY=Add "Kill frozen process" option context menu
@@ -1844,14 +1845,32 @@ if "%choice%"=="3" (
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
 pause
 goto CONTEXT_MENU
 
-:: Add "Open Command Prompt Here (Admin)" to folder and background context menus
 :CMD_CONTEXT
+:: Define the menu text and add the cmd icon
+reg add "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser" /ve /d "Open CMD Here" /f >nul 2>&1
+reg add "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser" /v "Icon" /d "cmd.exe" /f >nul 2>&1
+reg add "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser\command" /ve /d "cmd.exe /k pushd \"%%1\"" /f >nul 2>&1
+
+:: Repeat the process for the background
+reg add "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser" /ve /d "Open CMD Here" /f >nul 2>&1
+reg add "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser" /v "Icon" /d "cmd.exe" /f >nul 2>&1
+reg add "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser\command" /ve /d "cmd.exe /k pushd \"%%V\"" /f >nul 2>&1
+call :GO CONTEXT_MENU
+
+:: Remove the "Open Command Prompt Here
+:REV_CMD_CONTEXT
+reg delete "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser" /f >nul 2>&1
+reg delete "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser" /f >nul 2>&1
+call :GO CONTEXT_MENU
+
+:: Add "Open Command Prompt Here (Admin)" to folder and background context menus
+:CMD_CONTEXT_ADMIN
 :: Define the menu text and add the UAC shield icon
-reg add "HKCR\Directory\shell\OpenCmdHere" /ve /d "Open Command Prompt Here (Admin)" /f >nul 2>&1
+reg add "HKCR\Directory\shell\OpenCmdHere" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
 reg add "HKCR\Directory\shell\OpenCmdHere" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
 reg add "HKCR\Directory\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 
@@ -1859,14 +1878,14 @@ reg add "HKCR\Directory\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 reg add "HKCR\Directory\shell\OpenCmdHere\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
 
 :: Repeat the process for the background of a folder (right-clicking on empty space)
-reg add "HKCR\Directory\Background\shell\OpenCmdHere" /ve /d "Open Command Prompt Here (Admin)" /f >nul 2>&1
+reg add "HKCR\Directory\Background\shell\OpenCmdHere" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
 reg add "HKCR\Directory\Background\shell\OpenCmdHere" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
 reg add "HKCR\Directory\Background\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 reg add "HKCR\Directory\Background\shell\OpenCmdHere\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Remove the "Open Command Prompt Here (Admin)"
-:REV_CMD_CONTEXT
+:REV_CMD_CONTEXT_ADMIN
 reg delete "HKCR\Directory\shell\OpenCmdHere" /f >nul 2>&1
 reg delete "HKCR\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
 call :GO CONTEXT_MENU
@@ -1930,7 +1949,6 @@ call :PATH "System" "RestorePoint"
 echo Creating System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-:: If the restore point fails (ErrorLevel not 0), begin the repair sequence
 if %errorlevel% neq 0 (
     echo Creating a restore point failed. Attempting to fix system dependencies
     
@@ -1944,8 +1962,8 @@ if %errorlevel% neq 0 (
     
     echo Starting restore point services
 	
-	:: VSS      :: Volume Shadow Copy Service (Manages data backup/snapshots)
-    :: swprv    :: Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
+	:: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
+    :: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
     for %%S in (
         "VSS"
         "swprv"
@@ -1988,12 +2006,6 @@ call :TIME_STAMP_DIR "System" "FullRegistryBackup"
 :: Define the main system Hives for binary export
 echo Creating Full Registry Backup
 
-:: HKLM\SYSTEM,SYSTEM"             :: Hardware configuration and service settings
-:: HKLM\SOFTWARE,SOFTWARE"         :: Installed application settings and OS configuration
-:: HKLM\SAM,SAM"                   :: Security Accounts Manager (User passwords/credentials)
-:: HKLM\SECURITY,SECURITY"         :: System-wide security policies and permissions
-:: HKU\.DEFAULT,DEFAULT"           :: Default user profile template for new accounts
-:: HKCU\Software\Classes,UsrClass" :: User-specific file associations and COM settings
 for %%A in (
     "HKLM\SYSTEM,SYSTEM"
     "HKLM\SOFTWARE,SOFTWARE"
@@ -2013,7 +2025,7 @@ if exist "%BACKUP_DIR%\*.hive" (
     if errorlevel 2 (
         echo. & echo Backup files saved in: %BACKUP_DIR%
     ) else (
-	    :: Call PowerShell to zip the large binary hives to save space
+	    :: Call PowerShell to zip the hives files
         powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
     )
 ) else (
@@ -2279,7 +2291,7 @@ echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-
 pause
 goto OTHER_MENU
 
-:: launch CTT
+:: Launch CTT
 :CTT
 cls & echo Running chris titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
@@ -2433,9 +2445,6 @@ if %errorlevel% equ 0 (
 goto :eof
 
 :REG_CONFIGURE
-:: %1 = Service Name
-:: %2 = Start Type
-
 :: Check if the service key exists
 reg query "HKLM\SYSTEM\CurrentControlSet\Services\%1" >nul 2>&1
 if %errorlevel% equ 0 (
