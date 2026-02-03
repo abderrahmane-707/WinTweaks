@@ -16,39 +16,39 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 64/128]
 "Enabled"=dword:00000000
 
-; Disable DES cipher suite - DES is cryptographically broken with 56-bit keys
+; Disable DES cipher suite (DES is cryptographically broken with 56-bit keys)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\DES 56/56]
 "Enabled"=dword:00000000
 
-; Disable Triple DES cipher suite - Though stronger than DES, still vulnerable to attacks
+; Disable Triple DES cipher suite (Though stronger than DES, still vulnerable to attacks)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\Triple DES 168]
 "Enabled"=dword:00000000
 
-; Disable MD5 hash algorithm - MD5 is cryptographically broken and vulnerable to collision attacks
+; Disable MD5 hash algorithm (MD5 is cryptographically broken and vulnerable to collision attacks)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\MD5]
 "Enabled"=dword:00000000
 
-; Disable legacy SSL 2.0 protocol - Highly insecure with multiple known vulnerabilities
+; Disable legacy SSL 2.0 protocol (Highly insecure with multiple known vulnerabilities)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 2.0\Server]
 "Enabled"=dword:00000000
 
-; Disable legacy SSL 3.0 protocol - Vulnerable to POODLE attack and other weaknesses
+; Disable legacy SSL 3.0 protocol (Vulnerable to POODLE attack and other weaknesses)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Server]
 "Enabled"=dword:00000000
 
-; Disable TLS 1.0 protocol - Old protocol with known security limitations
+; Disable TLS 1.0 protocol (Old protocol with known security limitations)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server]
 "Enabled"=dword:00000000
 
-; Disable TLS 1.1 protocol - Older protocol with known security limitations
+; Disable TLS 1.1 protocol (Older protocol with known security limitations)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server]
 "Enabled"=dword:00000000
 
-; Enable TLS 1.2 protocol - Modern secure protocol with strong cryptography
+; Enable TLS 1.2 protocol (Modern secure protocol with strong cryptography)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server]
 "Enabled"=dword:00000001
 
-; Enable TLS 1.3 protocol - Latest and most secure TLS protocol
+; Enable TLS 1.3 protocol (Latest and most secure TLS protocol)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server]
 "Enabled"=dword:00000001
 
@@ -113,7 +113,7 @@ Windows Registry Editor Version 5.00
 "EnableVirtualization"=dword:00000001
 "FilterAdministratorToken"=dword:00000000
 
-; Configure firewall profiles - Enable comprehensive firewall protection
+; Enable comprehensive firewall protection
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile]
 "EnableFirewall"=dword:00000001
 "DefaultInboundAction"=dword:00000001
@@ -134,22 +134,22 @@ Windows Registry Editor Version 5.00
 "DefaultOutboundAction"=dword:00000000
 "DisableNotifications"=dword:00000000
 
-; Configure remote SCM endpoints - Keep DCOM endpoints enabled for system functionality
+; Configure remote SCM endpoints (Keep DCOM endpoints enabled for system functionality)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
 "DisableRemoteScmEndpoints"=dword:00000000
 
-; Disable WiFi Sense hotspots - Prevents automatic connection to public hotspots
+; Disable WiFi Sense hotspots (Prevents automatic connection to public hotspots)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots]
 "value"=dword:00000000
 
-; Disable automatic OEM WiFi connections - Prevents automatic network connections
+; Disable automatic OEM WiFi connections (Prevents automatic network connections)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WlanSvc\WlanConfig]
 "AutoConnectAllowedOEM"=dword:00000000
 
-; Configure WiFi network manager settings - Disable open hotspot registration
+; Configure WiFi network manager settings (Disable open hotspot registration)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WlanSvc\AnqpCache]
 "OsuRegistrationStatus"=dword:00000000
 
-; Disable WiFi hotspot login - Prevents automatic login to public networks
+; Disable WiFi hotspot login (Prevents automatic login to public networks)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WifiNetworkManager\HotspotLogin]
 "IsEnabled"=dword:00000000

@@ -1,19 +1,11 @@
 Windows Registry Editor Version 5.00
 
-; This allows Windows to resume periodic scanning for available Wi-Fi networks
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
-"BackgroundScanEnabled"=-
-
-; SystemResponsiveness = 1: Returns to standard latency handling for real-time applications
-; NetworkThrottlingIndex = 1: Applies default network bandwidth limits for multimedia applications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile]
-"SystemResponsiveness"=dword:00000001
-"NetworkThrottlingIndex"=dword:00000001
+"SystemResponsiveness"=-
+"NetworkThrottlingIndex"=-
 
-; This allows all IPv6 transition technologies to function normally again
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters]
 "DisabledComponents"=-
 
-; This returns file sharing performance to standard levels
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
-"IRPStackSize"=dword:00000014
+"IRPStackSize"=-

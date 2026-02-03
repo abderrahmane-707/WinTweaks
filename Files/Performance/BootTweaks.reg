@@ -1,10 +1,10 @@
 Windows Registry Editor Version 5.00
 
-; Enable display of crash dump parameters - Shows additional debugging information during system crashes
+; Display debugging information during system crashes
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CrashControl]
 "DisplayParameters"=dword:00000001
 
-; Reduce service shutdown timeout - Decreases the time Windows waits for services to shut down
+; Set 1.5 s time to kill services befor shut down
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
 "WaitToKillServiceTimeout"="1500"
 
@@ -13,10 +13,6 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Control Panel\Desktop]
 "AutoEndTasks"="1"
 "WaitToKillAppTimeout"="1500"
-
-; This prevents the Autochk Proxy task from running, potentially reducing unnecessary system checks
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Autochk\Proxy]
-"Enabled"=dword:00000000
 
 ; Remove all startup programs by deleting the Run keys
 [-HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run]

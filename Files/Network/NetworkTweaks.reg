@@ -1,9 +1,5 @@
 Windows Registry Editor Version 5.00
 
-; This stops Windows from periodically searching for available Wi-Fi networks when connected
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
-"BackgroundScanEnabled"=dword:00000000
-
 ; SystemResponsiveness = 0: Reduces latency for real-time applications and games
 ; NetworkThrottlingIndex = 0xFFFFFFFF: Removes network bandwidth limits for multimedia applications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile]

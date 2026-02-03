@@ -1,91 +1,71 @@
 Windows Registry Editor Version 5.00
 
-; Disable Windows Feeds (News and Interests) - Prevents news feed in taskbar
+; Disable and hide News and Interests from task bar
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
 "EnableFeeds"=dword:00000000
 
-; Hide Meet Now button from system tray - Removes Teams meeting icon
+; Hide Meet Now button from system tray
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "HideSCAMeetNow"=dword:00000001
 
-; Disable online search features in File Explorer - Prevents web searches from search box
+; Disable online search in File Explorer
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
 "DisableSearchOnline"=dword:00000001
 "DisableSearchBoxSuggestions"=dword:00000001
 
-; Configure Windows Search to block cloud/web features - Prevents Bing integration in search
+; Configure Windows Search to block cloud/web features
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
 "AllowCloudSearch"=dword:00000000
 "ConnectedSearchUseWeb"=dword:00000000
 "DisableWebSearch"=dword:00000001
 "BingSearchEnabled"=dword:00000000
 
-; Disable Windows consumer features and suggestions - Blocks tips, ads, and recommendations
+; Disable Windows consumer features and suggestions (Blocks tips, ads, and recommendations)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
 "DisableWindowsConsumerFeatures"=dword:00000001
 "DisableThirdPartySuggestions"=dword:00000001
 "DisableSoftLanding"=dword:00000001
 "DisableWindowsTips"=dword:00000001
 
-; Skip privacy experience during OOBE - Bypasses privacy setup screens on first boot
+; Skip privacy experience during OOBE
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
 "DisablePrivacyExperience"=dword:00000001
 
-; Disable Game DVR and broadcasting features - Turns off Xbox game recording functionality
+; Disable Game DVR (Turns off Xbox game recording functionality)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
 "AllowGameDVR"=dword:00000000
 
-; Disable Sticky Keys sound effect - Sets flag to prevent sticky keys prompt sound
-[HKEY_LOCAL_MACHINE\Control Panel\Accessibility\StickyKeys]
-"Flags"="510"
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR]
+"value"=dword:00000000
 
-; Disable featured software updates - Prevents optional software recommendations from Windows Update
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
-"EnableFeaturedSoftware"=dword:00000000
-
-; Additional Game DVR settings for current user - More granular control over game recording
-[HKEY_CURRENT_USER\System\GameConfigStore]
-"GameDVR_FSEBehavior"=dword:00000002
-"GameDVR_Enabled"=dword:00000000
-"GameDVR_HonorUserFSEBehaviorMode"=dword:00000001
-"GameDVR_EFSEFeatureFlags"=dword:00000000
-
-; Disable automatic map updates - Turns off Maps app background updates
-[HKEY_LOCAL_MACHINE\SYSTEM\Maps]
-"AutoUpdateEnabled"=dword:00000000
-
-; Hide Task View button from taskbar - Removes the Task View button between Cortana and system tray
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"ShowTaskViewButton"=dword:00000000
-
-; Set Shell Feeds Taskbar View Mode - Configures how feeds appear in taskbar
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Feeds]
-"ShellFeedsTaskbarViewMode"=dword:00000002
-
-; Disable System Configuration Offers - Prevents periodic system configuration prompts
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules]
-"NumberOfSIUFInPeriod"=dword:00000000
-
-; Configure Delivery Optimization to use local network only - Disables internet-based update sharing
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config]
-"DODownloadMode"=dword:00000000
-
-; Policy setting for Delivery Optimization - Ensures download mode restriction applies via Group Policy
+; Disable share updates over the network
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 "DODownloadMode"=dword:00000000
 
-; Hide People button from taskbar - Removes the People hub from the taskbar
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People]
-"PeopleBand"=dword:00000000
+; Disable Sticky Keys sound effect
+[HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
+"Flags"="510"
 
-; Enable Long Path support - Allows file paths longer than 260 characters
+; Disable featured software updates
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
+"EnableFeaturedSoftware"=dword:00000000
+
+; Disable automatic map updates
+[HKEY_LOCAL_MACHINE\SYSTEM\Maps]
+"AutoUpdateEnabled"=dword:00000000
+
+; Allows file paths longer than 260 characters
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem]
 "LongPathsEnabled"=dword:00000001
 
-; Disable Scoobe (Get Started) experiences - Prevents "Get Started" feature suggestions
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
+; Disable Scoobe (Get Started) experiences
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
 "ScoobeSystemSettingEnabled"=dword:00000000
 
-; Disable Background Access Applications - Prevents apps from running in background when not in use
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications]
+; Disable apps from running in background when not in use
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications]
 "GlobalUserDisabled"=dword:00000001
+
+; Stops Windows from periodically searching for available Wi-Fi networks when connected
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
+"BackgroundScanEnabled"=dword:00000000

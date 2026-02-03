@@ -8,15 +8,15 @@ Windows Registry Editor Version 5.00
 "RestrictImplicitInkCollection"=dword:00000001
 "RestrictImplicitTextCollection"=dword:00000001
 
-; Disable advertising ID tracking - Prevents apps from using advertising identifier
+; Disable advertising ID tracking (Prevents apps from using advertising identifier)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo]
 "DisabledByGroupPolicy"=dword:00000001
 
-; Disable tailored experiences with diagnostic data - Stops personalized content based on usage data
+; Disable tailored experiences with diagnostic data (Stops personalized content based on usage data)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Privacy]
 "TailoredExperiencesWithDiagnosticDataEnabled"=dword:00000000
 
-; Disable WiFi hotspot reporting - Prevents sharing WiFi location data
+; Disable WiFi hotspot reporting (Prevents sharing WiFi location data)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting]
 "value"=dword:00000000
 
@@ -35,11 +35,11 @@ Windows Registry Editor Version 5.00
 "MaxTelemetryAllowed"=dword:00000000
 "DisableTelemetryOptInChangeNotification"=dword:00000001
 
-; Disable Customer Experience Improvement Program - Turns off SQM (Software Quality Metrics) data collection
+; Turns off SQM (Software Quality Metrics) data collection
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows]
 "CEIPEnable"=dword:00000000
 
-; Disable Windows Error Reporting - Prevents error reports from being sent to Microsoft
+; Disable Windows Error Reporting
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting]
 "Disabled"=dword:00000001
 
@@ -61,19 +61,19 @@ Windows Registry Editor Version 5.00
 "PublishUserActivities"=dword:00000000
 "UploadUserActivities"=dword:00000000
 
-; Disable tailored experiences with diagnostic data - Prevents Microsoft from using your data for customization
+; Prevents Microsoft from using your data for customization
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
 "DisableTailoredExperiencesWithDiagnosticData"=dword:00000001
 
-; Opt out of PowerShell telemetry - Prevents PowerShell from sending usage data
+; Prevents PowerShell from sending usage data
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment]
 "POWERSHELL_TELEMETRY_OPTOUT"="1"
 
-; Prevent handwriting data sharing - Blocks sharing of handwritten input data
+; Blocks sharing of handwritten input data
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\TabletPC]
 "PreventHandwritingDataSharing"=dword:00000001
 
-; Disable User Account Rating - Turns off application compatibility telemetry
+; Turns off application compatibility telemetry
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppCompat]
 "DisableUAR"=dword:00000001
 

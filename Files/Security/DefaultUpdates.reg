@@ -20,7 +20,3 @@ Windows Registry Editor Version 5.00
 "BranchReadinessLevel"=-
 "DeferFeatureUpdatesPeriodInDays"=-
 "DeferQualityUpdatesPeriodInDays"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
-"IncludeRecommendedUpdates"=-
-"EnableFeaturedSoftware"=-
