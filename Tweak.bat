@@ -116,7 +116,7 @@ if "%choice%"=="2" (
 )
 if "%choice%"=="3" (
     set FILE=Files\Performance\DefaultServicesSettings.txt
-    set MESSAGE=REVERT most windows services to default settings
+    set MESSAGE=Restore most windows services to default settings
     set LOG=DefaultServicesSettings
     goto SET_SERVICES
 )
@@ -1067,6 +1067,54 @@ call :GO NETWORK_MENU
 cls
 call :PATH "Network" "NetworkReset"
 
+echo Stopping Network Services
+
+:: Dhcp:      Registers and updates IP addresses and DNS 
+:: Dnscache:  Caches DNS names to resolve website addresses faster  
+:: dot3svc:   Handles authentication for wired (Ethernet) network connections. 
+:: netman:    Manages objects in the Network
+:: netprofm:  Identifies the networks the computer has connected to.
+:: nlasvc:    Collects and stores configuration information
+:: Nsi:       Delivers network notifications
+:: WlanSvc:   Connect to Wi-Fi
+:: WwanSvc:   Manages mobile broadband
+for %%S in (
+    "Dhcp"
+    "Dnscache"
+    "dot3svc"
+    "netman"
+    "netprofm"
+    "nlasvc"
+    "Nsi"
+    "WlanSvc"
+    "WwanSvc"
+) do (
+    call :SC_CONTROL "%%S" "stop"  
+)
+
+echo Configuring Essential Services
+for %%S in (
+    "Dhcp"
+    "Dnscache"
+    "nlasvc"
+    "Nsi"
+    "WlanSvc"
+) do (
+    call :SC_CONFIGURE "%%S" "auto" 
+    call :SC_CONTROL "%%S" "start"  
+)
+
+echo Configuring Interface Services
+for %%S in (
+    "dot3svc"
+    "netman"
+    "netprofm"
+    "WwanSvc"
+) do (
+    call :SC_CONFIGURE "%%S" "demand" 
+    call :SC_CONTROL "%%S" "start"  
+)
+
 :: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
@@ -1091,6 +1139,14 @@ netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
 :: Restore Windows Firewall to its default out-of-the-box rules
 echo Reset Firewall Rules
 netsh advfirewall reset >> "%LOG_FILE%" 2>&1
+
+:: Clears the local cache used to optimize WAN traffic
+echo Resetting BranchCache
+netsh branchcache reset
+
+:: Forces the HTTP.sys driver to write all pending logs to the disk immediately
+echo Flushing HTTP log buffers
+netsh http flush logbuffer
 
 :: Refresh NetBIOS names by purging and reloading the remote cache table
 echo Refreshing NetBIOS names
@@ -1344,7 +1400,7 @@ for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "opt%%A=%OFF%"
 cls & echo. & echo.
 echo                        -------------------------------- Programs ---------------------------------
 echo.
-echo                           [1] Google Chrome           [7] XnViewMP              [13] All VC++
+echo                           [1] Google Chrome           [7] XnViewMP              [13] VC++ (2015–2022)
 echo.
 echo                           [2] Brave                   [8] Sumatra PDF           [14] DirectX
 echo.
@@ -1367,8 +1423,8 @@ call :SHOW_SELECTED
 
 echo. & set "choice=" & set /p "choice=--> Select an option and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
+if "%choice%"=="0" goto PROGRAMS_MANAGER
 if /i "%choice%"=="S" goto INSTALL_PROGRAMS
-if /i "%choice%"=="0" goto PROGRAMS_MANAGER
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
 
@@ -1447,8 +1503,8 @@ call :IS_ON OPT12 && (
     choco install qbittorrent -y
 )
 call :IS_ON OPT13 && (
-    echo Installing VC++ Redistributables
-    choco install vcredist-all -y
+    echo Installing VC++ Redistributables (2015-2022)
+    choco install vcredist140 -y
 )
 call :IS_ON OPT14 && (
     echo Installing DirectX
