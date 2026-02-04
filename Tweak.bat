@@ -1293,19 +1293,30 @@ echo                        ------------------------------ Programs Manager ----
 echo.
 echo                         [1] Download Programs                                 [2] Update Programs
 echo.
-echo                         [3] Programs Info                                     [0] Back
+echo                         [3] Remove ALL MS Apps                                [4] Programs Info                                     
+echo.
+echo                                                          [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto WHERE_CHOCO
 if "%choice%"=="2" goto UPDATE_PROGRAMS
-if "%choice%"=="3" goto PROGRAMS_INFO
+if "%choice%"=="3" goto REMOVE_MS
+if "%choice%"=="4" goto PROGRAMS_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
 pause
 goto PROGRAMS_MANAGER
+
+:REMOVE_MS
+cls & echo WARNING: This will remove ALL Microsoft store apps!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto PROGRAMS_MANAGER
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
+call :GO PROGRAMS_MANAGER
 
 :WHERE_CHOCO
 :: Check if Chocolatey (Package Manager) is already installed
