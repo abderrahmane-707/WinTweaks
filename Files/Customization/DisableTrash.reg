@@ -42,6 +42,14 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 "DODownloadMode"=dword:00000000
 
+; Force-disables current experimentation
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\System]
+"AllowExperimentation"=dword:00000000
+
+; Sets the default system policy to 'Disallowed' to ensure consistency
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowExperimentation]
+"value"=dword:00000000
+
 ; Disable Sticky Keys sound effect
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
 "Flags"="510"
@@ -69,3 +77,11 @@ Windows Registry Editor Version 5.00
 ; Stops Windows from periodically searching for available Wi-Fi networks when connected
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
 "BackgroundScanEnabled"=dword:00000000
+
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\System]
+"AllowExperimentation"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowExperimentation]
+"value"=-

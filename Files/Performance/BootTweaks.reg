@@ -13,9 +13,3 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Control Panel\Desktop]
 "AutoEndTasks"="1"
 "WaitToKillAppTimeout"="1500"
-
-; Remove all startup programs by deleting the Run keys
-[-HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run]
-[-HKEY_LOCAL_MACHINE\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run]
-[-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run]

@@ -34,6 +34,12 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 "DODownloadMode"=-
 
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\System]
+"AllowExperimentation"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowExperimentation]
+"value"=-
+
 ; Enables Sticky Keys accessibility feature with default settings
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
 "Flags"="58"
