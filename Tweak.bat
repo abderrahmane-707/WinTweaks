@@ -6,7 +6,8 @@ title Win_Tweaks
 fltmc >nul 2>&1
 if errorlevel 1 (
     echo This script must be run with Administrator privileges
-    pause & exit
+    pause
+	exit /b 1
 )
 
 :: Go to script's directory
@@ -36,12 +37,12 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto PERFORMANCE_MENU
 if "%choice%"=="2" goto PRIVACY_SECURITY_MENU
 if "%choice%"=="3" goto NETWORK_MENU
-if "%choice%"=="4" goto PROGRAMS_MANAGER
+if "%choice%"=="4" goto PROGRAMS_MANAGER_MENU
 if "%choice%"=="5" goto CUSTOMIZATION_MENU
 if "%choice%"=="6" goto SYSTEM_MENU
 if "%choice%"=="7" goto TOOLS_MENU
 if "%choice%"=="8" goto OTHER_MENU
-if "%choice%"=="0" exit
+if "%choice%"=="0" exit /b 1
 
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-8)
 pause
@@ -1343,7 +1344,7 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\Network
 call :GO NETWORK_MENU
 
 
-:PROGRAMS_MANAGER
+:PROGRAMS_MANAGER_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Programs Manager ---------------------------
 echo.
@@ -1364,15 +1365,7 @@ if "%choice%"=="0" goto MAIN_MENU
 
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
 pause
-goto PROGRAMS_MANAGER
-
-:REMOVE_MS
-cls & echo WARNING: This will remove ALL Microsoft store apps!
-choice /C YN /N /M "Continue anyway? (Y/N): "
-if errorlevel 2 goto PROGRAMS_MANAGER
-
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
-call :GO PROGRAMS_MANAGER
+goto PROGRAMS_MANAGER_MENU
 
 :WHERE_CHOCO
 :: Check if Chocolatey (Package Manager) is already installed
@@ -1386,7 +1379,7 @@ where choco >nul 2>&1 || (
     echo Choco not found
     echo Install it manually from: https://chocolatey.org/install
     pause
-    goto PROGRAMS_MANAGER
+    goto PROGRAMS_MANAGER_MENU
 )
 
 :PROGRAMS_MENU_VAR
@@ -1423,7 +1416,7 @@ call :SHOW_SELECTED
 
 echo. & set "choice=" & set /p "choice=--> Select an option and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
-if "%choice%"=="0" goto PROGRAMS_MANAGER
+if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 if /i "%choice%"=="S" goto INSTALL_PROGRAMS
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
@@ -1526,7 +1519,7 @@ call :IS_ON OPT18 && (
     echo Installing MEGA
     choco install megasync -y
 )
-call :GO PROGRAMS_MANAGER
+call :GO PROGRAMS_MANAGER_MENU
 
 :: Check if a flag is set to (YES)
 :IS_ON
@@ -1573,17 +1566,25 @@ cls & echo Update all installed programs from chocolatey
 where choco >nul 2>&1 || (
     echo Choco not found
 	pause
-    goto PROGRAMS_MANAGER
+    goto PROGRAMS_MANAGER_MENU
 )
 
 :: Execute the upgrade command for every package managed by Chocolatey
 choco upgrade all -y
-call :GO PROGRAMS_MANAGER
+call :GO PROGRAMS_MANAGER_MENU
+
+:REMOVE_MS
+cls & echo WARNING: This will remove ALL Microsoft store apps!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto PROGRAMS_MANAGER_MENU
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
+call :GO PROGRAMS_MANAGER_MENU
 
 :: Get information about all installed and startup programs
 :PROGRAMS_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1"
-call :GO PROGRAMS_MANAGER
+call :GO PROGRAMS_MANAGER_MENU
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
@@ -1639,7 +1640,7 @@ if "%choice%"=="5" (
 )
 if "%choice%"=="6" (
     set ROUTINE=UTC
-    set REV_ROUTINE=Local_Time
+    set REV_ROUTINE=LOCAL_TIME
     set APPLY=Set Time to UTC recommended for Dual Boot with Linux Systems
 	set REVERT=Set Time to Local Time
     set MENU=CUSTOMIZATION_MENU
@@ -1861,7 +1862,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeI
 call :GO CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to Local Time
-:Local_Time
+:LOCAL_TIME
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
@@ -1999,7 +2000,7 @@ echo                        ----------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto RESTORE_POINT
-if "%choice%"=="2" goto REGISTRY_BACKUP
+if "%choice%"=="2" goto REGISTRY_BACKUP_MENU
 if "%choice%"=="3" goto ACTIVATION_MENU
 if "%choice%"=="4" goto SYSTEM_INFO
 if "%choice%"=="0" goto MAIN_MENU
@@ -2016,37 +2017,45 @@ call :PATH "System" "RestorePoint"
 echo Creating System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-if %errorlevel% neq 0 (
-    echo Creating a restore point failed. Attempting to fix system dependencies
-    
-    :: Re-enable System Restore features via registry if they were disabled by policy
-    echo. & echo Enabling restore point from registry
-    reg import "Files\Customization\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
-    
-    :: Force a Group Policy update to ensure the registry changes are applied immediately
-    echo Updating policies
-    gpupdate /force >> "%LOG_FILE%" 2>&1
-    
-    echo Starting restore point services
-	
-	:: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
-    :: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
-    for %%S in (
-        "VSS"
-        "swprv"
-    ) do (
-        call :SC_CONFIGURE "%%S" "demand"
-        call :SC_CONTROL "%%S" "start"
-    )
+if %errorlevel% equ 0 (
+    echo More details in: %LOG_FILE%
+	call :GO SYSTEM_MENU
+)
 
-    echo Creating system restore point
-    powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
+:: If Creating failde (errorlevel>0)
+echo Creating a restore point failed. Attempting to fix system dependencies
+    
+:: Enable System Restore via registry if they were disabled by policy
+echo. & echo Enabling restore point from registry
+reg import "Files\Customization\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
+    
+:: Force a Group Policy update to ensure the registry changes are applied immediately
+echo Updating policies
+gpupdate /force >> "%LOG_FILE%" 2>&1
+    
+echo Starting restore point services
+	
+:: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
+:: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)     
+for %%S in (
+    "VSS"
+    "swprv"
+) do (
+    call :SC_CONFIGURE "%%S" "demand"
+    call :SC_CONTROL "%%S" "start"
+)
+
+echo Creating system restore point
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
+
+if %errorlevel% neq 0 (
+    echo. & echo Creating system restore point has failed
 )
 
 echo More details in: %LOG_FILE%
 call :GO SYSTEM_MENU
 
-:REGISTRY_BACKUP
+:REGISTRY_BACKUP_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Registry Backup ----------------------------
 echo.
@@ -2065,14 +2074,14 @@ if "%choice%"=="3" (
     set REV_ROUTINE=REV_AUTOMATIC_BACKUP
     set APPLY=Enable automatic registry backup task
 	set REVERT=Disable automatic registry backup task
-    set MENU=REGISTRY_BACKUP
+    set MENU=REGISTRY_BACKUP_MENU
     goto SUB_MENU
 )
 if "%choice%"=="0" goto SYSTEM_MENU 
 
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
 pause
-goto REGISTRY_BACKUP
+goto REGISTRY_BACKUP_MENU
 
 :FULL_BACKUP
 cls
@@ -2109,7 +2118,7 @@ if exist "%BACKUP_DIR%\*.hive" (
 )
 
 echo More details in: %LOG_FILE%
-call :GO REGISTRY_BACKUP
+call :GO REGISTRY_BACKUP_MENU
 
 :IMPORTANT_BACKUP
 cls
@@ -2135,17 +2144,18 @@ if exist "%BACKUP_DIR%\*.reg" (
 )
 
 echo More details in: %LOG_FILE%
-call :GO REGISTRY_BACKUP
+call :GO REGISTRY_BACKUP_MENU
 
 :: Enable periodic registry backup (RegBack)
+:: The backup will be saved in: C:\Windows\System32\config\RegBack
 :AUTOMATIC_BACKUP
 reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Configuration Manager" /v EnablePeriodicBackup /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO REGISTRY_BACKUP
+call :GO REGISTRY_BACKUP_MENU
 
 :: Disable periodic registry backup
 :REV_AUTOMATIC_BACKUP
 reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Configuration Manager" /v EnablePeriodicBackup /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO REGISTRY_BACKUP
+call :GO REGISTRY_BACKUP_MENU
 
 :ACTIVATION_MENU
 cls & echo. & echo.
@@ -2272,31 +2282,41 @@ goto TOOLS_MENU
 :CHKDSK
 cls & echo Available drives on your system:
 
-:: List all active drive letters
+:: List all existing drive letters
 for %%d in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
-    if exist %%d:\ (
-        echo %%d:
-    )
+    if exist %%d:\ echo %%d:
 )
 
-echo. & set /p "drive=Enter drive letter to check: "
+echo. & echo Enter drive letter to check
+echo Enter "0" to go back
 
-:: Clean the input: remove quotes and grab only the first character
-set "DRIVE=%DRIVE:"=%"
-set "DRIVE=%DRIVE:~0,1%"
+set "choice=" & set /p "choice= "
+if "%choice%"=="0" goto TOOLS_MENU
 
-:: Input Validation: If empty, go to CHKDSK
-if not defined drive goto CHKDSK
-for /f %%A in ('echo %DRIVE%') do set "DRIVE=%%~A"
-
-:: Check if the drive actually exists before proceeding
-if not exist %DRIVE%:\ (
-    echo. & echo Invalid drive letter: %DRIVE%
+:: Handle empty input
+if not defined choice (
+    echo. & echo [ERROR] Invalid selection. Please enter a drive letter
     pause
     goto CHKDSK
 )
 
-:CHECK_MENU
+:: Remove quotes if present
+set "choice=%choice:"=%"
+
+:: Trim to first character only
+set "choice=%choice:~0,1%"
+
+:: Convert to uppercase (optional but recommended)
+for %%A in (%choice%) do set "choice=%%~A"
+
+:: Validate that the drive exists
+if not exist "%choice%:\" (
+    echo. & echo Invalid drive letter: %choice%    
+    pause
+    goto CHKDSK
+)
+
+:CHKDSK_MENU
 cls & echo. & echo.
 echo                        --------------------------------- CHKDSK ----------------------------------
 echo.
@@ -2314,14 +2334,14 @@ if "%choice%"=="0" goto TOOLS_MENU
 
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
 pause
-goto CHECK_MENU
+goto CHKDSK_MENU
 
 :: Scans for errors but does not fix anything
 :DISK_STATUS
 cls & echo Displays status of drive: %DRIVE%
 timeout /t 2 >nul
 chkdsk %DRIVE%:
-call :GO CHECK_MENU
+call :GO CHKDSK_MENU
 
 :FIX_FILE
 cls & echo Fix files system errors in drive: %DRIVE%
@@ -2330,7 +2350,7 @@ timeout /t 2 >nul
 :: /f: Fixes errors on the disk
 :: /x: Forces the volume to dismount first if necessary
 chkdsk %DRIVE%: /f /x
-call :GO CHECK_MENU
+call :GO CHKDSK_MENU
 
 :FIX_SECTORS
 cls & echo Fix files system and recovering files from bad sectors in drive: %DRIVE%
@@ -2338,7 +2358,7 @@ timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
 chkdsk %DRIVE%: /r
-call :GO CHECK_MENU
+call :GO CHKDSK_MENU
 
 :: Launch Memory Diagnostic
 :MEMORY_DIAG
@@ -2559,7 +2579,7 @@ if not exist "%REPORT_DIR%" (
     if errorlevel 1 (
         echo Failed to create directory: %REPORT_DIR%
         pause
-		exit
+		exit /b 1
     )
 )
 goto :eof
@@ -2573,7 +2593,7 @@ if not exist "%BACKUP_DIR%" (
     if errorlevel 1 (
         echo [ERROR] Failed to create directory: %BACKUP_DIR%
         pause
-		exit
+		exit /b 1
     )
 )
 goto :eof
@@ -2592,7 +2612,7 @@ if not exist "%TARGET_DIR%" (
     if errorlevel 1 (
         echo Failed to create directory: %TARGET_DIR%
         pause
-        exit
+        exit /b 1
     )
 )
 
