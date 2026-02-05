@@ -46,6 +46,14 @@ Windows Registry Editor Version 5.00
 "DisableNotifications"=dword:00000001
 "DisableVirusUI"=dword:00000001
 
+; Disable Windows Security Center
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender Security Center\Notifications]
+"DisableNotifications"=dword:00000001
+
+; Disable virus and threat protection notifications
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.SecurityAndMaintenance]
+"Enabled"=dword:00000000
+
 ; EnableSmartScreen=0: Disables SmartScreen filter for file downloads
 ; ShellSmartScreenLevel="Off": Sets SmartScreen to completely off state
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
