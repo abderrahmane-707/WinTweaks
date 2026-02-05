@@ -2052,16 +2052,25 @@ echo                        ------------------------------ Registry Backup -----
 echo.
 echo                           [1] Full Backup                                    [2] Important Backup
 echo. 
-echo                                                           [0] Back
+echo                           [3] Automatic Backup                               [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto FULL_BACKUP 
 if "%choice%"=="2" goto IMPORTANT_BACKUP
+
+if "%choice%"=="3" (
+    set ROUTINE=AUTOMATIC_BACKUP
+    set REV_ROUTINE=REV_AUTOMATIC_BACKUP
+    set APPLY=Enable automatic registry backup task
+	set REVERT=Disable automatic registry backup task
+    set MENU=REGISTRY_BACKUP
+    goto SUB_MENU
+)
 if "%choice%"=="0" goto SYSTEM_MENU 
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-2)
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
 pause
 goto REGISTRY_BACKUP
 
@@ -2126,6 +2135,16 @@ if exist "%BACKUP_DIR%\*.reg" (
 )
 
 echo More details in: %LOG_FILE%
+call :GO REGISTRY_BACKUP
+
+:: Enable periodic registry backup (RegBack)
+:AUTOMATIC_BACKUP
+reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Configuration Manager" /v EnablePeriodicBackup /t REG_DWORD /d 1 /f >nul 2>&1
+call :GO REGISTRY_BACKUP
+
+:: Disable periodic registry backup
+:REV_AUTOMATIC_BACKUP
+reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Configuration Manager" /v EnablePeriodicBackup /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO REGISTRY_BACKUP
 
 :ACTIVATION_MENU
