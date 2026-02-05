@@ -1461,7 +1461,7 @@ call :IS_ON OPT3 && (
 )
 call :IS_ON OPT4 && (
     echo Installing 7-Zip
-    choco install 7zip -y
+    choco install 7zip.install -y
 )
 call :IS_ON OPT5 && (
     echo Installing K-Lite Codec Pack Standard
@@ -1556,7 +1556,7 @@ if "!OPT15!"=="%ON%" echo  - Virtual Box & set "ANY=1"
 if "!OPT16!"=="%ON%" echo  - IObit Unlocker & set "ANY=1"
 if "!OPT17!"=="%ON%" echo  - AutoHotkey & set "ANY=1"
 if "!OPT18!"=="%ON%" echo  - MEGA & set "ANY=1"
-if "!ANY!"=="0" echo   No programs selected
+if "!ANY!"=="0" echo  - No programs selected
 goto :eof
 
 :UPDATE_PROGRAMS
