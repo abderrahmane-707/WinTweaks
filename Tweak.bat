@@ -1817,7 +1817,7 @@ call :GO CUSTOMIZATION_MENU
 
 :: Remove the classic Windows Photo Viewer registry entries
 :REMOVE_PHOTO_VIEWER
-reg import "Files\Customization\RemovingClassicPhotoViewer.reg" >nul 2>&1
+reg import "Files\Customization\RemoveClassicPhotoViewer.reg" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Disable Trash feature
@@ -2410,7 +2410,7 @@ call :GO OTHER_MENU
 
 :: Downlod and launch Speedtest CLI 
 :NET_SPEED_TEST
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeedNetSpeed.ps1"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1"
 call :GO OTHER_MENU
 
 
