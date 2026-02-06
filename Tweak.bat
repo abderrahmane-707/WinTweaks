@@ -718,7 +718,7 @@ echo Delete windows update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 echo More details in: %LOG_FILE%
-call :GO WINDOWS_UPDATES_MENU
+call :GO PRIVACY_SECURITY_MENU
 
 :DISABLE_FEATURE_UPDATES
 call :PATH "Security" "DisableFeatureUpdates"
@@ -727,7 +727,7 @@ echo. & echo Disable feature windows update from registry
 reg import "Files\Security\DisableFeatureUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo More details in: %LOG_FILE%
-call :GO WINDOWS_UPDATES_MENU
+call :GO PRIVACY_SECURITY_MENU
 
 :RESET_UPDATES
 call :PATH "Security" "ResetUpdates"
@@ -824,7 +824,7 @@ echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
 echo More details in: %LOG_FILE%
-call :GO WINDOWS_UPDATES_MENU
+call :GO PRIVACY_SECURITY_MENU
 
 :ENABLE_UPDATES
 call :PATH "Security" "DefaultUpdates"
@@ -845,7 +845,7 @@ for %%S in (
 )
 
 echo More details in: %LOG_FILE%
-call :GO WINDOWS_UPDATES_MENU
+call :GO PRIVACY_SECURITY_MENU
 
 :DISABLE_DEFENDER
 echo. & echo WARNING: This will disable WINDOWS DEFENDER COMPLETELY!
@@ -1393,7 +1393,7 @@ for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "opt%%A=%OFF%"
 cls & echo. & echo.
 echo                        -------------------------------- Programs ---------------------------------
 echo.
-echo                           [1] Google Chrome           [7] XnViewMP              [13] VC++ (2015–2022)
+echo                           [1] Google Chrome           [7] XnViewMP              [13] VC++ (2015_2022)
 echo.
 echo                           [2] Brave                   [8] Sumatra PDF           [14] DirectX
 echo.
@@ -1496,7 +1496,7 @@ call :IS_ON OPT12 && (
     choco install qbittorrent -y
 )
 call :IS_ON OPT13 && (
-    echo Installing VC++ Redistributables (2015-2022)
+    echo Installing VC++ Redistributables (2015_2022)
     choco install vcredist140 -y
 )
 call :IS_ON OPT14 && (
@@ -2163,7 +2163,7 @@ echo                        -------------------------------- Activation --------
 echo.
 echo                          [1] Windows And Office                             [2] Activation Status
 echo. 
-echo                                                          [0]Back
+echo                                                          [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
