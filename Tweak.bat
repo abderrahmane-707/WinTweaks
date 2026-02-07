@@ -42,7 +42,7 @@ if "%choice%"=="5" goto CUSTOMIZATION_MENU
 if "%choice%"=="6" goto SYSTEM_MENU
 if "%choice%"=="7" goto TOOLS_MENU
 if "%choice%"=="8" goto OTHER_MENU
-if "%choice%"=="0" exit /b 1
+if "%choice%"=="0" exit /b
 
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-8)
 pause
@@ -530,11 +530,9 @@ echo Disabling windows telemetry services
 :: DiagTrack :      Connected User Experiences and Telemetry
 :: dmwappushsvc :   WAP Push Message Routing Service
 :: WerSvc :         Windows Error Reporting Service
-for %%S in (
-    "DiagTrack"
-    "dmwappushsvc"
-    "WerSvc"
-) do call :SC_CONFIGURE "%%S" "disabled"
+for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do (
+    call :SC_CONFIGURE "%%S" "disabled"
+)
 
 echo Blocking windows telemetry and trash domains
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
@@ -563,11 +561,9 @@ echo. & echo Default windows telemetry registry value
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Set windows telemetry services to manual startup
-for %%S in (
-    "DiagTrack"
-    "dmwappushsvc"
-    "WerSvc"
-) do call :SC_CONFIGURE "%%S" "demand"
+for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do (
+    call :SC_CONFIGURE "%%S" "demand"
+)
 
 echo Delete windows telemetry and trash domains
 :: Filter out blocked domains listed in TrackingDomains.txt from the HOSTS file
@@ -603,7 +599,7 @@ if "!BROWSERS_OPEN!"=="1" (
     timeout /t 2 >nul
 )
 
-:: Remove all Chromium-based browsers User Data
+:: Remove all Chromium-based browsers personal data
 if exist "%LOCALAPPDATA%\Google\Chrome\User Data" (
     echo Cleaning Google Chrome data
     rd /s /q "%LOCALAPPDATA%\Google\Chrome\User Data" >nul 2>&1
@@ -694,13 +690,7 @@ echo. & echo Disable windows update via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows Update services
-for %%S in (
-    "BITS"
-    "DoSvc"
-    "UsoSvc"
-    "WaaSMedicSvc"
-    "wuauserv"
-) do (
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
     call :SC_CONTROL "%%S" "stop"
     call :SC_CONFIGURE "%%S" "disabled"   
 )
@@ -737,14 +727,7 @@ echo Stop update services
 :: UsoSvc :        Update Orchestrator Service
 :: WaaSMedicSvc :  Windows Update Medic Service
 :: wuauserv :      Windows Update Service
-for %%S in (
-    "BITS"
-    "CryptSvc"
-    "DoSvc"
-    "UsoSvc"
-    "WaaSMedicSvc"
-    "wuauserv"
-) do (
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
     call :SC_CONTROL "%%S" "stop"  
 )
 
@@ -784,23 +767,13 @@ echo Cleaning BITS jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
 echo Enabling windows update services
-for %%S in (
-    "BITS"
-	"CryptSvc"
-    "DoSvc"
-    "UsoSvc"
-    "WaaSMedicSvc"
-    "wuauserv"
-) do (
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
     call :SC_CONFIGURE "%%S" "demand" 
     call :SC_CONTROL "%%S" "start"  
 )
 
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
-
-echo Renewing IP addresses
-ipconfig /renew >> "%LOG_FILE%" 2>&1
 
 echo Reset Winsock
 netsh winsock reset >> "%LOG_FILE%" 2>&1
@@ -813,6 +786,9 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
 echo Releasing IP addresses
 ipconfig /release >> "%LOG_FILE%" 2>&1
+
+echo Renewing IP addresses
+ipconfig /renew >> "%LOG_FILE%" 2>&1
 
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
@@ -827,13 +803,7 @@ echo. & echo Default windows update registry value
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Enabling windows update services
-for %%S in (
-    "BITS"
-    "DoSvc"
-    "UsoSvc"
-    "WaaSMedicSvc"
-    "wuauserv"
-) do (
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
     call :SC_CONFIGURE "%%S" "demand"   
 	call :SC_CONTROL "%%S" "start" 
 )
@@ -860,15 +830,7 @@ echo Disable windows defender services
 :: Sense :                  Windows Defender Advanced Threat Protection (Endpoint Detection)
 :: webthreatdefsvc :        Microsoft Defender Antivirus Web Threat Protection
 :: webthreatdefusersvc :    User-specific Web Threat Protection service
-for %%S in (
-    "WinDefend"
-    "WdNisSvc"
-    "wscsvc"
-    "SecurityHealthService"
-    "Sense"
-    "webthreatdefsvc"
-    "webthreatdefusersvc"
-) do (
+for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do (
     call :REG_CONFIGURE  "%%S" "4"
 )
 
@@ -882,15 +844,7 @@ echo. & echo Default windows defender registry value
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo Enable windows defender services
-for %%S in (
-    "WinDefend"
-    "WdNisSvc"
-    "wscsvc"
-    "SecurityHealthService"
-    "Sense"
-    "webthreatdefsvc"
-    "webthreatdefusersvc"
-) do (
+for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do (
     call :REG_CONFIGURE  "%%S" "2"
 )
 
@@ -915,15 +869,8 @@ echo Disabling unsafe windows features
 :: TFTP:                               Trivial File Transfer Protocol (unsecured file transfer)
 :: TelnetClient :                      Unencrypted remote login client
 :: WCF-TCP-PortSharing45 :             .NET Framework 4.5 TCP Port Sharing service
-for %%F in (
-    "MicrosoftWindowsPowerShellV2"
-    "MicrosoftWindowsPowerShellV2Root"
-    "SMB1Protocol"
-    "SmbDirect"
-    "TFTP"
-    "TelnetClient"
-    "WCF-TCP-PortSharing45"
-) do (
+for %%F in ("MicrosoftWindowsPowerShellV2" "MicrosoftWindowsPowerShellV2Root" "SMB1Protocol" "SmbDirect" "TFTP" "TelnetClient" "WCF-TCP-PortSharing45") do (
+
     :: Check if the feature is currently enabled
     dism /Online /Get-FeatureInfo /FeatureName:%%F | findstr /C:"State : Enabled" >nul
     
@@ -940,11 +887,7 @@ echo Disabling unsafe windows services
 :: RemoteRegistry : Allows remote users to modify Windows Registry settings
 :: SNMP:            Simple Network Management Protocol (Often used for network reconnaissance)
 :: SNMPTRAP:        Receives trap messages generated by local or remote SNMP agents
-for %%S in (
-    "mrxsmb10"
-    "RemoteRegistry"
-    "SNMP"
-    "SNMPTRAP"
+for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP" 
 ) do (
 	call :SC_CONTROL "%%S" "stop"
     call :SC_CONFIGURE "%%S" "disabled"
@@ -1013,11 +956,7 @@ echo Optimizing TCP Global Parameters
 :: fastopen=enabled :          Speeds up successive TCP connections
 :: fastopenfallback=enabled :  Allows fallback to standard TCP if Fast Open fails
 :: rss=enabled :               Distributes network processing across multiple CPU cores
-for %%P in (
-    "fastopen=enabled"
-    "fastopenfallback=enabled"
-    "rss=enabled"
-) do (
+for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled") do (
     echo  - Setting: %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
@@ -1045,11 +984,7 @@ echo. & echo Set default registry network settings
 reg import "Files\Network\Rev_Improve_Net.reg" >> "%LOG_FILE%" 2>&1
 
 echo Reset TCP settings to default
-for %%P in (
-    "fastopen=default"
-    "fastopenfallback=default"
-    "rss=default"
-) do (
+for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default") do (
     echo  - Resetting: %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
@@ -1073,39 +1008,18 @@ echo Stopping Network Services
 :: Nsi:       Delivers network notifications
 :: WlanSvc:   Connect to Wi-Fi
 :: WwanSvc:   Manages mobile broadband
-for %%S in (
-    "Dhcp"
-    "Dnscache"
-    "dot3svc"
-    "netman"
-    "netprofm"
-    "nlasvc"
-    "Nsi"
-    "WlanSvc"
-    "WwanSvc"
-) do (
+for %%S in ("Dhcp" "Dnscache" "dot3svc" "netman" "netprofm" "nlasvc" "Nsi" "WlanSvc" "WwanSvc") do (
     call :SC_CONTROL "%%S" "stop"  
 )
 
 echo Configuring Essential Services
-for %%S in (
-    "Dhcp"
-    "Dnscache"
-    "nlasvc"
-    "Nsi"
-    "WlanSvc"
-) do (
+for %%S in ("Dhcp" "Dnscache" "nlasvc" "Nsi" "WlanSvc") do (
     call :SC_CONFIGURE "%%S" "auto" 
     call :SC_CONTROL "%%S" "start"  
 )
 
 echo Configuring Interface Services
-for %%S in (
-    "dot3svc"
-    "netman"
-    "netprofm"
-    "WwanSvc"
-) do (
+for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do (
     call :SC_CONFIGURE "%%S" "demand" 
     call :SC_CONTROL "%%S" "start"  
 )
@@ -1319,7 +1233,8 @@ echo More details in: %LOG_FILE%
 call :GO DNS_MENU
 
 :SET_DHCP
-cls & call :DHCP
+cls
+call :DHCP
 call :PATH "Network" "DHCP"
 
 echo More details in: %LOG_FILE%
@@ -1344,7 +1259,7 @@ echo                        ------------------------------ Programs Manager ----
 echo.
 echo                         [1] Download Programs                                 [2] Update Programs
 echo.
-echo                         [3] Remove ALL MS Apps                                [4] Programs Info                                     
+echo                         [3] Remove ALL MS Apps                                [4] Programs Info
 echo.
 echo                                                          [0] Back
 echo.
@@ -1701,7 +1616,7 @@ if "%choice%"=="2" (
     goto SUB_MENU
 )
 if "%choice%"=="3" (
-    set ROUTINE=HIDE__RECENT
+    set ROUTINE=HIDE_RECENT
     set REV_ROUTINE=SHOW_RECENT
     set APPLY=Disable display recent files
 	set REVERT=Show recent files
@@ -1745,7 +1660,7 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Sh
 call :GO FILE_EXPLORER_MENU
 
 :: Disable "Recent Files" and "Frequent Folders" in Quick Access and the Start Menu
-:HIDE__RECENT
+:HIDE_RECENT
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 0 /f >nul 2>&1
@@ -1842,12 +1757,14 @@ call :GO CUSTOMIZATION_MENU
 :DIS_NOTIFICATION
 reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows Defender Security Center\Notifications" /v DisableNotifications /t REG_DWORD /d 1 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Re-enable notification
 :ENA_NOTIFICATION
 reg delete "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows Defender Security Center\Notifications" /v DisableNotifications /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to UTC
@@ -1864,9 +1781,9 @@ call :GO CUSTOMIZATION_MENU
 cls & echo. & echo.
 echo                        ------------------------------- Context Menu ------------------------------
 echo.
-echo                          [1] Command Prompt                                 [2] Command Prompt As Admin                             
-echo. 
-echo                          [3] Kill Frozen                                    [2] Restart Explorer
+echo                          [1] Command Prompt                                 [2] Command Prompt As Admin
+echo.
+echo                          [3] Restart Explorer                               [4] Kill Frozen
 echo.
 echo                                                          [0] Back
 echo.    
@@ -1890,16 +1807,16 @@ if "%choice%"=="2" (
     goto SUB_MENU
 )
 if "%choice%"=="3" (
-    set ROUTINE=EXPLORER_RESTART_CONTEXT
-    set REV_ROUTINE=REV_EXPLORER_RESTART_CONTEXT
+    set ROUTINE=RESTART_EXPLORER
+    set REV_ROUTINE=REV_RESTART_EXPLORER
     set APPLY=Add "Restart Explorer" option to context menu
 	set REVERT=Remove option
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
 if "%choice%"=="4" (
-    set ROUTINE=KILL_FROZEN_CONTEXT
-    set REV_ROUTINE=REV_KILL_FROZEN_CONTEXT
+    set ROUTINE=KILL_FROZEN
+    set REV_ROUTINE=REV_KILL_FROZEN
     set APPLY=Add "Kill frozen process" option context menu
 	set REVERT=Remove option
     set MENU=CONTEXT_MENU
@@ -1953,7 +1870,7 @@ reg delete "HKCR\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Add "Restart Explorer" to the Desktop right-click menu
-:EXPLORER_RESTART_CONTEXT
+:RESTART_EXPLORER
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /ve /d "Restart Explorer" /f >nul 2>&1
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /v "Icon" /d "explorer.exe,0" /f >nul 2>&1
 
@@ -1962,12 +1879,12 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" 
 call :GO CONTEXT_MENU
 
 :: Remove the "Restart Explorer" right-click menu
-:REV_EXPLORER_RESTART_CONTEXT
+:REV_RESTART_EXPLORER
 reg delete "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Add "Kill frozen process" to the Desktop right-click menu
-:KILL_FROZEN_CONTEXT
+:KILL_FROZEN
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /v "MUIVerb" /d "Kill frozen process" /f >nul 2>&1
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /v "Icon" /d "taskmgr.exe,0" /f >nul 2>&1
 
@@ -1976,7 +1893,7 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding\Command
 call :GO CONTEXT_MENU
 
 :: Remove the "Kill frozen process" right-click menu
-:REV_KILL_FROZEN_CONTEXT
+:REV_KILL_FROZEN
 reg delete "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
@@ -2031,10 +1948,7 @@ echo Starting restore point services
 	
 :: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
 :: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)     
-for %%S in (
-    "VSS"
-    "swprv"
-) do (
+for %%S in ("VSS" "swprv") do (
     call :SC_CONFIGURE "%%S" "demand"
     call :SC_CONTROL "%%S" "start"
 )
@@ -2272,7 +2186,6 @@ call :GO DISM_MENU
 :DEFRAG
 start "" dfrgui.exe
 goto TOOLS_MENU
-
 :CHKDSK
 cls & echo Available drives on your system:
 
@@ -2284,28 +2197,28 @@ for %%d in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
 echo. & echo Enter drive letter to check
 echo Enter "0" to go back
 
-set "choice=" & set /p "choice= "
-if "%choice%"=="0" goto TOOLS_MENU
+set "drive=" & set /p "drive= "
+if "%drive%"=="0" goto TOOLS_MENU
 
 :: Handle empty input
-if not defined choice (
+if not defined drive (
     echo. & echo [ERROR] Invalid selection. Please enter a drive letter
     pause
     goto CHKDSK
 )
 
 :: Remove quotes if present
-set "choice=%choice:"=%"
+set "drive=%drive:"=%"
 
 :: Trim to first character only
-set "choice=%choice:~0,1%"
+set "drive=%drive:~0,1%"
 
 :: Convert to uppercase (optional but recommended)
-for %%A in (%choice%) do set "choice=%%~A"
+for %%A in (%drive%) do set "drive=%%~A"
 
 :: Validate that the drive exists
-if not exist "%choice%:\" (
-    echo. & echo Invalid drive letter: %choice%    
+if not exist "%drive%:\" (
+    echo. & echo Invalid drive letter: %drive%    
     pause
     goto CHKDSK
 )
@@ -2320,7 +2233,7 @@ echo                          [3] Fix Bad Sectors                               
 echo.
 echo                        ---------------------------------------------------------------------------
 
-echo. & set "choice=" & set /p choice="Select an option: "
+echo. & set "choice=" & set /p choice="Select an option for %drive% drive: "
 if "%choice%"=="1" goto DISK_STATUS 
 if "%choice%"=="2" goto FIX_FILE
 if "%choice%"=="3" goto FIX_SECTORS
@@ -2332,26 +2245,26 @@ goto CHKDSK_MENU
 
 :: Scans for errors but does not fix anything
 :DISK_STATUS
-cls & echo Displays status of drive: %DRIVE%
+cls & echo Displays status of drive: %drive%
 timeout /t 2 >nul
-chkdsk %DRIVE%:
+chkdsk %drive%:
 call :GO CHKDSK_MENU
 
 :FIX_FILE
-cls & echo Fix files system errors in drive: %DRIVE%
+cls & echo Fix files system errors in drive: %drive%
 timeout /t 2 >nul
 
 :: /f: Fixes errors on the disk
 :: /x: Forces the volume to dismount first if necessary
-chkdsk %DRIVE%: /f /x
+chkdsk %drive%: /f /x
 call :GO CHKDSK_MENU
 
 :FIX_SECTORS
-cls & echo Fix files system and recovering files from bad sectors in drive: %DRIVE%
+cls & echo Fix files system and recovering files from bad sectors in drive: %drive%
 timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
-chkdsk %DRIVE%: /r
+chkdsk %drive%: /r
 call :GO CHKDSK_MENU
 
 :: Launch Memory Diagnostic
@@ -2408,7 +2321,7 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadN
 call :GO OTHER_MENU
 
 
-:: -------------------------------------------------------------< FUNCTIONS >----------------------------------------------------------------------------------
+:: ----------------------------------------------------------------< FUNCTIONS >----------------------------------------------------------------
 :SET_TASKS
 :: %~1 = Action (Enable/Disable)
 :: %~2 = Path to text file containing task names
@@ -2441,10 +2354,7 @@ goto :eof
 
 :CLEANING_FUNCTION
 echo Cleaning Temp
-for %%F in (
-    "%TEMP%"
-    "%SYSTEMROOT%\TEMP"
-) do (
+for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
     if exist "%%~F" (
         :: Delete all files in the directory
         del /f /q "%%~F\*" >nul 2>&1
@@ -2641,4 +2551,4 @@ echo. & echo The operation is done.
 pause
 goto %1
 
-:: ------------------------------------------------------------------< END >-----------------------------------------------------------------------------------
+:: ----------------------------------------------------------------< END >----------------------------------------------------------------
