@@ -251,69 +251,61 @@ if "!BROWSERS_OPEN!"=="1" (
     )
 )
 
-:: Cache :              Standard web cache
-:: Code Cache :         Compiled JS and site code
-:: GPUCache :           Graphics processor shader cache
-:: ShaderCache :        Hardware-specific render cache
-:: File System :        Persistent local storage for web apps
-:: Service Worker:      Background scripts and offline data
-:: Application Cache :  Offline app data
-:: Media Cache :        Audio/Video streaming fragments
-for %%B in (
-    "Google\Chrome|Google Chrome"
-    "Microsoft\Edge|Microsoft Edge"
-    "BraveSoftware\Brave-Browser|Brave"
+:: Chromium-based browsers (Chrome, Edge, Brave)
+for %%A in (
+    "Google\Chrome\User Data"
+    "Microsoft\Edge\User Data"
+    "BraveSoftware\Brave-Browser\User Data"
 ) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~B") do (
-        if exist "%LOCALAPPDATA%\%%A\User Data" (
-            echo Cleaning %%B
-            for %%D in (
-                "Default\Cache"
-                "Default\Code Cache"
-                "Default\GPUCache"
-                "ShaderCache"
-                "Default\File System"
-                "Default\Service Worker"
-                "Default\Application Cache"
-                "Default\Media Cache"
-            ) do (
-                if exist "%LOCALAPPDATA%\%%A\User Data\%%~D" (
-                    rd /s /q "%LOCALAPPDATA%\%%A\User Data\%%~D" >nul 2>&1
-                )
+    if exist "%LOCALAPPDATA%\%%~A" (
+        echo Cleaning: %%~A
+        for /d %%P in ("%LOCALAPPDATA%\%%~A\*") do (
+            :: Remove caches and folders
+            for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "File System" "Service Worker" "Media Cache" "Download Service") do (
+                rd /s /q "%%P\%%~D" >nul 2>&1
             )
-            del /f /q "%LOCALAPPDATA%\%%A\User Data\*.tmp" >nul 2>&1
+            :: Remove cookie/history files
+            for %%F in ("Cookies" "Cookies-journal" "Network\Cookies" "Network\Cookies-journal" "History" "History-journal") do (
+                del /f /q "%%P\%%~F" >nul 2>&1
+            )
         )
     )
 )
 
-:: cache2 :          Primary Firefox web cache
-:: thumbnails :      Previews of visited websites (New Tab page)
-:: jumpListCache :   Windows Taskbar task history for Firefox
-:: OfflineCache :    Data stored for offline web application usage
-:: minidumps :       Small crash log files
+:: Mozilla Firefox
 for %%B in (
     "Mozilla\Firefox|Mozilla Firefox"
 ) do (
     for /f "tokens=1,2 delims=|" %%A in ("%%~B") do (
-        if exist "%APPDATA%\%%A\Profiles" (
-		
+        if exist "%APPDATA%\%%A" (
             echo Cleaning %%B
-            for /d %%P in ("%APPDATA%\%%A\Profiles\*") do (
-                for %%D in (
-                    "cache2"
-                    "thumbnails"
-                    "jumpListCache"
-                    "OfflineCache"
-                    "minidumps"
-                ) do (
-                    if exist "%%P\%%~D" (
+
+            :: Remove cache
+            if exist "%LOCALAPPDATA%\%%A\Profiles" (
+                for /d %%P in ("%LOCALAPPDATA%\%%A\Profiles\*") do (
+                    for %%D in ("cache2" "thumbnails" "jumpListCache" "startupCache") do (
                         rd /s /q "%%P\%%~D" >nul 2>&1
                     )
                 )
             )
-            if exist "%APPDATA%\%%A\Crash Reports" (
-                rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
+
+            :: Clean profile data
+            if exist "%APPDATA%\%%A\Profiles" (
+                for /d %%P in ("%APPDATA%\%%A\Profiles\*") do (
+                    :: Delete cookies and other sqlite files
+                    for %%F in ("cookies.sqlite" "cookies.sqlite-wal" "favicons.sqlite" "formhistory.sqlite") do (
+                        del /f /q "%%P\%%~F" >nul 2>&1
+                    )
+					:: Session data (directory)
+                    rd /s /q "%%P\sessionstore-backups" >nul 2>&1
+					
+					:: Storage (directory)
+                    rd /s /q "%%P\storage" >nul 2>&1
+                )
             )
+
+            :: Delete crash reports
+            rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
         )
     )
 )
@@ -630,9 +622,14 @@ if exist "%LOCALAPPDATA%\Microsoft\Edge\User Data" (
     rd /s /q "%LOCALAPPDATA%\Microsoft\Edge\User Data" >nul 2>&1
 )
 
-:: Remove all Firefox profile directories in Local AppData
+:: Remove all Mozilla Firefox personal data
+echo Cleaning Mozilla Firefox data
 if exist "%APPDATA%\Mozilla\Firefox" (
-    rd /s /q "%APPDATA%\Mozilla\Firefox" >nul 2>&1
+    rd /s /q "%APPDATA%\Mozilla\Firefox"
+)
+
+if exist "%LOCALAPPDATA%\Mozilla\Firefox" (
+    rd /s /q "%LOCALAPPDATA%\Mozilla\Firefox"
 )
 
 echo Cleaning registry entries
