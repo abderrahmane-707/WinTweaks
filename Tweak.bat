@@ -396,10 +396,7 @@ if /I "!PLAN_GUID!"=="381b4222-f694-41f0-9685-ff5bb260df2e" (
 
 ) else if /I "!PLAN_GUID!"=="a1841308-3541-4fab-bc81-f71556f20b4a" (
     set "PLAN_NAME=Power Saver"
-
-) else if /I "!PLAN_GUID!"=="3cea1812-bed6-4443-9412-eab743049b2d" (
-    set "PLAN_NAME=Ultimate Performance"
-
+	
 ) else (
     set "PLAN_NAME=Unknown Power Plan"
 )
