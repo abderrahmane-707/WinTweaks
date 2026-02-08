@@ -981,7 +981,7 @@ call :GO NETWORK_MENU
 call :PATH "Network" "DefaultNetworkSettings"
 
 echo. & echo Set default registry network settings
-reg import "Files\Network\Rev_Improve_Net.reg" >> "%LOG_FILE%" 2>&1
+reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
 
 echo Reset TCP settings to default
 for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default") do (
@@ -1938,7 +1938,7 @@ echo Creating a restore point failed. Attempting to fix system dependencies
     
 :: Enable System Restore via registry if they were disabled by policy
 echo. & echo Enabling restore point from registry
-reg import "Files\Customization\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
+reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
     
 :: Force a Group Policy update to ensure the registry changes are applied immediately
 echo Updating policies
