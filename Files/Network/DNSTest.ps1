@@ -32,9 +32,6 @@ if ($hasGlobalIPv6) {
     )
 }
 
-# Initialize array to store test results (though not currently used for storage)
-$results = @()
-
 # Loop through each DNS server and perform connectivity test
 foreach ($server in $testServers) {
     # Display server name and address without newline (will show results on same line)

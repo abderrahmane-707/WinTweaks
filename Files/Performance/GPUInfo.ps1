@@ -10,30 +10,32 @@ function Get-GPUInfo {
     try {
         # Query WMI for signed display drivers to get driver-specific information
         $drivers = Get-CimInstance -ClassName Win32_PnPSignedDriver -ErrorAction Stop |
-                   Where-Object { ($_.DeviceClass -eq 'DISPLAY') -or 
-                                 ($_.DeviceName -like '*Display*') -or 
-                                 ($_.DeviceName -like '*Video*') }
+            Where-Object {
+                ($_.DeviceClass -eq 'DISPLAY') -or
+                ($_.DeviceName -like '*Display*') -or
+                ($_.DeviceName -like '*Video*')
+            }
     } catch {
         Write-Output "Unable to query Win32_PnPSignedDriver: $($_.Exception.Message)"
         $drivers = @()  # Initialize empty array if driver query fails
     }
 
     $result = @()  # Initialize empty array to store GPU information objects
-    
+
     # Process each GPU found in the system
     foreach ($g in $gpus) {
         $matchingDriver = $null
-        
+
         # Attempt to find a matching driver for this GPU using device IDs or names
         if ($g.PNPDeviceID -and $drivers) {
-            $matchingDriver = $drivers | Where-Object { 
+            $matchingDriver = $drivers | Where-Object {
                 $_.DeviceID -like "*$($g.PNPDeviceID)*" -or
                 $_.DeviceID -eq $g.PNPDeviceID
             } | Select-Object -First 1  # Take the first matching driver
-            
+
             # Fallback: Try to match by device name if device ID didn't match
             if (-not $matchingDriver) {
-                $matchingDriver = $drivers | Where-Object { 
+                $matchingDriver = $drivers | Where-Object {
                     $_.DeviceName -like "*$($g.Name)*" -or
                     $_.DeviceName -eq $g.Name
                 } | Select-Object -First 1
@@ -58,15 +60,15 @@ function Get-GPUInfo {
         }
 
         # Get INF file name (driver installation file) if available
-        $infName = if ($matchingDriver) { 
-            $matchingDriver.InfName 
-        } else { 
-            "N/A" 
+        $infName = if ($matchingDriver) {
+            $matchingDriver.InfName
+        } else {
+            "N/A"
         }
 
         # Convert adapter RAM from bytes to megabytes for readability
         $adapterRAMMB = $null
-        if ($g.AdapterRAM -ne $null) {
+        if ($null -ne $g.AdapterRAM) {
             $adapterRAMMB = [math]::Round($g.AdapterRAM / 1MB, 2)
         }
 
@@ -79,17 +81,20 @@ function Get-GPUInfo {
 
         # Create a custom object with all GPU properties for this GPU
         $obj = [PSCustomObject]@{
-            'Index'                    = if ($g.DeviceID) { $g.DeviceID } else { "N/A" }
-            'Name'                     = if ($g.Name) { $g.Name } else { "N/A" }
-            'PNPDeviceID'              = if ($g.PNPDeviceID) { $g.PNPDeviceID } else { "N/A" }
-            'VideoProcessor'           = if ($g.VideoProcessor) { $g.VideoProcessor } else { "N/A" }
-            'AdapterCompatibility'     = if ($g.AdapterCompatibility) { $g.AdapterCompatibility } else { "N/A" }
-            'DriverVersion'            = if ($g.DriverVersion) { $g.DriverVersion } else { "N/A" }
-            'AdapterRAM (MB)'          = if ($adapterRAMMB) { "$adapterRAMMB MB" } else { "N/A" }
-            'CurrentResolution'        = if ($currentRes) { $currentRes } else { "N/A" }
-            'VideoModeDescription'     = if ($g.VideoModeDescription) { $g.VideoModeDescription } else { "N/A" }
-            'Status'                   = if ($g.Status) { $g.Status } else { "N/A" }
+            'Index'                = if ($g.DeviceID) { $g.DeviceID } else { "N/A" }
+            'Name'                 = if ($g.Name) { $g.Name } else { "N/A" }
+            'PNPDeviceID'          = if ($g.PNPDeviceID) { $g.PNPDeviceID } else { "N/A" }
+            'VideoProcessor'       = if ($g.VideoProcessor) { $g.VideoProcessor } else { "N/A" }
+            'AdapterCompatibility' = if ($g.AdapterCompatibility) { $g.AdapterCompatibility } else { "N/A" }
+            'DriverVersion'        = if ($g.DriverVersion) { $g.DriverVersion } else { "N/A" }
+            'DriverDate'           = if ($driverDate) { $driverDate } else { "N/A" }
+            'InfName'              = if ($infName) { $infName } else { "N/A" }
+            'AdapterRAM (MB)'      = if ($adapterRAMMB) { "$adapterRAMMB MB" } else { "N/A" }
+            'CurrentResolution'    = if ($currentRes) { $currentRes } else { "N/A" }
+            'VideoModeDescription' = if ($g.VideoModeDescription) { $g.VideoModeDescription } else { "N/A" }
+            'Status'               = if ($g.Status) { $g.Status } else { "N/A" }
         }
+
         $result += $obj  # Add this GPU object to the results array
     }
 
@@ -101,14 +106,16 @@ function Get-GPUDrivers {
     try {
         # Query WMI for signed display drivers (filtering for display/video devices)
         $drivers = Get-CimInstance -ClassName Win32_PnPSignedDriver -ErrorAction Stop |
-                   Where-Object { ($_.DeviceClass -eq 'DISPLAY') -or 
-                                 ($_.DeviceName -like '*Display*') -or 
-                                 ($_.DeviceName -like '*Video*') }
+            Where-Object {
+                ($_.DeviceClass -eq 'DISPLAY') -or
+                ($_.DeviceName -like '*Display*') -or
+                ($_.DeviceName -like '*Video*')
+            }
     } catch {
         Write-Output "WARNING: Unable to query Win32_PnPSignedDriver: $($_.Exception.Message)"
         return @()  # Return empty array on error
     }
-    
+
     # Return selected driver properties
     $drivers | Select-Object DeviceName, Manufacturer, DriverVersion, DriverProviderName, DeviceID
 }
@@ -140,21 +147,23 @@ if ($gpuInfo -and $gpuInfo.Count -gt 0) {
         Write-Output "  Video Processor:  $($g.VideoProcessor)"
         Write-Output "  Manufacturer:  $($g.AdapterCompatibility)"
         Write-Output "  Status:  $($g.Status)"
-        
+
         Write-Output ""
         Write-Output " Memory Information:"
         Write-Output "  Adapter RAM:  $($g.'AdapterRAM (MB)')"
-        
+
         Write-Output ""
         Write-Output " Display Information:"
         Write-Output "  Current Resolution:  $($g.CurrentResolution)"
         Write-Output "  Video Mode Description:  $($g.VideoModeDescription)"
-        
+
         Write-Output ""
         Write-Output " Technical Details:"
         Write-Output "  Driver Version:  $($g.DriverVersion)"
+        Write-Output "  Driver Date:  $($g.DriverDate)"
+        Write-Output "  INF Name:  $($g.InfName)"
         Write-Output "  Device ID:  $($g.Index)"
         Write-Output "  PNP Device ID:  $($g.PNPDeviceID)"
         $i++
     }
-} 
+}

@@ -1,5 +1,5 @@
 # 1. Download Chocolatey
-irm https://community.chocolatey.org/install.ps1 | iex
+Invoke-RestMethod https://community.chocolatey.org/install.ps1 | Invoke-Expression
 
 # 2. Update environmental variables for the current session
 if ($env:ChocolateyInstall) {
