@@ -165,7 +165,7 @@ vmictimesync,Manual
 vmicvmsession,Manual
 vmicvss,Manual
 VSS,Manual
-W32Time,Disabled
+W32Time,Manual
 WalletService,Manual
 WarpJITSvc,Manual
 wbengine,Manual
