@@ -253,20 +253,22 @@ if "!BROWSERS_OPEN!"=="1" (
 
 :: Chromium-based browsers (Chrome, Edge, Brave)
 for %%A in (
-    "Google\Chrome\User Data"
-    "Microsoft\Edge\User Data"
-    "BraveSoftware\Brave-Browser\User Data"
+    "Google\Chrome\User Data|Google Chrome"
+    "Microsoft\Edge\User Data|Microsoft Edge"
+    "BraveSoftware\Brave-Browser\User Data|Brave"
 ) do (
-    if exist "%LOCALAPPDATA%\%%~A" (
-        echo Cleaning: %%~A
-        for /d %%P in ("%LOCALAPPDATA%\%%~A\*") do (
-            :: Remove caches and folders
-            for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "File System" "Service Worker" "Media Cache" "Download Service") do (
-                rd /s /q "%%P\%%~D" >nul 2>&1
-            )
-            :: Remove cookie/history files
-            for %%F in ("Cookies" "Cookies-journal" "Network\Cookies" "Network\Cookies-journal" "History" "History-journal") do (
-                del /f /q "%%P\%%~F" >nul 2>&1
+    for /f "tokens=1,2 delims=|" %%A in ("%%~B") do (
+        if exist "%LOCALAPPDATA%\%%A" (
+            echo Cleaning: %%B
+            for /d %%P in ("%LOCALAPPDATA%\%%~A\*") do (
+                :: Remove caches and folders
+                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "File System" "Service Worker" "Media Cache" "Download Service") do (
+                    rd /s /q "%%P\%%~D" >nul 2>&1
+                )
+                :: Remove cookie/history files
+                for %%F in ("Cookies" "Cookies-journal" "Network\Cookies" "Network\Cookies-journal" "History" "History-journal") do (
+                    del /f /q "%%P\%%~F" >nul 2>&1
+                )
             )
         )
     )
@@ -278,7 +280,7 @@ for %%B in (
 ) do (
     for /f "tokens=1,2 delims=|" %%A in ("%%~B") do (
         if exist "%APPDATA%\%%A" (
-            echo Cleaning %%B
+            echo Cleaning: %%B
 
             :: Remove cache
             if exist "%LOCALAPPDATA%\%%A\Profiles" (
@@ -955,7 +957,8 @@ echo Optimizing TCP Global Parameters
 :: fastopen=enabled :          Speeds up successive TCP connections
 :: fastopenfallback=enabled :  Allows fallback to standard TCP if Fast Open fails
 :: rss=enabled :               Distributes network processing across multiple CPU cores
-for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled") do (
+:: autotuninglevel=high :      Optimizes the TCP receive window for high-speed connections
+for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotuninglevel=high") do (
     echo  - Setting: %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
@@ -983,7 +986,7 @@ echo. & echo Set default registry network settings
 reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
 
 echo Reset TCP settings to default
-for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default") do (
+for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotuning=normal") do (
     echo  - Resetting: %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
