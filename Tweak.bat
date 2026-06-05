@@ -1108,8 +1108,8 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPas
 echo. & choice /C YN /N /M "Export the results as a text file? (Y/N): "
 if %errorlevel% equ 1 (
     call :TIME_STAMP_FILE "Network" "WifiPassword"
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" >> "%REPORT_FILE%" 2>&1
-    echo Report file saved in: %REPORT_FILE%
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" >> "!REPORT_FILE!" 2>&1
+    echo Report file saved in: !REPORT_FILE!
 )
 call :GO NETWORK_MENU
 
