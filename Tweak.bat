@@ -498,14 +498,7 @@ if "%choice%"=="1" (
 )
 if "%choice%"=="2" goto PRIVACY_CLEANUP
 if "%choice%"=="3" goto WINDOWS_UPDATES_MENU
-if "%choice%"=="4" (
-    set ROUTINE=DISABLE_DEFENDER
-    set REV_ROUTINE=ENABLE_DEFENDER
-    set APPLY=Disable Windows Defender
-	set REVERT=Enable Windows Defender
-    set MENU=PRIVACY_SECURITY_MENU
-    goto SUB_MENU
-)
+if "%choice%"=="4" goto WINDOWS_DEFENDER_MENU
 if "%choice%"=="5" (
     set ROUTINE=ENHANCE_SECURITY
     set REV_ROUTINE=REV_ENHANCE_SECURITY
@@ -813,6 +806,28 @@ for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
 echo More details in: %LOG_FILE%
 call :GO PRIVACY_SECURITY_MENU
 
+
+
+:WINDOWS_DEFENDER_MENU
+cls & echo. & echo.
+echo                        ------------------------------ Windows Defender ---------------------------
+echo.
+echo                          [1] Disable Defender                                [2] Enable Defender
+echo.
+echo                          [3] Remove Defender                                 [0] Back
+echo.
+echo                        ---------------------------------------------------------------------------
+
+echo. & set "choice=" & set /p choice="Select an option: "
+if "%choice%"=="1" goto DISABLE_DEFENDER
+if "%choice%"=="2" goto ENABLE_DEFENDER
+if "%choice%"=="3" goto REMOVE_DEFENDER
+if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
+
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
+pause
+goto WINDOWS_DEFENDER_MENU
+
 :DISABLE_DEFENDER
 echo. & echo WARNING: This will disable WINDOWS DEFENDER COMPLETELY!
 choice /C YN /N /M "Continue anyway? (Y/N): "
@@ -855,6 +870,33 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -Di
 
 echo More details in: %LOG_FILE%
 call :GO PRIVACY_SECURITY_MENU
+
+:REMOVE_DEFENDER
+echo. & echo WARNING: This script will permanently delete Windows Defender from your system
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto PRIVACY_SECURITY_MENU
+
+call :PATH "Security" "RemoveDefender"
+
+echo Remove Windows Defender Security health UI
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >> "%LOG_FILE%" 2>&1
+
+echo Remove Windows Defender via registry
+for %%f in ("Files\Security\RemoveDefenderModuled\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:1 regedit.exe /s "%%f"
+
+echo Remove Windows Defender files and folders
+"Files\Security\PowerRun.exe" /TI /SW:1 "%ComSpec%" /c "Files\Security\RemoveDefender.bat"
+
+echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
+
+if errorlevel 2 (
+    echo More details in: %LOG_FILE%
+    call :GO PRIVACY_SECURITY_MENU
+)
+echo. & echo Restarting your computer in 5 seconds
+shutdown /r /t 5
+timeout /t 3 >nul
+exit
 
 :ENHANCE_SECURITY
 call :PATH "Security" "EnhanceSecurity"
