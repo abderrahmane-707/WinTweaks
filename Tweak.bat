@@ -1303,20 +1303,21 @@ echo                        ------------------------------ Programs Manager ----
 echo.
 echo                         [1] Download Programs                                 [2] Update Programs
 echo.
-echo                         [3] Remove ALL MS Apps                                [4] Programs Info
+echo                         [3] Download Microsoft Office                         [4] Remove ALL MS Apps
 echo.
-echo                                                          [0] Back
+echo                         [5] Programs Info                                     [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto WHERE_CHOCO
 if "%choice%"=="2" goto UPDATE_PROGRAMS
-if "%choice%"=="3" goto REMOVE_MS
-if "%choice%"=="4" goto PROGRAMS_INFO
+if "%choice%"=="3" goto DOWNLOAD_MO
+if "%choice%"=="4" goto REMOVE_MS
+if "%choice%"=="5" goto PROGRAMS_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-5)
 pause
 goto PROGRAMS_MANAGER_MENU
 
@@ -1520,6 +1521,10 @@ where choco >nul 2>&1 || (
 
 :: Execute the upgrade command for every package managed by Chocolatey
 choco upgrade all -y
+call :GO PROGRAMS_MANAGER_MENU
+
+:DOWNLOAD_MO
+start "" cmd /c "Files\Programs\office.bat"
 call :GO PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
