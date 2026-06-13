@@ -882,10 +882,10 @@ echo Remove Windows Defender Security health UI
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >> "%LOG_FILE%" 2>&1
 
 echo Remove Windows Defender via registry
-for %%f in ("Files\Security\RemoveDefenderModuled\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:1 regedit.exe /s "%%f"
+for %%f in ("Files\Security\RemoveDefenderModuled\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
 
 echo Remove Windows Defender files and folders
-"Files\Security\PowerRun.exe" /TI /SW:1 "%ComSpec%" /c "Files\Security\RemoveDefender.bat"
+"Files\Security\PowerRun.exe" /TI /SW:0 "%ComSpec%" /c "Files\Security\RemoveDefender.bat"
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
