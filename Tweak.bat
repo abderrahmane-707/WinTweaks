@@ -230,7 +230,7 @@ set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set BROWSERS_OPEN=0
 
 :: Check if any browser is currently running
-for %%B in (%BROWSERS%) do (
+for %%A in (%BROWSERS%) do (
     tasklist /FI "IMAGENAME eq %%B" 2>nul | find /I "%%B" >nul
     if not errorlevel 1 (
         set BROWSERS_OPEN=1
@@ -536,7 +536,7 @@ echo. >> "%HOSTS_PATH%"
 for /f "usebackq delims=" %%L in ("%~dp0Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
     if errorlevel 1 (
-	    :: Add domain if exist
+	    :: Add domain if not exist
         echo %%L >> "%HOSTS_PATH%"
     )
 )
@@ -882,7 +882,7 @@ echo Remove Windows Defender Security health UI
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >> "%LOG_FILE%" 2>&1
 
 echo Remove Windows Defender via registry
-for %%f in ("Files\Security\RemoveDefenderModuled\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
+for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
 
 echo Remove Windows Defender files and folders
 "Files\Security\PowerRun.exe" /TI /SW:0 "%ComSpec%" /c "Files\Security\RemoveDefender.bat"
@@ -1341,7 +1341,7 @@ set "ON=(YES)"
 set "OFF=(NO)"
 
 :: Initialize all 18 options to "OFF" by default
-for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "opt%%A=%OFF%"
+for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "OPT%%A=%OFF%"
 
 :PROGRAMS_MENU
 cls & echo. & echo.
@@ -1528,7 +1528,7 @@ start "" cmd /c "Files\Programs\office.bat"
 call :GO PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
-cls & echo WARNING: This will remove ALL Microsoft store apps!
+cls & echo WARNING: This will remove ALL Microsoft Store apps!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
@@ -1550,7 +1550,7 @@ echo                           [3] Notification                                 
 echo.
 echo                           [5] Num Lock                                         [6] UTC Time
 echo.
-echo                           [7] Power Setting                                    [8] Trash Options 
+echo                           [7] Power Settings                                   [8] Trash Options 
 echo.
 echo                           [9] Classic Photo Viewer                             [10] Context Menu
 echo.
@@ -1978,7 +1978,7 @@ if %errorlevel% equ 0 (
 	call :GO SYSTEM_MENU
 )
 
-:: If Creating failde (errorlevel>0)
+:: If Creating failed (errorlevel>0)
 echo Creating a restore point failed. Attempting to fix system dependencies
     
 :: Enable System Restore via registry if they were disabled by policy
@@ -2135,9 +2135,9 @@ cls & echo Activating Windows and Microsoft Office
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
 call :GO ACTIVATION_MENU
 
-:: Check if the Machin is Activated or not
+:: Check if the Machine is Activated or not
 :CHECK_ACTIVATION
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivateStatus.ps1"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivationStatus.ps1"
 call :GO ACTIVATION_MENU
 
 :: Display basic system information 
@@ -2272,7 +2272,7 @@ if not exist "%drive%:\" (
 cls & echo. & echo.
 echo                        --------------------------------- CHKDSK ----------------------------------
 echo.
-echo                          [1] Drive Status                                    [2] Fix Files System
+echo                          [1] Drive Status                                    [2] Fix File System
 echo.
 echo                          [3] Fix Bad Sectors                                 [0] Back
 echo.
@@ -2296,7 +2296,7 @@ chkdsk %drive%:
 call :GO CHKDSK_MENU
 
 :FIX_FILE
-cls & echo Fix files system errors in drive: %drive%
+cls & echo Fix file system errors in drive: %drive%
 timeout /t 2 >nul
 
 :: /f: Fixes errors on the disk
@@ -2305,7 +2305,7 @@ chkdsk %drive%: /f /x
 call :GO CHKDSK_MENU
 
 :FIX_SECTORS
-cls & echo Fix files system and recovering files from bad sectors in drive: %drive%
+cls & echo Fix file system and recovering files from bad sectors in drive: %drive%
 timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
@@ -2351,16 +2351,16 @@ goto OTHER_MENU
 
 :: Launch CTT
 :CTT
-cls & echo Running chris titus tool
+cls & echo Running Chris Titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
 call :GO OTHER_MENU
 
-:: Downlod and launch O&O Shutup 10 ++
+:: Download and launch O&O Shutup 10 ++
 :OO_SHUTUP
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1"
 call :GO OTHER_MENU
 
-:: Downlod and launch Speedtest CLI 
+:: Download and launch Speedtest CLI 
 :NET_SPEED_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1"
 call :GO OTHER_MENU
