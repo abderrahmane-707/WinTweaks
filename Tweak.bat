@@ -167,8 +167,7 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     )
 )
 
-echo More details in: %LOG_FILE%
-call :GO PERFORMANCE_MENU
+call :LOG SERVICES_MENU
 
 :: Create a snapshot of all current Service startup types
 :EXPORT_SERVICES
@@ -177,8 +176,7 @@ call :TIME_STAMP_FILE "Performance" "ServiceStartupStatus"
 echo. & echo Exporting the service startup status
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\ExportServices.ps1" >> "%REPORT_FILE%" 2>&1
 
-echo Report file saved in: %REPORT_FILE%
-call :GO SERVICES_MENU
+call :LOG SERVICES_MENU
 
 :: Disable a list of scheduled tasks
 :DISABLE_TASKS
@@ -187,18 +185,17 @@ call :PATH "Performance" "DisableScheduledTasks"
 :: Call the internal :SET_TASKS function using "Disable" mode
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
 
-echo More details in: %LOG_FILE%
-call :GO PERFORMANCE_MENU
 
 :: Enable the scheduled tasks previously disabled
+call :LOG PERFORMANCE_MENU
+	
 :ENABLE_TASKS
 call :PATH "Performance" "EnableScheduledTasks"
 
 :: Call the internal :SET_TASKS function using "Enable" mode
 call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 
-echo More details in: %LOG_FILE%
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :BOOT_TWEAKS
 call :PATH "Performance" "BootTweaks"
@@ -211,8 +208,7 @@ echo Deleting startup shortcuts
 del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
 del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
 call :PATH "Performance" "DefaultBootSettings"
@@ -220,8 +216,7 @@ call :PATH "Performance" "DefaultBootSettings"
 echo. & echo Import default Boot up registry settings
 reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
@@ -544,8 +539,7 @@ for /f "usebackq delims=" %%L in ("%~dp0Files\Security\TrackingDomains.txt") do 
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :REV_DISABLE_TELEMETRY
 call :PATH "Security" "DefaultTelemetry"
@@ -571,8 +565,7 @@ del "%TEMP_FILE%" >nul 2>&1
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
 cls
@@ -696,8 +689,7 @@ rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 echo Delete windows update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :DISABLE_FEATURE_UPDATES
 call :PATH "Security" "DisableFeatureUpdates"
@@ -705,8 +697,7 @@ call :PATH "Security" "DisableFeatureUpdates"
 echo. & echo Disable feature windows update from registry
 reg import "Files\Security\DisableFeatureUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :RESET_UPDATES
 call :PATH "Security" "ResetUpdates"
@@ -803,10 +794,9 @@ for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
 	call :SC_CONTROL "%%S" "start" 
 )
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
 
 
+call :LOG PRIVACY_SECURITY_MENU
 
 :WINDOWS_DEFENDER_MENU
 cls & echo. & echo.
@@ -851,8 +841,7 @@ for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "web
     call :REG_CONFIGURE  "%%S" "4"
 )
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :ENABLE_DEFENDER
 call :PATH "Security" "DefaultDefender"
@@ -868,8 +857,7 @@ for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "web
 echo Enable tamper protection
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableTamperProtection 0 -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :REMOVE_DEFENDER
 echo. & echo WARNING: This script will permanently delete Windows Defender from your system
@@ -896,10 +884,8 @@ for %%D in (
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
-if errorlevel 2 (
-    echo More details in: %LOG_FILE%
-    call :GO PRIVACY_SECURITY_MENU
-)
+if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
+
 echo. & echo Restarting your computer in 5 seconds
 shutdown /r /t 5
 timeout /t 3 >nul
@@ -947,8 +933,7 @@ for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP" ) do (
 echo Removing default user account
 net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :REV_ENHANCE_SECURITY
 call :PATH "Security" "DefaultSecurity"
@@ -956,8 +941,7 @@ call :PATH "Security" "DefaultSecurity"
 echo. & echo Default windows security registry value
 reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
+call :LOG PRIVACY_SECURITY_MENU
 
 :SECURITY_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\SecurityInfo.ps1"
@@ -1025,8 +1009,7 @@ for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connecte
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO NETWORK_MENU
+call :LOG NETWORK_MENU
 
 :REV_NETWORK_TWEAKS
 call :PATH "Network" "DefaultNetworkSettings"
@@ -1041,8 +1024,8 @@ for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotun
 )
 
 call :DHCP
-echo More details in: %LOG_FILE%
-call :GO NETWORK_MENU
+
+call :LOG NETWORK_MENU
 
 :NETWORK_RESET
 cls
@@ -1148,8 +1131,7 @@ ipconfig /renew >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO NETWORK_MENU
+call :LOG NETWORK_MENU
 
 :WIFI_PASSWORDS
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1"
@@ -1280,16 +1262,14 @@ for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connecte
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-echo More details in: %LOG_FILE%
-call :GO DNS_MENU
+call :LOG DNS_MENU
 
 :SET_DHCP
 cls
 call :DHCP
 call :PATH "Network" "DHCP"
 
-echo More details in: %LOG_FILE%
-call :GO DNS_MENU
+call :LOG DNS_MENU
 
 :DNS_SERVER_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSTest.ps1"
@@ -1980,10 +1960,7 @@ call :PATH "System" "RestorePoint"
 echo Creating System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-if %errorlevel% equ 0 (
-    echo More details in: %LOG_FILE%
-	call :GO SYSTEM_MENU
-)
+if %errorlevel% equ 0 call :LOG SYSTEM_MENU
 
 :: If Creating failed (errorlevel>0)
 echo Creating a restore point failed. Attempting to fix system dependencies
@@ -2012,8 +1989,7 @@ if %errorlevel% neq 0 (
     echo. & echo Creating system restore point has failed
 )
 
-echo More details in: %LOG_FILE%
-call :GO SYSTEM_MENU
+call :LOG SYSTEM_MENU
 
 :REGISTRY_BACKUP_MENU
 cls & echo. & echo.
@@ -2077,8 +2053,7 @@ if exist "%BACKUP_DIR%\*.hive" (
     echo No hive files found
 )
 
-echo More details in: %LOG_FILE%
-call :GO REGISTRY_BACKUP_MENU
+call :LOG REGISTRY_BACKUP_MENU
 
 :IMPORTANT_BACKUP
 cls
@@ -2103,8 +2078,7 @@ if exist "%BACKUP_DIR%\*.reg" (
     echo No hive files found
 )
 
-echo More details in: %LOG_FILE%
-call :GO REGISTRY_BACKUP_MENU
+call :LOG REGISTRY_BACKUP_MENU
 
 :: Enable periodic registry backup (RegBack)
 :: The backup will be saved in: C:\Windows\System32\config\RegBack
@@ -2596,6 +2570,10 @@ if "%choice%"=="0" goto %MENU%
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-2)
 pause
 goto SUB_MENU
+
+:LOG
+echo. & echo More details in: %LOG_FILE%
+call :GO %1
 
 :GO
 :: %1 = The label of the menu to return to
