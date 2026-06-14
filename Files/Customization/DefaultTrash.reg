@@ -42,7 +42,7 @@ Windows Registry Editor Version 5.00
 
 ; Enables Sticky Keys accessibility feature with default settings
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
-"Flags"="58"
+"Flags"="510"
 
 ; Enable featured software updates
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]

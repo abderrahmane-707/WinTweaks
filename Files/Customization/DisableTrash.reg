@@ -52,7 +52,7 @@ Windows Registry Editor Version 5.00
 
 ; Disable Sticky Keys sound effect
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
-"Flags"="510"
+"Flags"="506"
 
 ; Disable featured software updates
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
@@ -77,9 +77,3 @@ Windows Registry Editor Version 5.00
 ; Stops Windows from periodically searching for available Wi-Fi networks when connected
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
 "BackgroundScanEnabled"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\System]
-"AllowExperimentation"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowExperimentation]
-"value"=-
