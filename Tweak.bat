@@ -652,22 +652,19 @@ call :GO PRIVACY_SECURITY_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Windows Updates ----------------------------
 echo.
-echo                          [1] Disable All Updates                        [2] Disable Feature Updates
+echo                          [1] Disable All Updates                        [2] Reset Windows Updates
 echo.
-echo                          [3] Reset Windows Updates                      [4] Default Updates Settings
-echo.
-echo                                                           [0] Back
+echo                          [3] Default Updates Settings                   [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto DISABLE_ALL_UPDATES
-if "%choice%"=="2" goto DISABLE_FEATURE_UPDATES
+if "%choice%"=="2" goto ENABLE_UPDATES
 if "%choice%"=="3" goto RESET_UPDATES
-if "%choice%"=="4" goto ENABLE_UPDATES
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
 pause
 goto WINDOWS_UPDATES_MENU
 
@@ -691,11 +688,17 @@ del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 call :LOG PRIVACY_SECURITY_MENU
 
-:DISABLE_FEATURE_UPDATES
-call :PATH "Security" "DisableFeatureUpdates"
+:ENABLE_UPDATES
+call :PATH "Security" "DefaultUpdates"
 
-echo. & echo Disable feature windows update from registry
-reg import "Files\Security\DisableFeatureUpdates.reg" >> "%LOG_FILE%" 2>&1
+echo. & echo Default windows update registry value
+reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
+
+echo Enabling windows update services
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
+    call :SC_CONFIGURE "%%S" "demand"   
+	call :SC_CONTROL "%%S" "start" 
+)
 
 call :LOG PRIVACY_SECURITY_MENU
 
@@ -713,9 +716,7 @@ echo Stop update services
 :: UsoSvc :        Update Orchestrator Service
 :: WaaSMedicSvc :  Windows Update Medic Service
 :: wuauserv :      Windows Update Service
-for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :SC_CONTROL "%%S" "stop"  
-)
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONTROL "%%S" "stop"
 
 :: Remove pending updates and update history
 echo Deleting SoftwareDistribution
@@ -778,23 +779,6 @@ ipconfig /renew >> "%LOG_FILE%" 2>&1
 
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
-
-echo More details in: %LOG_FILE%
-call :GO PRIVACY_SECURITY_MENU
-
-:ENABLE_UPDATES
-call :PATH "Security" "DefaultUpdates"
-
-echo. & echo Default windows update registry value
-reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
-
-echo Enabling windows update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :SC_CONFIGURE "%%S" "demand"   
-	call :SC_CONTROL "%%S" "start" 
-)
-
-
 
 call :LOG PRIVACY_SECURITY_MENU
 
