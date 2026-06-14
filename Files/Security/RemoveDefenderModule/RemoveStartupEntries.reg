@@ -1,5 +1,6 @@
 Windows Registry Editor Version 5.00
 
+; Remove Defender's Startup Entries
 [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
 "Windows Defender"=-
 "SecurityHealth"=-

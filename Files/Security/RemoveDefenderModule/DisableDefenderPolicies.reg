@@ -1,5 +1,6 @@
 Windows Registry Editor Version 5.00
 
+; Enforce Disabling of Windows Defender Antivirus Policy
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\Defender\AllowIOAVProtection]
 "value"=dword:00000000
 
