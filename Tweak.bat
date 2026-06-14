@@ -962,12 +962,13 @@ for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotun
 
 echo Set Cloudflare DNS on all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
-    echo  - Set Cloudflare DNS on: %%b
-    netsh interface ipv4 set dns name="%%b" static 1.1.1.1 primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv4 add dns name="%%b" 1.0.0.1 index=2 >> "%LOG_FILE%" 2>&1
+    echo  - Set Cloudflare DNS on: %%~b
 	
-    netsh interface ipv6 set dns name="%%b" static 2606:4700:4700::1111 primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 add dns name="%%b" 2606:4700:4700::1001 index=2 >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 set dns name="%%~b" static 1.1.1.1 primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 add dns name="%%~b" 1.0.0.1 index=2 >> "%LOG_FILE%" 2>&1
+
+    netsh interface ipv6 set dns name="%%~b" static 2606:4700:4700::1111 primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv6 add dns name="%%~b" 2606:4700:4700::1001 index=2 >> "%LOG_FILE%" 2>&1
 )
 
 echo Flushing DNS cache
@@ -1079,12 +1080,12 @@ ipconfig /release >> "%LOG_FILE%" 2>&1
 :: This effectively "plugs and unplugs" the cable via software
 echo Restart all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
-    echo - Restart: %%b
+    echo - Restart: %%~b
     :: Disable the interface
-    netsh interface set interface name="%%b" admin=disabled >> "%LOG_FILE%" 2>&1
+    netsh interface set interface name="%%~b" admin=disabled >> "%LOG_FILE%" 2>&1
     timeout /t 2 >nul
     :: Re-enable the interface
-    netsh interface set interface name="%%b" admin=enabled >> "%LOG_FILE%" 2>&1
+    netsh interface set interface name="%%~b" admin=enabled >> "%LOG_FILE%" 2>&1
 )
 
 :: Request new IP addresses from the router/DHCP server
@@ -1212,15 +1213,15 @@ call :PATH "Network" "DNS"
 
 cls & echo Set %DNS_NAME% server on all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
-    echo  - Configure: %%b
+    echo  - Configure: %%~b
     
     :: Set the Primary and Secondary IPv4 DNS server
-    netsh interface ipv4 set dns name="%%b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv4 add dns name="%%b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
     
     :: Set the Primary and Secondary IPv6 DNS server
-    netsh interface ipv6 set dns name="%%b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 add dns name="%%b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
+    netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
 )
 
 echo Flushing DNS cache
@@ -2381,17 +2382,18 @@ goto :eof
 echo Set DHCP on all connected interfaces
 
 :: Find all active network adapters
+echo Set DHCP on all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
-    echo - Resetting DNS on: %%b
+    echo - Resetting IP and DNS on: %%~b
     
     :: Revert IPv4 to obtain an IP address automatically from the router
-    netsh interface ipv4 set address name="%%b" source=dhcp >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 set address name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
     
     :: Revert IPv4 to obtain DNS servers automatically
-    netsh interface ipv4 set dnsservers name="%%b" source=dhcp >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 set dnsservers name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
 
     :: Revert IPv6 to obtain DNS servers automatically
-    netsh interface ipv6 set dnsservers name="%%b" source=dhcp >> "%LOG_FILE%" 2>&1
+    netsh interface ipv6 set dnsservers name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
 )
 
 echo Flushing DNS cache
