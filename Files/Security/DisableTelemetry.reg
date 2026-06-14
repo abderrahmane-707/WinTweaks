@@ -36,7 +36,7 @@ Windows Registry Editor Version 5.00
 "DisableTelemetryOptInChangeNotification"=dword:00000001
 
 ; Turns off SQM (Software Quality Metrics) data collection
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient]
 "CEIPEnable"=dword:00000000
 
 ; Disable Windows Error Reporting
