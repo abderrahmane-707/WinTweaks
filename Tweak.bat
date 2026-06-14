@@ -290,8 +290,6 @@ for %%X in (
 )
 
 call :CLEANING_FUNCTION
-
-call :FINAL_CLEAN
 call :GO PERFORMANCE_MENU
 
 :POWER_PLAN_MENU
@@ -627,7 +625,7 @@ echo. | clip >nul
 echo Flushing DNS cache
 ipconfig /flushdns >nul 2>&1
 
-call :FINAL_CLEAN
+call :CLEANING_FUNCTION
 call :GO PRIVACY_SECURITY_MENU
 
 :WINDOWS_UPDATES_MENU
@@ -2345,12 +2343,10 @@ for /f "usebackq delims=" %%i in ("%~2") do (
 goto :eof
 
 :CLEANING_FUNCTION
-echo Cleaning Temp
+echo Cleaning Temp folders
 for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
     if exist "%%~F" (
-        :: Delete all files in the directory
         del /f /q "%%~F\*" >nul 2>&1
-        :: Remove all sub-directories
         for /d %%D in ("%%~F\*") do (
             rd /s /q "%%D" >nul 2>&1
         )
@@ -2361,26 +2357,23 @@ for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
 echo Cleaning Recent Files
 del /f /q "%APPDATA%\Microsoft\Windows\Recent\*.lnk" >nul 2>&1
 
-:: This forces Windows to recreate icons, which can fix "broken" file thumbnails
-echo Cleaning Thumbnail and icons cache
+:: Rebuild icon and thumbnail cache
+echo Cleaning Thumbnail and Icon cache
 del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
 del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
 
-:: Delete the text file that stores every command you've ever typed into PowerShell
+:: Delete PowerShell command history
 echo Cleaning PowerShell command history
 del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
-goto :eof
 
-:FINAL_CLEAN
 choice /C YN /N /M "Run Disk Cleanup to complete the cleaning? (Y/N): "
 if %errorlevel% equ 1 (
     echo Running Disk Cleanup
-    :: /VERYLOWDISK: Runs cleanmgr with all boxes checked and no user prompts
     cleanmgr.exe /d C: /VERYLOWDISK
 )
 
 :: Force empty the Recycle Bin for all drives
-echo Empty Recycle Bin
+echo Emptying Recycle Bin
 powershell -Command "Clear-RecycleBin -Force" >nul 2>&1
 goto :eof
 
