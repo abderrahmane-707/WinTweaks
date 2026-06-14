@@ -884,8 +884,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHea
 echo Remove Windows Defender via registry
 for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
 
-echo Remove Windows Defender files and folders
-"Files\Security\PowerRun.exe" /TI /SW:0 "%ComSpec%" /c "Files\Security\RemoveDefender.bat"
+echo Remove Windows Defender files
+for %%D in (
+    "C:\Program Files (x86)\Windows Defender"
+    "C:\Program Files\Windows Defender Advanced Threat Protection"
+    "C:\Program Files\Windows Defender"
+    "C:\ProgramData\Microsoft\Windows Defender"
+) do (
+    "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q ""%%~D"""
+)
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
