@@ -25,7 +25,3 @@ Windows Registry Editor Version 5.00
 ; Clears the Windows Timeline (TaskFlow) and Clipboard history
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\TaskFlow]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Clipboard\History]
-
-; Wipes the list of Wi-Fi networks and Ethernet connections ever joined
-[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles]
-[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged]
