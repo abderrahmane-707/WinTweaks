@@ -983,7 +983,7 @@ echo. & echo Set default registry network settings
 reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
 
 echo Reset TCP settings to default
-for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotuning=normal") do (
+for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotuninglevel=normal") do (
     echo  - Resetting: %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
