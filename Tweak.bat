@@ -220,21 +220,22 @@ call :LOG PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
-:: List of browser processes to check
+::  List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
-set BROWSERS_OPEN=0
+set "BROWSERS_OPEN=0"
 
 :: Check if any browser is currently running
 for %%A in (%BROWSERS%) do (
-    tasklist /FI "IMAGENAME eq %%B" 2>nul | find /I "%%B" >nul
+    tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
     if not errorlevel 1 (
-        set BROWSERS_OPEN=1
+        set "BROWSERS_OPEN=1"
     )
 )
 
 if "!BROWSERS_OPEN!"=="1" (
-    echo Browsers are currently open
-    choice /C YN /N /M "Close them? (Y/N)"
+    echo Browsers are currently running
+    choice /C YN /N /M "Close them? (Y/N): "
+	echo.
     if errorlevel 2 (
         echo Skipping files currently used by browsers
     ) else (
@@ -246,36 +247,32 @@ if "!BROWSERS_OPEN!"=="1" (
     )
 )
 
-:: Chromium-based browsers (Chrome, Edge, Brave)
-for %%A in (
+::  Chromium-based browsers (Chrome, Edge, Brave)
+for %%X in (
     "Google\Chrome\User Data|Google Chrome"
     "Microsoft\Edge\User Data|Microsoft Edge"
     "BraveSoftware\Brave-Browser\User Data|Brave"
 ) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~B") do (
+    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
         if exist "%LOCALAPPDATA%\%%A" (
-            echo Cleaning: %%B
-            for /d %%P in ("%LOCALAPPDATA%\%%~A\*") do (
-                :: Remove caches and folders
-                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "File System" "Service Worker" "Media Cache" "Download Service") do (
+            echo Cleaning %%B
+            for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
+                :: Remove cache folders
+                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "Media Cache" "Download Service") do (
                     rd /s /q "%%P\%%~D" >nul 2>&1
-                )
-                :: Remove cookie/history files
-                for %%F in ("Cookies" "Cookies-journal" "Network\Cookies" "Network\Cookies-journal" "History" "History-journal") do (
-                    del /f /q "%%P\%%~F" >nul 2>&1
                 )
             )
         )
     )
 )
 
-:: Mozilla Firefox
-for %%B in (
+::  Mozilla Firefox
+for %%X in (
     "Mozilla\Firefox|Mozilla Firefox"
 ) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~B") do (
+    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
         if exist "%APPDATA%\%%A" (
-            echo Cleaning: %%B
+            echo Cleaning %%B
 
             :: Remove cache
             if exist "%LOCALAPPDATA%\%%A\Profiles" (
@@ -285,22 +282,7 @@ for %%B in (
                     )
                 )
             )
-
-            :: Clean profile data
-            if exist "%APPDATA%\%%A\Profiles" (
-                for /d %%P in ("%APPDATA%\%%A\Profiles\*") do (
-                    :: Delete cookies and other sqlite files
-                    for %%F in ("cookies.sqlite" "cookies.sqlite-wal" "favicons.sqlite" "formhistory.sqlite") do (
-                        del /f /q "%%P\%%~F" >nul 2>&1
-                    )
-					:: Session data (directory)
-                    rd /s /q "%%P\sessionstore-backups" >nul 2>&1
-					
-					:: Storage (directory)
-                    rd /s /q "%%P\storage" >nul 2>&1
-                )
-            )
-
+			
             :: Delete crash reports
             rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
         )
