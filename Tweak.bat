@@ -53,7 +53,7 @@ echo                        ------------------------------- Performance --------
 echo.
 echo                          [1] Services                                         [2] Scheduled Tasks
 echo.
-echo                          [3] Boot Up                                          [4] Clean Up 
+echo                          [3] Boot Up                                          [4] Clean Up
 echo.
 echo                          [5] Power Plan                                       [6] Hardware Info
 echo.
@@ -172,21 +172,18 @@ powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Hos
 
 call :LOG SERVICES_MENU
 
-:: Disable a list of scheduled tasks
 :DISABLE_TASKS
 call :PATH "Performance" "DisableScheduledTasks"
 
-:: Call the internal :SET_TASKS function using "Disable" mode
+echo Disable unnecessary scheduled tasks
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
 
-
-:: Enable the scheduled tasks previously disabled
 call :LOG PERFORMANCE_MENU
 	
 :ENABLE_TASKS
 call :PATH "Performance" "EnableScheduledTasks"
 
-:: Call the internal :SET_TASKS function using "Enable" mode
+echo Enable unnecessary scheduled tasks
 call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 
 call :LOG PERFORMANCE_MENU
@@ -197,7 +194,6 @@ call :PATH "Performance" "BootTweaks"
 echo. & echo Import Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
-:: Wipe out all startup programs
 echo Deleting startup shortcuts
 del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
 del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
@@ -433,6 +429,7 @@ cls & echo Creating battery report
 set "REPORT_FILE=%USERPROFILE%\Documents\BatteryReport.html"
 
 powercfg /batteryreport /output "%REPORT_FILE%"
+
 :: Opening battery report
 start "" "%REPORT_FILE%"
 call :GO HW_INFO_MENU
@@ -488,9 +485,7 @@ echo Disabling windows telemetry services
 :: DiagTrack :      Connected User Experiences and Telemetry
 :: dmwappushsvc :   WAP Push Message Routing Service
 :: WerSvc :         Windows Error Reporting Service
-for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do (
-    call :SC_CONFIGURE "%%S" "disabled"
-)
+for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "disabled"
 
 echo Blocking windows telemetry and trash domains
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
@@ -511,6 +506,7 @@ call :LOG PRIVACY_SECURITY_MENU
 
 :REV_DISABLE_TELEMETRY
 call :PATH "Security" "DefaultTelemetry"
+
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 set "TEMP_FILE=%temp%\HostsClean.txt"
 
@@ -518,9 +514,7 @@ echo. & echo Default windows telemetry registry value
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Set windows telemetry services to manual startup
-for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do (
-    call :SC_CONFIGURE "%%S" "demand"
-)
+for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "demand"
 
 echo Delete windows telemetry and trash domains
 :: Filter out blocked domains listed in TrackingDomains.txt from the HOSTS file
@@ -584,8 +578,6 @@ if exist "%LOCALAPPDATA%\Mozilla\Firefox" (
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
-call :CLEANING_FUNCTION
-
 :: Clear application launch history and start fresh
 echo Cleaning prefetch files
 del /f /s /q "%SYSTEMROOT%\Prefetch\*" >nul 2>&1
@@ -603,9 +595,7 @@ for /d %%G in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do (
 
 :: Clear Windows Event Viewer logs
 echo Cleaning Windows Event Logs
-for %%L in ("Application" "Security" "System" "Setup") do (
-    wevtutil clear-log %%L >nul 2>&1
-)
+for %%L in ("Application" "Security" "System" "Setup") do wevtutil clear-log %%L >nul 2>&1
 
 echo Cleaning Clipboard
 echo. | clip >nul
@@ -707,8 +697,8 @@ sc sdset wuauserv D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;
 
 :: Re-register essential System DLLs (Libraries) for updates, web protocols, and encryption
 echo Reregistering system DLL
-for %%d in ("atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll vbscript.dll scrrun.dll msxml.dll msxml3.dll msxml6.dll actxprxy.dll softpub.dll wintrust.dll dssenh.dll rsaenh.dll gpkcsp.dll sccbase.dll slbcsp.dll cryptdlg.dll oleaut32.dll ole32.dll shell32.dll initpki.dll wuapi.dll wuaueng.dll wuaueng1.dll wucltui.dll wups.dll wups2.dll wuweb.dll qmgr.dll qmgrprxy.dll wucltux.dll muweb.dll wuwebv.dll") do (
-    regsvr32 /s "%%d" >> "%LOG_FILE%" 2>&1
+for %%D in ("atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll vbscript.dll scrrun.dll msxml.dll msxml3.dll msxml6.dll actxprxy.dll softpub.dll wintrust.dll dssenh.dll rsaenh.dll gpkcsp.dll sccbase.dll slbcsp.dll cryptdlg.dll oleaut32.dll ole32.dll shell32.dll initpki.dll wuapi.dll wuaueng.dll wups.dll wups2.dll qmgr.dll qmgrprxy.dll wucltux.dll muweb.dll") do (
+	regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 :: Revert system security policies to the Windows default baseline
@@ -750,7 +740,7 @@ call :LOG PRIVACY_SECURITY_MENU
 
 :WINDOWS_DEFENDER_MENU
 cls & echo. & echo.
-echo                        ------------------------------ Windows Defender ---------------------------
+echo                        ----------------------------- Windows Defender ----------------------------
 echo.
 echo                          [1] Disable Defender                                [2] Enable Defender
 echo.
@@ -785,9 +775,7 @@ echo Disable windows defender services
 :: Sense :                  Windows Defender Advanced Threat Protection (Endpoint Detection)
 :: webthreatdefsvc :        Microsoft Defender Antivirus Web Threat Protection
 :: webthreatdefusersvc :    User-specific Web Threat Protection service
-for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do (
-    call :REG_CONFIGURE  "%%S" "4"
-)
+for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do call :REG_CONFIGURE  "%%S" "4"
 
 call :LOG PRIVACY_SECURITY_MENU
 
@@ -798,9 +786,7 @@ echo. & echo Default windows defender registry value
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo Enable windows defender services
-for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do (
-    call :REG_CONFIGURE  "%%S" "2"
-)
+for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do call :REG_CONFIGURE  "%%S" "2"
 
 echo Enable tamper protection
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableTamperProtection 0 -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
@@ -989,9 +975,7 @@ echo Stopping Network Services
 :: Nsi:       Delivers network notifications
 :: WlanSvc:   Connect to Wi-Fi
 :: WwanSvc:   Manages mobile broadband
-for %%S in ("Dhcp" "Dnscache" "dot3svc" "netman" "netprofm" "nlasvc" "Nsi" "WlanSvc" "WwanSvc") do (
-    call :SC_CONTROL "%%S" "stop"
-)
+for %%S in ("Dhcp" "Dnscache" "dot3svc" "netman" "netprofm" "nlasvc" "Nsi" "WlanSvc" "WwanSvc") do call :SC_CONTROL "%%S" "stop"
 
 echo Configuring Essential Services
 for %%S in ("Dhcp" "Dnscache" "nlasvc" "Nsi" "WlanSvc") do (
@@ -1083,7 +1067,7 @@ call :LOG NETWORK_MENU
 :WIFI_PASSWORDS
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1"
 
-echo. & choice /C YN /N /M "Export the results as a text file? (Y/N): "
+echo. & choice /C YN /N /M "Export results as a text file? (Y/N): "
 if %errorlevel% equ 1 (
     call :TIME_STAMP_FILE "Network" "WifiPassword"
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" >> "!REPORT_FILE!" 2>&1
@@ -1275,21 +1259,21 @@ for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "OPT%%A=%OFF%"
 
 :PROGRAMS_MENU
 cls & echo. & echo.
-echo                        -------------------------------- Programs ---------------------------------
+echo                        ----------------------------------- Programs -----------------------------------
 echo.
-echo                           [1] Google Chrome           [7] XnViewMP              [13] VC++ (2015_2026)
+echo                           [1] Google Chrome            [7] XnViewMP               [13] All VC++
 echo.
-echo                           [2] Brave                   [8] Sumatra PDF           [14] DirectX
+echo                           [2] Brave                    [8] Sumatra PDF            [14] DirectX
 echo.
-echo                           [3] WinRAR                  [9] Notepad++             [15] Virtual Box
+echo                           [3] WinRAR                   [9] Notepad++              [15] Virtual Box
 echo.
-echo                           [4] 7-Zip                   [10] VS Code              [16] IObit Unlocker
+echo                           [4] 7-Zip                    [10] VS Code               [16] IObit Unlocker
 echo.
-echo                           [5] K-Lite Codec            [11] Git                  [17] AutoHotkey
+echo                           [5] K-Lite Codec             [11] Git                   [17] AutoHotkey
 echo.
-echo                           [6] IrfanView               [12] qbittorrent          [18] MEGA
+echo                           [6] IrfanView                [12] qbittorrent           [18] MEGA
 echo.
-echo                        ---------------------------------------------------------------------------
+echo                        --------------------------------------------------------------------------------
 echo.
 echo                           [A] Select All              [D] Deselect All           [0] Back
 echo.
@@ -1308,9 +1292,7 @@ if /i "%choice%"=="D" goto DESELECT_ALL
 :: Process numerical input to toggle selections (0-18)
 set "tokens=%choice:,= %"
 for %%G in (%tokens%) do (
-    for %%N in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do (
-        if "%%G"=="%%N" call :TOGGLE_SINGLE OPT%%N
-    )
+    for %%N in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do if "%%G"=="%%N" call :TOGGLE_SINGLE OPT%%N
 )
 goto PROGRAMS_MENU
 
@@ -1376,7 +1358,7 @@ call :IS_ON OPT12 && (
     choco install qbittorrent -y
 )
 call :IS_ON OPT13 && (
-    echo Installing VC++ Redistributables (2015_2026)
+    echo Installing All VC++ Redistributables
     choco install vcredist140 -y
 )
 call :IS_ON OPT14 && (
@@ -1469,6 +1451,7 @@ call :GO PROGRAMS_MANAGER_MENU
 :PROGRAMS_INFO
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1"
 call :GO PROGRAMS_MANAGER_MENU
+
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
@@ -1953,7 +1936,6 @@ call :TIME_STAMP_DIR "System" "FullRegistryBackup"
 
 :: Define the main system Hives for binary export
 echo Creating Full Registry Backup
-
 for %%A in (
     "HKLM\SYSTEM,SYSTEM"
     "HKLM\SOFTWARE,SOFTWARE"
@@ -2089,7 +2071,7 @@ call :GO DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
-cls & echo Windows component
+cls & echo Cleaning Windows components
 dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
 call :GO DISM_MENU
 
@@ -2097,6 +2079,7 @@ call :GO DISM_MENU
 :DEFRAG
 start "" dfrgui.exe
 goto TOOLS_MENU
+
 :CHKDSK
 cls & echo Available drives on your system:
 
@@ -2186,6 +2169,7 @@ goto TOOLS_MENU
 :DELETE_SCRIPT_DATA
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1"
 call :GO TOOLS_MENU
+
 
 :OTHER_MENU
 cls
