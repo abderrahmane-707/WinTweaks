@@ -1894,7 +1894,6 @@ call :PATH "System" "RestorePoint"
 :: Execute a PowerShell script to create restore point
 echo Creating System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
-
 if %errorlevel% equ 0 call :LOG SYSTEM_MENU
 
 :: If Creating failed (errorlevel>0)
@@ -1909,23 +1908,43 @@ echo Updating policies
 gpupdate /force >> "%LOG_FILE%" 2>&1
     
 echo Starting restore point services
-	
+
 :: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
 :: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
+for %%S in ("VSS" "swprv") do call :SC_CONTROL "%%S" "stop"
+
+for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
+	regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+)
+
+for %%D in (swprv.dll eventcls.dll) do (
+	regsvr32 /s /i"%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+)
+
+echo   Registering VSS Service
+vssvc /register  >> "%LOG_FILE%" 2>&1
+
 for %%S in ("VSS" "swprv") do (
     call :SC_CONFIGURE "%%S" "demand"
     call :SC_CONTROL "%%S" "start"
 )
 
+:: RpcSs :      Remote Procedure Call (RPC) Service (Manages inter-process communication)
+:: EventLog :   Windows Event Log Service (Records system, security, and application events)
+:: EventSystem : COM+ Event System (Distributes system events to subscribed components)
+:: Schedule :   Task Scheduler Service (Manages scheduled tasks, including automatic restore point creation)
+for %%S in ("RpcSs" "CryptSvc" "EventLog" "EventSystem" "Schedule") do (
+    call :SC_CONFIGURE "%%S" "auto"
+    call :SC_CONTROL "%%S" "start"
+)
+
+vssadmin list writers >> "%LOG_FILE%" 2>&1
+
 echo Creating system restore point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-if %errorlevel% neq 0 (
-    echo. & echo Creating system restore point has failed
-)
-
-
-
+if %errorlevel% neq 0 echo. & echo Creating system restore point has failed
+call :LOG SYSTEM_MENU
 
 :REG_BACK
 cls
