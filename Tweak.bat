@@ -1880,7 +1880,7 @@ echo                        ----------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto RESTORE_POINT
-if "%choice%"=="2" goto REGISTRY_BACKUP_MENU
+if "%choice%"=="2" goto REG_BACK
 if "%choice%"=="3" goto ACTIVATION_MENU
 if "%choice%"=="4" goto SYSTEM_INFO
 if "%choice%"=="0" goto MAIN_MENU
@@ -1924,37 +1924,10 @@ if %errorlevel% neq 0 (
     echo. & echo Creating system restore point has failed
 )
 
-call :LOG SYSTEM_MENU
 
-:REGISTRY_BACKUP_MENU
-cls & echo. & echo.
-echo                        ------------------------------ Registry Backup ----------------------------
-echo.
-echo                           [1] Full Backup                                    [2] Important Backup
-echo. 
-echo                           [3] Automatic Backup                               [0] Back
-echo.
-echo                        ---------------------------------------------------------------------------
 
-echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto FULL_BACKUP 
-if "%choice%"=="2" goto IMPORTANT_BACKUP
 
-if "%choice%"=="3" (
-    set ROUTINE=AUTOMATIC_BACKUP
-    set REV_ROUTINE=REV_AUTOMATIC_BACKUP
-    set APPLY=Enable automatic registry backup task
-	set REVERT=Disable automatic registry backup task
-    set MENU=REGISTRY_BACKUP_MENU
-    goto SUB_MENU
-)
-if "%choice%"=="0" goto SYSTEM_MENU 
-
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
-pause
-goto REGISTRY_BACKUP_MENU
-
-:FULL_BACKUP
+:REG_BACK
 cls
 call :PATH "System" "FullRegistryBackup"
 call :TIME_STAMP_DIR "System" "FullRegistryBackup"
@@ -1987,44 +1960,7 @@ if exist "%BACKUP_DIR%\*.hive" (
 ) else (
     echo No hive files found
 )
-
 call :LOG REGISTRY_BACKUP_MENU
-
-:IMPORTANT_BACKUP
-cls
-call :PATH "System" "ImportantRegistryBackup"
-call :TIME_STAMP_DIR "System" "ImportantRegistryBackup"
-
-echo Creating Important Registry Backup
-:: Read specific keys from an external text file for a targeted backup
-for /f "usebackq tokens=1,2 delims=," %%K in ("Files\System\RegKey.txt") do (
-    echo  Export: %%K
-    reg export "%%K" "%BACKUP_DIR%\%%L" /y >>"%LOG_FILE%" 2>&1
-)
-
-if exist "%BACKUP_DIR%\*.reg" (
-    choice /C YN /N /M "Compress files? (Y/N): "
-    if errorlevel 2 (
-        echo. & echo Backup files saved in: %BACKUP_DIR%
-    ) else (
-        powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
-    )
-) else (
-    echo No hive files found
-)
-
-call :LOG REGISTRY_BACKUP_MENU
-
-:: Enable periodic registry backup (RegBack)
-:: The backup will be saved in: C:\Windows\System32\config\RegBack
-:AUTOMATIC_BACKUP
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Configuration Manager" /v EnablePeriodicBackup /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO REGISTRY_BACKUP_MENU
-
-:: Disable periodic registry backup
-:REV_AUTOMATIC_BACKUP
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Configuration Manager" /v EnablePeriodicBackup /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO REGISTRY_BACKUP_MENU
 
 :ACTIVATION_MENU
 cls & echo. & echo.
