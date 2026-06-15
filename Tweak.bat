@@ -1820,7 +1820,7 @@ call :GO CONTEXT_MENU
 :: Define the menu text and add the UAC shield icon
 reg add "HKCR\Directory\shell\OpenCmdHere" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
 reg add "HKCR\Directory\shell\OpenCmdHere" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
-reg add "HKCR\Directory\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
+reg add "HKCR\Directory\shell\OpenCmdHere" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
 
 :: Use PowerShell to trigger a CMD process with 'RunAs' (Administrator) privileges in the current directory
 reg add "HKCR\Directory\shell\OpenCmdHere\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
@@ -1844,7 +1844,7 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /ve /d "
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /v "Icon" /d "explorer.exe,0" /f >nul 2>&1
 
 :: The command kills the explorer.exe process and immediately restarts it
-reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" /ve /d "cmd.exe /c taskkill /f /im explorer.exe && start explorer.exe" /f >nul 2>&1
+reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" /ve /d "cmd.exe /c taskkill /f /im explorer.exe & start explorer.exe" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Remove the "Restart Explorer" right-click menu
