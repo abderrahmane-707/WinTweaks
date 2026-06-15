@@ -2296,17 +2296,17 @@ goto :eof
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)
 sc query "%~1" >nul 2>&1
-if %errorlevel% equ 0 (
+if !errorlevel! equ 0 (
     if /i "%~2"=="stop" (
         sc stop "%~1" >nul 2>&1
-        if %errorlevel% equ 0 (
+        if !errorlevel! equ 0 (
             echo [STOPPED] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
             echo [FAILED TO STOP] %~1 >>"%LOG_FILE%" 2>&1
         )
     ) else if /i "%~2"=="start" (
         sc start "%~1" >nul 2>&1
-        if %errorlevel% equ 0 (
+        if !errorlevel! equ 0 (
             echo [STARTED] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
             echo [FAILED TO START] %~1 >>"%LOG_FILE%" 2>&1
@@ -2321,9 +2321,9 @@ goto :eof
 :: %~1 = Service Name
 :: %~2 = Start Type
 sc query "%~1" >nul 2>&1
-if %errorlevel% equ 0 (
+if !errorlevel! equ 0 (
     sc config "%~1" start= %~2 >nul 2>&1
-    if %errorlevel% equ 0 (
+    if !errorlevel! equ 0 (
         echo [SUCCESS] %~1 >>"%LOG_FILE%" 2>&1
     ) else (
         echo [FAILED] %~1 >>"%LOG_FILE%" 2>&1
@@ -2335,17 +2335,17 @@ goto :eof
 
 :REG_CONFIGURE
 :: Check if the service key exists
-reg query "HKLM\SYSTEM\CurrentControlSet\Services\%1" >nul 2>&1
-if %errorlevel% equ 0 (
+reg query "HKLM\SYSTEM\CurrentControlSet\Services\%~1" >nul 2>&1
+if !errorlevel! equ 0 (
     :: Set the Start Type value
-    reg add "HKLM\SYSTEM\CurrentControlSet\Services\%1" /v Start /t REG_DWORD /d %2 /f >nul 2>&1
-    if %errorlevel% equ 0 (
-        echo [SUCCESS] %1 >> "%LOG_FILE%" 2>&1
+    reg add "HKLM\SYSTEM\CurrentControlSet\Services\%~1" /v Start /t REG_DWORD /d %~2 /f >nul 2>&1
+    if !errorlevel! equ 0 (
+        echo [SUCCESS] %~1 >> "%LOG_FILE%" 2>&1
     ) else (
-        echo [FAILED] %1 >> "%LOG_FILE%" 2>&1
+        echo [FAILED] %~1 >> "%LOG_FILE%" 2>&1
     )
 ) else (
-    echo [NOT FOUND] %1 >> "%LOG_FILE%" 2>&1
+    echo [NOT FOUND] %~1 >> "%LOG_FILE%" 2>&1
 )
 goto :eof
 
