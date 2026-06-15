@@ -1941,6 +1941,7 @@ for %%A in (
     "HKLM\SAM,SAM"
     "HKLM\SECURITY,SECURITY"
     "HKU\.DEFAULT,DEFAULT"
+	"HKCU,NTUSER"
     "HKCU\Software\Classes,UsrClass"
 ) do (
     for /f "tokens=1,2 delims=," %%B in (%%A) do (
