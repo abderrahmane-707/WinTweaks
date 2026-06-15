@@ -530,7 +530,11 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
-cls
+cls & echo WARNING: This will permanently delete browser data, logs, and privacy-related information!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto PRIVACY_SECURITY_MENU
+
+echo.
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set BROWSERS_OPEN=0
 
