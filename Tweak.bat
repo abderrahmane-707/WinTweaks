@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title Win_Tweaks
+title WinTweaks
 
 :: Check for administrator privileges
 fltmc >nul 2>&1
@@ -13,7 +13,7 @@ if errorlevel 1 (
 :: Go to script's directory
 cd /d "%~dp0"
 
-:: Win_Tweaks Script main menu
+:: WinTweaks Script main menu
 :MAIN_MENU
 cls
 echo.
@@ -2163,7 +2163,7 @@ goto TOOLS_MENU
 cleanmgr.exe /d C: /VERYLOWDISK
 goto TOOLS_MENU
 
-:: Delete "%ProgramData%\Win_Tweaks" folder
+:: Delete "%ProgramData%\WinTweaks" folder
 :DELETE_SCRIPT_DATA
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1"
 call :GO TOOLS_MENU
@@ -2353,7 +2353,7 @@ goto :eof
 :TIME_STAMP_FILE
 :: Retrieve current system time in a format that won't break file paths
 for /f "tokens=*" %%a in ('powershell -Command "Get-Date -Format 'yyyyMMddHHmmss'"') do set datetime=%%a
-set "REPORT_DIR=%ProgramData%\Win_Tweaks\%~1"
+set "REPORT_DIR=%ProgramData%\WinTweaks\%~1"
 
 :: Construct the filename with a clean YYYY-MM-DD_HH-MM-SS format
 set "REPORT_FILE=%REPORT_DIR%\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%.txt"
@@ -2370,7 +2370,7 @@ goto :eof
 
 :TIME_STAMP_DIR
 for /f "tokens=*" %%a in ('powershell -Command "Get-Date -Format 'yyyyMMddHHmmss'"') do set datetime=%%a
-set "BACKUP_DIR=%ProgramData%\Win_Tweaks\%~1\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%"
+set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%"
 
 if not exist "%BACKUP_DIR%" (
     mkdir "%BACKUP_DIR%" >nul 2>&1
@@ -2387,7 +2387,7 @@ goto :eof
 :: %~2 = Log filename
 
 :: Define the base directory within ProgramData for organizational consistency
-set "TARGET_DIR=%ProgramData%\Win_Tweaks\%~1"
+set "TARGET_DIR=%ProgramData%\WinTweaks\%~1"
 
 :: Create the folder if it not exist
 :: Prompt to exit if creation is failed
