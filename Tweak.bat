@@ -2105,9 +2105,6 @@ set "drive=%drive:"=%"
 :: Trim to first character only
 set "drive=%drive:~0,1%"
 
-:: Convert to uppercase (optional but recommended)
-for %%A in (%drive%) do set "drive=%%~A"
-
 :: Validate that the drive exists
 if not exist "%drive%:\" (
     echo. & echo Invalid drive letter: %drive%    
@@ -2145,8 +2142,7 @@ cls & echo Fix file system errors in drive: %drive%
 timeout /t 2 >nul
 
 :: /f: Fixes errors on the disk
-:: /x: Forces the volume to dismount first if necessary
-chkdsk %drive%: /f /x
+chkdsk %drive%: /f
 call :GO CHKDSK_MENU
 
 :FIX_SECTORS
