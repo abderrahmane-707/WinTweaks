@@ -7,7 +7,7 @@ fltmc >nul 2>&1
 if errorlevel 1 (
     echo This script must be run with Administrator privileges
     pause
-	exit /b 1
+	exit
 )
 
 :: Go to script's directory
@@ -2363,7 +2363,7 @@ if not exist "%REPORT_DIR%" (
     if errorlevel 1 (
         echo Failed to create directory: %REPORT_DIR%
         pause
-		exit /b 1
+		exit
     )
 )
 goto :eof
@@ -2377,7 +2377,7 @@ if not exist "%BACKUP_DIR%" (
     if errorlevel 1 (
         echo [ERROR] Failed to create directory: %BACKUP_DIR%
         pause
-		exit /b 1
+		exit
     )
 )
 goto :eof
@@ -2396,7 +2396,7 @@ if not exist "%TARGET_DIR%" (
     if errorlevel 1 (
         echo Failed to create directory: %TARGET_DIR%
         pause
-        exit /b 1
+        exit
     )
 )
 
