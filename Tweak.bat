@@ -2294,7 +2294,6 @@ goto :eof
 echo Set DHCP on all connected interfaces
 
 :: Find all active network adapters
-echo Set DHCP on all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
     echo - Resetting IP and DNS on: %%~b
     
