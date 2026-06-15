@@ -44,9 +44,8 @@ if "%choice%"=="7" goto TOOLS_MENU
 if "%choice%"=="8" goto OTHER_MENU
 if "%choice%"=="0" exit /b
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-8)
-pause
-goto MAIN_MENU
+call :INVALID (0-8) MAIN_MENU
+
 
 :PERFORMANCE_MENU
 cls & echo. & echo.
@@ -85,10 +84,7 @@ if "%choice%"=="5" goto POWER_PLAN_MENU
 if "%choice%"=="6" goto HW_INFO_MENU
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-6)
-pause
-goto PERFORMANCE_MENU
-
+call :INVALID (0-6) PERFORMANCE_MENU
 
 :SERVICES_MENU
 cls & echo. & echo.
@@ -124,9 +120,7 @@ if "%choice%"=="3" (
 if "%choice%"=="4" goto EXPORT_SERVICES
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
-pause
-goto SERVICES_MENU
+call :INVALID (0-4) SERVICES_MENU
 
 :SET_SERVICES
 echo. & echo %MESSAGE%
@@ -319,9 +313,7 @@ if "%choice%"=="4" goto PLAN_SAVER
 if "%choice%"=="5" goto ACTIVE_PLAN
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-5)
-pause
-goto POWER_PLAN_MENU
+call :INVALID (0-5) POWER_PLAN_MENU
 
 :: Unlock and add the "Ultimate Performance" plan
 :ADD_ULTIMATE_PLAN
@@ -408,9 +400,7 @@ if "%choice%"=="5" goto MOTHERBOARD_INFO
 if "%choice%"=="6" goto BATTERY_INFO
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-6)
-pause
-goto HW_INFO_MENU
+call :INVALID (0-6) HW_INFO_MENU
 
 :: Display detailed processor
 :CPU_INFO
@@ -485,9 +475,7 @@ if "%choice%"=="5" (
 if "%choice%"=="6" goto SECURITY_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-6)
-pause
-goto PRIVACY_SECURITY_MENU
+call :INVALID (0-6) PRIVACY_SECURITY_MENU
 
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
@@ -644,9 +632,7 @@ if "%choice%"=="2" goto ENABLE_UPDATES
 if "%choice%"=="3" goto RESET_UPDATES
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
-pause
-goto WINDOWS_UPDATES_MENU
+call :INVALID (0-3) WINDOWS_UPDATES_MENU
 
 :DISABLE_ALL_UPDATES
 call :PATH "Security" "DisableUpdates"
@@ -778,9 +764,7 @@ if "%choice%"=="2" goto ENABLE_DEFENDER
 if "%choice%"=="3" goto REMOVE_DEFENDER
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
-pause
-goto WINDOWS_DEFENDER_MENU
+call :INVALID (0-6) WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
 echo. & echo WARNING: This will disable WINDOWS DEFENDER COMPLETELY!
@@ -939,9 +923,7 @@ if "%choice%"=="4" goto NETWORK_RESET
 if "%choice%"=="5" goto NETWORK_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-5)
-pause
-goto NETWORK_MENU
+call :INVALID (0-6) NETWORK_MENU
 
 :NETWORK_TWEAKS
 call :PATH "Network" "NetworkTweaks"
@@ -1204,9 +1186,7 @@ if "%choice%"=="9" goto DNS_SERVER_TEST
 if "%choice%"=="10" goto DNS_STATUS
 if "%choice%"=="0" goto NETWORK_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-10)
-pause
-goto DNS_MENU
+call :INVALID (0-10) DNS_MENU
 
 :SET_DNS
 call :PATH "Network" "DNS"
@@ -1269,9 +1249,7 @@ if "%choice%"=="4" goto REMOVE_MS
 if "%choice%"=="5" goto PROGRAMS_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-5)
-pause
-goto PROGRAMS_MANAGER_MENU
+call :INVALID (0-5) PROGRAMS_MANAGER_MENU
 
 :WHERE_CHOCO
 :: Check if Chocolatey (Package Manager) is already installed
@@ -1579,9 +1557,7 @@ if "%choice%"=="9" (
 if "%choice%"=="10" goto CONTEXT_MENU
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-10)
-pause
-goto CUSTOMIZATION_MENU
+call :INVALID (0-10) CUSTOMIZATION_MENU
 
 :FILE_EXPLORER_MENU
 cls & echo. & echo.
@@ -1630,9 +1606,7 @@ if "%choice%"=="4" (
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
-pause
-goto FILE_EXPLORER_MENU
+call :INVALID (0-4) FILE_EXPLORER_MENU
 
 :: Enable the visibility of file extensions
 :SHOW_EXTENSIONS
@@ -1821,9 +1795,7 @@ if "%choice%"=="4" (
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
-pause
-goto CONTEXT_MENU
+call :INVALID (0-4) CONTEXT_MENU
 
 :CMD_CONTEXT
 :: Define the menu text and add the cmd icon
@@ -1913,9 +1885,7 @@ if "%choice%"=="3" goto ACTIVATION_MENU
 if "%choice%"=="4" goto SYSTEM_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
-pause
-goto SYSTEM_MENU
+call :INVALID (0-4) SYSTEM_MENU
 
 :RESTORE_POINT
 cls
@@ -2071,9 +2041,7 @@ if "%choice%"=="1" goto RUN_ACTIVATION
 if "%choice%"=="2" goto CHECK_ACTIVATION
 if "%choice%"=="0" goto SYSTEM_MENU 
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-2)
-pause
-goto ACTIVATION_MENU
+call :INVALID (0-2) ACTIVATION_MENU
 
 :: Activating Windows and Microsoft Office using MAS script
 :RUN_ACTIVATION
@@ -2116,9 +2084,7 @@ if "%choice%"=="6" goto CLEAN_MGR
 if "%choice%"=="7" goto DELETE_SCRIPT_DATA
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-7)
-pause
-goto TOOLS_MENU
+call :INVALID (0-7) TOOLS_MENU
 
 :: Scan and verify the integrity of all protected system files and repair corrupted
 :SFC_SCAN
@@ -2145,9 +2111,7 @@ if "%choice%"=="3" goto DISM_RESTORE_HEALTH
 if "%choice%"=="4" goto DISM_COMPONENT_CLEANUP
 if "%choice%"=="0" goto TOOLS_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-4)
-pause
-goto DISM_MENU
+call :INVALID (0-4) DISM_MENU
 
 :: Perform a quick check to see if the OS has already flagged any corruption
 :DISM_CHECK_HEALTH
@@ -2230,9 +2194,7 @@ if "%choice%"=="2" goto FIX_FILE
 if "%choice%"=="3" goto FIX_SECTORS
 if "%choice%"=="0" goto CHKDSK
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
-pause
-goto CHKDSK_MENU
+call :INVALID (0-3) CHKDSK_MENU
 
 :: Scans for errors but does not fix anything
 :DISK_STATUS
@@ -2291,9 +2253,7 @@ if "%choice%"=="2" goto OO_SHUTUP
 if "%choice%"=="3" goto NET_SPEED_TEST
 if "%choice%"=="0" goto MAIN_MENU
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-3)
-pause
-goto OTHER_MENU
+call :INVALID (0-3) OTHER_MENU
 
 :: Launch CTT
 :CTT
@@ -2531,6 +2491,11 @@ if "%choice%"=="0" goto %MENU%
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-2)
 pause
 goto SUB_MENU
+
+:INVALID
+echo. & echo [ERROR] Invalid selection. Please choose a valid option between %1
+pause
+goto %2
 
 :LOG
 echo. & echo More details in: %LOG_FILE%
