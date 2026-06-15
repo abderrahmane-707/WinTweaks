@@ -347,7 +347,7 @@ set "TEMP_FILE=%TEMP%\ActivePowerPlan.guid"
 powercfg /getactivescheme > "%TEMP_FILE%" 2>&1
 
 :: Extract the power plan GUID from the command output
-for /f "tokens=4" %%A in (%TEMP_FILE%) do set "PLAN_GUID=%%A"
+for /f "usebackq tokens=4" %%A in ("%TEMP_FILE%") do set "PLAN_GUID=%%A"
 
 :: Remove any accidental spaces from the extracted GUID
 set "PLAN_GUID=%PLAN_GUID: =%"
