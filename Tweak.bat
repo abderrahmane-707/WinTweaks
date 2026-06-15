@@ -588,14 +588,7 @@ del /f /s /q "%SYSTEMROOT%\Prefetch\*" >nul 2>&1
 
 :: Clean System Log files
 echo Cleaning system log files
-for /d %%G in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do (
-    :: Take ownership of the directory recursively
-    takeown /f "%%G" /r /d y >nul 2>&1
-    :: Grant full control to the Administrators group
-    icacls "%%G" /grant Administrators:F /t /c >nul 2>&1
-    :: Delete all files within the folder
-    del /f /s /q "%%G" >nul 2>&1
-)
+for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /s /q %%L\*"
 
 :: Clear Windows Event Viewer logs
 echo Cleaning Windows Event Logs
