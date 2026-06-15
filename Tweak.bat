@@ -1715,13 +1715,13 @@ call :GO CUSTOMIZATION_MENU
 :: Ensure NumLock is OFF at the login screen and for the current user
 :NUM_LOCK_OFF
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
+reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483648 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Ensure NumLock is ON at the login screen and for the current user
 :NUM_LOCK_ON
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
+reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483650 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Disable notifications
