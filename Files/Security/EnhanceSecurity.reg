@@ -1,13 +1,5 @@
 Windows Registry Editor Version 5.00
 
-; Configure strong Diffie-Hellman key exchange - Enforce minimum 2048-bit keys (0x800 = 2048)
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\Diffie-Hellman]
-"ServerMinKeyBitLength"=dword:00000800
-
-; Configure strong PKCS key exchange - Enforce minimum 2048-bit keys (0x800 = 2048)
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\PKCS]
-"ServerMinKeyBitLength"=dword:00000800
-
 ; Disable insecure RC4 40-bit cipher suite (Weak stream cipher with multiple vulnerabilities)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 40/128]
 "Enabled"=dword:00000000
@@ -46,10 +38,6 @@ Windows Registry Editor Version 5.00
 
 ; Disable MD5 hash algorithm (MD5 is cryptographically broken and vulnerable to collision attacks)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\MD5]
-"Enabled"=dword:00000000
-
-; Disable SHA-1 hash algorithm - Vulnerable to SHAttered collision attack (Test certificate chain compatibility first)
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\SHA]
 "Enabled"=dword:00000000
 
 ; Explicitly enable SHA-256 hash algorithm
@@ -200,7 +188,7 @@ Windows Registry Editor Version 5.00
 ; Configure User Account Control (UAC) settings - Enhanced privilege escalation protection
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 "EnableLUA"=dword:00000001
-"ConsentPromptBehaviorAdmin"=dword:00000005
+"ConsentPromptBehaviorAdmin"=dword:00000001
 "ConsentPromptBehaviorUser"=dword:00000003
 "PromptOnSecureDesktop"=dword:00000001
 "EnableInstallerDetection"=dword:00000001
