@@ -828,26 +828,8 @@ call :PATH "Security" "EnhanceSecurity"
 echo. & echo Enhance security via registry
 reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 
-echo Disabling unsafe windows features
-
-:: MicrosoftWindowsPowerShellV2 :      Legacy PowerShell version
-:: MicrosoftWindowsPowerShellV2Root :  Root components for PowerShell 2.0
-:: SMB1Protocol :                      Old file sharing protocol (vulnerable to ransomware like WannaCry)
-:: SmbDirect:                          Remote Direct Memory Access (RDMA) for SMB
-:: TFTP:                               Trivial File Transfer Protocol (unsecured file transfer)
-:: TelnetClient :                      Unencrypted remote login client
-:: WCF-TCP-PortSharing45 :             .NET Framework 4.5 TCP Port Sharing service
-for %%F in ("MicrosoftWindowsPowerShellV2" "MicrosoftWindowsPowerShellV2Root" "SMB1Protocol" "SmbDirect" "TFTP" "TelnetClient" "WCF-TCP-PortSharing45") do (
-
-    :: Check if the feature is currently enabled
-    dism /Online /Get-FeatureInfo /FeatureName:%%F | findstr /C:"State : Enabled" >nul
-    
-    :: Disable if found
-    if not errorlevel 1 (
-        echo  - Disabling: %%F
-        dism /Online /Disable-Feature /FeatureName:%%F /NoRestart >> "%LOG_FILE%" 2>&1
-    )
-)
+echo Disabling unsafe Windows features
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\DisableUnsafeFeature.ps1" >> "%LOG_FILE%" 2>&1
 
 echo Disabling unsafe windows services
 
