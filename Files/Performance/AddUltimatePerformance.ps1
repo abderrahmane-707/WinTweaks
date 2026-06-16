@@ -4,7 +4,7 @@ $planName = "Ultimate Performance"
 
 Write-Host " "
 try {
-    # 1. Check if the plan already exists
+    # Check if the plan already exists
     $allPlans = powercfg /list
     $existingPlan = $allPlans | Select-String -Pattern "($planName|\($planName\))"
 
@@ -15,14 +15,14 @@ try {
         Write-Host "Plan: $planName already exists"
     }
     else {
-        # 2. If it doesn't exist, duplicate the Ultimate Performance template
+        # If it doesn't exist, duplicate the Ultimate Performance template
         $output = powercfg /duplicatescheme $ultimateTemplateGUID
         
         # Extract the new GUID
         $newGUID = ([regex]::Match($output, "[0-9a-fA-F-]{36}")).Value
 
         if ($newGUID) {
-            # 3. Rename the plan and activate it
+            # Rename the plan and activate it
             powercfg /changename $newGUID "$planName"
             powercfg /setactive $newGUID
             
