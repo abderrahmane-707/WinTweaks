@@ -7,7 +7,7 @@ fltmc >nul 2>&1
 if errorlevel 1 (
     echo This script must be run with Administrator privileges
     pause
-	exit
+    exit
 )
 
 :: Go to script's directory
@@ -67,7 +67,7 @@ if "%choice%"=="2" (
     set ROUTINE=DISABLE_TASKS
     set REV_ROUTINE=ENABLE_TASKS
     set APPLY=Disable unnecessary scheduled tasks
-	set REVERT=Enable unnecessary scheduled tasks
+    set REVERT=Re-enable disabled scheduled tasks
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
 )
@@ -75,7 +75,7 @@ if "%choice%"=="3" (
     set ROUTINE=BOOT_TWEAKS
     set REV_ROUTINE=REV_BOOT_TWEAKS
     set APPLY=Enhance boot up settings
-	set REVERT=Set boot up settings to default
+    set REVERT=Set boot up settings to default
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
 )
@@ -101,19 +101,19 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set FILE=Files\Performance\ServicesTweaks.txt
-    set MESSAGE=Tweaking windows services
+    set MESSAGE=Tweaking Windows services
     set LOG=ServicesTweaks
     goto SET_SERVICES
 )
 if "%choice%"=="2" (
     set FILE=Files\Performance\SafeServicesTweaks.txt
-    set MESSAGE=Tweaking windows services in safe mode
+    set MESSAGE=Tweaking Windows services in safe mode
     set LOG=SafeServicesTweaks
     goto SET_SERVICES
 )
 if "%choice%"=="3" (
     set FILE=Files\Performance\DefaultServicesSettings.txt
-    set MESSAGE=Restore most windows services to default settings
+    set MESSAGE=Restore most Windows services to default settings
     set LOG=DefaultServicesSettings
     goto SET_SERVICES
 )
@@ -144,7 +144,7 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
         
         :: Execute configuration if status is valid
         if defined SC_PARAM (
-            sc config "!SERVICE_NAME!" start= !SC_PARAM! >nul 2>&1
+            sc config "!SERVICE_NAME!" start=!SC_PARAM! >nul 2>&1
             
             :: Evaluate command result
             if !errorlevel! equ 0 (
@@ -179,7 +179,7 @@ echo Disable unnecessary scheduled tasks
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
 
 call :LOG PERFORMANCE_MENU
-	
+    
 :ENABLE_TASKS
 call :PATH "Performance" "EnableScheduledTasks"
 
@@ -210,7 +210,7 @@ call :LOG PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
-::  List of browser processes to check
+:: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set "BROWSERS_OPEN=0"
 
@@ -225,7 +225,7 @@ for %%A in (%BROWSERS%) do (
 if "!BROWSERS_OPEN!"=="1" (
     echo Browsers are currently running
     choice /C YN /N /M "Close them? (Y/N): "
-	echo.
+    echo.
     if errorlevel 2 (
         echo Skipping files currently used by browsers
     ) else (
@@ -272,7 +272,6 @@ for %%X in (
                     )
                 )
             )
-			
             :: Delete crash reports
             rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
         )
@@ -299,7 +298,7 @@ if "%choice%"=="1" (
     set ROUTINE=ADD_ULTIMATE_PLAN
     set REV_ROUTINE=REMOVE_ULTIMATE_PLAN
     set APPLY=Add Ultimate Performance plan
-	set REVERT=Remove Ultimate Performance plan
+    set REVERT=Remove Ultimate Performance plan
     set MENU=POWER_PLAN_MENU
     goto SUB_MENU
 )
@@ -361,7 +360,7 @@ if /I "!PLAN_GUID!"=="381b4222-f694-41f0-9685-ff5bb260df2e" (
 
 ) else if /I "!PLAN_GUID!"=="a1841308-3541-4fab-bc81-f71556f20b4a" (
     set "PLAN_NAME=Power Saver"
-	
+    
 ) else (
     set "PLAN_NAME=Unknown Power Plan"
 )
@@ -453,8 +452,8 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set ROUTINE=DISABLE_TELEMETRY
     set REV_ROUTINE=REV_DISABLE_TELEMETRY
-    set APPLY=Disable windows telemetry and some tracking components
-	set REVERT=Default windows telemetry and some tracking components
+    set APPLY=Disable Windows telemetry and some tracking components
+    set REVERT=Default Windows telemetry and some tracking components
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
@@ -465,7 +464,7 @@ if "%choice%"=="5" (
     set ROUTINE=ENHANCE_SECURITY
     set REV_ROUTINE=REV_ENHANCE_SECURITY
     set APPLY=Enhance system security
-	set REVERT=Set security settings to default
+    set REVERT=Set security settings to default
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
@@ -477,10 +476,10 @@ call :INVALID (0-6) PRIVACY_SECURITY_MENU
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
 
-echo. & echo Disable windows telemetry via registry
+echo. & echo Disable Windows telemetry via registry
 reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
-echo Disabling windows telemetry services
+echo Disabling Windows telemetry services
 
 :: DiagTrack :      Connected User Experiences and Telemetry
 :: dmwappushsvc :   WAP Push Message Routing Service
@@ -494,7 +493,7 @@ echo. >> "%HOSTS_PATH%"
 for /f "usebackq delims=" %%L in ("%~dp0Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
     if errorlevel 1 (
-	    :: Add domain if not exist
+        :: Add domain if not exist
         echo %%L >> "%HOSTS_PATH%"
     )
 )
@@ -510,13 +509,13 @@ call :PATH "Security" "DefaultTelemetry"
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 set "TEMP_FILE=%temp%\HostsClean.txt"
 
-echo. & echo Default windows telemetry registry value
+echo. & echo Default Windows telemetry registry value
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
-echo Set windows telemetry services to manual startup
+echo Set Windows telemetry services to manual startup
 for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "demand"
 
-echo Delete windows telemetry and trash domains
+echo Delete Windows telemetry and trash domains
 :: Filter out blocked domains listed in TrackingDomains.txt from the HOSTS file
 findstr /V /L /G:"Files\Security\TrackingDomains.txt" "%HOSTS_PATH%" > "%TEMP_FILE%"
 
@@ -624,7 +623,7 @@ call :INVALID (0-3) WINDOWS_UPDATES_MENU
 :DISABLE_ALL_UPDATES
 call :PATH "Security" "DisableUpdates"
 
-echo. & echo Disable windows update via registry
+echo. & echo Disable Windows update via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows Update services
@@ -636,7 +635,7 @@ for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
 echo Deleting SoftwareDistribution
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
-echo Delete windows update log
+echo Delete Windows update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 call :LOG PRIVACY_SECURITY_MENU
@@ -644,13 +643,13 @@ call :LOG PRIVACY_SECURITY_MENU
 :ENABLE_UPDATES
 call :PATH "Security" "DefaultUpdates"
 
-echo. & echo Default windows update registry value
+echo. & echo Default Windows update registry value
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Enabling windows update services
+echo Enabling Windows update services
 for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
     call :SC_CONFIGURE "%%S" "demand"   
-	call :SC_CONTROL "%%S" "start" 
+    call :SC_CONTROL "%%S" "start" 
 )
 
 call :LOG PRIVACY_SECURITY_MENU
@@ -698,6 +697,7 @@ for %%D in ("atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll 
 	regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
+
 :: Revert system security policies to the Windows default baseline
 echo Apply default security settings
 secedit /configure /cfg %SYSTEMROOT%\inf\defltbase.inf /db defltbase.sdb /verbose >> "%LOG_FILE%" 2>&1
@@ -706,7 +706,7 @@ secedit /configure /cfg %SYSTEMROOT%\inf\defltbase.inf /db defltbase.sdb /verbos
 echo Cleaning BITS jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
-echo Enabling windows update services
+echo Enabling Windows update services
 for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
     call :SC_CONFIGURE "%%S" "demand" 
     call :SC_CONTROL "%%S" "start"  
@@ -760,10 +760,10 @@ if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :PATH "Security" "DisableDefender"
 
-echo Disable windows defender via registry
+echo Disable Windows defender via registry
 reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
 
-echo Disable windows defender services
+echo Disable Windows defender services
 
 :: WinDefend :              Microsoft Defender Antivirus Service
 :: WdNisSvc :               Microsoft Defender Antivirus Network Inspection Service
@@ -779,10 +779,10 @@ call :LOG PRIVACY_SECURITY_MENU
 :ENABLE_DEFENDER
 call :PATH "Security" "DefaultDefender"
 
-echo. & echo Default windows defender registry value
+echo. & echo Default Windows defender registry value
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
 
-echo Enable windows defender services
+echo Enable Windows defender services
 for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do call :REG_CONFIGURE  "%%S" "2"
 
 echo Enable tamper protection
@@ -831,14 +831,14 @@ reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 echo Disabling unsafe Windows features
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\DisableUnsafeFeature.ps1" >> "%LOG_FILE%" 2>&1
 
-echo Disabling unsafe windows services
+echo Disabling unsafe Windows services
 
 :: mrxsmb10:        SMB 1.0/CIFS File Server Driver (High security risk)
 :: RemoteRegistry : Allows remote users to modify Windows Registry settings
 :: SNMP:            Simple Network Management Protocol (Often used for network reconnaissance)
 :: SNMPTRAP:        Receives trap messages generated by local or remote SNMP agents
 for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP" ) do (
-	call :SC_CONTROL "%%S" "stop"
+    call :SC_CONTROL "%%S" "stop"
     call :SC_CONFIGURE "%%S" "disabled"
 )
 
@@ -851,7 +851,7 @@ call :LOG PRIVACY_SECURITY_MENU
 :REV_ENHANCE_SECURITY
 call :PATH "Security" "DefaultSecurity"
 
-echo. & echo Default windows security registry value
+echo. & echo Default Windows security registry value
 reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 call :LOG PRIVACY_SECURITY_MENU
@@ -910,7 +910,7 @@ for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotun
 echo Set Cloudflare DNS on all connected interfaces
 for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
     echo  - Set Cloudflare DNS on: %%~b
-	
+    
     netsh interface ipv4 set dns name="%%~b" static 1.1.1.1 primary >> "%LOG_FILE%" 2>&1
     netsh interface ipv4 add dns name="%%~b" 1.0.0.1 index=2 >> "%LOG_FILE%" 2>&1
 
@@ -1314,7 +1314,7 @@ call :IS_ON OPT6 && (
 )
 call :IS_ON OPT7 && (
     echo Installing XnView MP
-	choco install xnviewmp.install -y
+    choco install xnviewmp.install -y
 )
 call :IS_ON OPT8 && (
     echo Installing Sumatra PDF
@@ -1401,12 +1401,12 @@ if "!ANY!"=="0" echo  - No programs selected
 goto :eof
 
 :UPDATE_PROGRAMS
-cls & echo Update all installed programs from chocolatey
+cls & echo Update all installed programs from Chocolatey
 
 :: Chocolatey must be available to upgrade the programs
 where choco >nul 2>&1 || (
     echo Choco not found
-	pause
+    pause
     goto PROGRAMS_MANAGER_MENU
 )
 
@@ -1456,7 +1456,7 @@ if "%choice%"=="2" (
     set ROUTINE=DARK_MODE
     set REV_ROUTINE=LIGHT_MODE
     set APPLY=Activate dark mode
-	set REVERT=Activate light mode
+    set REVERT=Activate light mode
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1464,7 +1464,7 @@ if "%choice%"=="3" (
     set ROUTINE=DIS_NOTIFICATION
     set REV_ROUTINE=ENA_NOTIFICATION
     set APPLY=Disable notification center
-	set REVERT=Enable notification center
+    set REVERT=Enable notification center
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1472,7 +1472,7 @@ if "%choice%"=="4" (
     set ROUTINE=HIDE_SHORTCUT_ARROW
     set REV_ROUTINE=SHOW_SHORTCUT_ARROW
     set APPLY=Remove arrow from shortcut
-	set REVERT=Default arrow shortcut
+    set REVERT=Default arrow shortcut
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1480,7 +1480,7 @@ if "%choice%"=="5" (
     set ROUTINE=NUM_LOCK_OFF
     set REV_ROUTINE=NUM_LOCK_ON
     set APPLY=Disable num lock when logging in
-	set REVERT=Enable num lock when logging in
+    set REVERT=Enable num lock when logging in
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1488,7 +1488,7 @@ if "%choice%"=="6" (
     set ROUTINE=UTC
     set REV_ROUTINE=LOCAL_TIME
     set APPLY=Set Time to UTC recommended for Dual Boot with Linux Systems
-	set REVERT=Set Time to Local Time
+    set REVERT=Set Time to Local Time
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1496,23 +1496,23 @@ if "%choice%"=="7" (
     set ROUTINE=POWER_SETTINGS
     set REV_ROUTINE=REMOVE_POWER_SETTINGS
     set APPLY=Activate power settings
-	set REVERT=Deleting power settings
+    set REVERT=Deleting power settings
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
 if "%choice%"=="8" (
     set ROUTINE=TRASH
     set REV_ROUTINE=DEF_TRASH
-    set APPLY=Disable unnecessary windows features
-	set REVERT=Default unnecessary windows features
+    set APPLY=Disable unnecessary Windows features
+    set REVERT=Default unnecessary Windows features
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
 if "%choice%"=="9" (
     set ROUTINE=PHOTO_VIEWER
     set REV_ROUTINE=REMOVE_PHOTO_VIEWER
-    set APPLY=Restore classic windows photo viewer
-	set REVERT=Remove classic windows photo viewer
+    set APPLY=Restore classic Windows photo viewer
+    set REVERT=Remove classic Windows photo viewer
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1538,7 +1538,7 @@ if "%choice%"=="1" (
     set ROUTINE=SHOW_EXTENSIONS
     set REV_ROUTINE=HIDE_EXTENSIONS
     set APPLY=Show files extensions
-	set REVERT=Disable display files extensions
+    set REVERT=Disable display of file extensions
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
@@ -1546,15 +1546,15 @@ if "%choice%"=="2" (
     set ROUTINE=SHOW_HIDDEN
     set REV_ROUTINE=DIS_HIDDEN
     set APPLY=Show hidden files
-	set REVERT=Disable display hidden files
+    set REVERT=Disable display of hidden files
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
 if "%choice%"=="3" (
     set ROUTINE=HIDE_RECENT
     set REV_ROUTINE=SHOW_RECENT
-    set APPLY=Disable display recent files
-	set REVERT=Show recent files
+    set APPLY=Disable display of recent files
+    set REVERT=Show recent files
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
@@ -1562,7 +1562,7 @@ if "%choice%"=="4" (
     set ROUTINE=ON_THIS_PC
     set REV_ROUTINE=ON_QUICK_ACCESS
     set APPLY=Open file explorer on: This PC
-	set REVERT=Open file explorer on: Quick Access
+    set REVERT=Open file explorer on: Quick Access
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
@@ -1727,7 +1727,7 @@ if "%choice%"=="1" (
     set ROUTINE=CMD_CONTEXT
     set REV_ROUTINE=REV_CMD_CONTEXT
     set APPLY=Add "Open CMD Here" options to context menu
-	set REVERT=Remove options
+    set REVERT=Remove options
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
@@ -1735,7 +1735,7 @@ if "%choice%"=="2" (
     set ROUTINE=CMD_CONTEXT_ADMIN
     set REV_ROUTINE=REV_CMD_CONTEXT_ADMIN
     set APPLY=Add "Open CMD Here (Admin)" options to context menu
-	set REVERT=Remove options
+    set REVERT=Remove options
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
@@ -1743,15 +1743,15 @@ if "%choice%"=="3" (
     set ROUTINE=RESTART_EXPLORER
     set REV_ROUTINE=REV_RESTART_EXPLORER
     set APPLY=Add "Restart Explorer" option to context menu
-	set REVERT=Remove option
+    set REVERT=Remove option
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
 if "%choice%"=="4" (
     set ROUTINE=KILL_FROZEN
     set REV_ROUTINE=REV_KILL_FROZEN
-    set APPLY=Add "Kill frozen process" option context menu
-	set REVERT=Remove option
+    set APPLY=Add "Kill frozen process" option to context menu
+    set REVERT=Remove option
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
@@ -1876,11 +1876,11 @@ echo Starting restore point services
 for %%S in ("VSS" "swprv") do call :SC_CONTROL "%%S" "stop"
 
 for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
-	regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+    regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 for %%D in (swprv.dll eventcls.dll) do (
-	regsvr32 /s /i"%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+    regsvr32 /s /i"%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 echo   Registering VSS Service
@@ -1921,7 +1921,7 @@ for %%A in (
     "HKLM\SAM,SAM"
     "HKLM\SECURITY,SECURITY"
     "HKU\.DEFAULT,DEFAULT"
-	"HKCU,NTUSER"
+    "HKCU,NTUSER"
     "HKCU\Software\Classes,UsrClass"
 ) do (
     for /f "tokens=1,2 delims=," %%B in (%%A) do (
@@ -1935,7 +1935,7 @@ if exist "%BACKUP_DIR%\*.hive" (
     if errorlevel 2 (
         echo. & echo Backup files saved in: %BACKUP_DIR%
     ) else (
-	    :: Call PowerShell to zip the hives files
+        :: Call PowerShell to zip the hives files
         powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
     )
 ) else (
@@ -1956,7 +1956,7 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto RUN_ACTIVATION
 if "%choice%"=="2" goto CHECK_ACTIVATION
-if "%choice%"=="0" goto SYSTEM_MENU 
+if "%choice%"=="0" goto SYSTEM_MENU
 
 call :INVALID (0-2) ACTIVATION_MENU
 
@@ -2032,13 +2032,13 @@ call :INVALID (0-4) DISM_MENU
 
 :: Perform a quick check to see if the OS has already flagged any corruption
 :DISM_CHECK_HEALTH
-cls & echo Checking windows component health
+cls & echo Checking Windows component health
 dism /Online /Cleanup-Image /CheckHealth
 call :GO DISM_MENU
 
 :: This does not fix errors, it only reports them
 :DISM_SCAN_HEALTH
-cls & echo Scanning windows component health
+cls & echo Scanning Windows component health
 dism /Online /Cleanup-Image /ScanHealth
 call :GO DISM_MENU
 
@@ -2127,7 +2127,7 @@ chkdsk %drive%: /f
 call :GO CHKDSK_MENU
 
 :FIX_SECTORS
-cls & echo Fix file system and recovering files from bad sectors in drive: %drive%
+cls & echo Fix file system and recover files from bad sectors in drive: %drive%
 timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
@@ -2214,7 +2214,7 @@ for /f "usebackq delims=" %%i in ("%~2") do (
     )
 
     :: Log the result for every single task
-    echo !TASK_RESULT!: !TASK_NAME!>>"%LOG_FILE%"
+    echo !TASK_RESULT!: !TASK_NAME! >>"%LOG_FILE%"
 )
 goto :eof
 
@@ -2344,7 +2344,7 @@ if not exist "%REPORT_DIR%" (
     if errorlevel 1 (
         echo Failed to create directory: %REPORT_DIR%
         pause
-		exit
+        exit
     )
 )
 goto :eof
@@ -2358,7 +2358,7 @@ if not exist "%BACKUP_DIR%" (
     if errorlevel 1 (
         echo [ERROR] Failed to create directory: %BACKUP_DIR%
         pause
-		exit
+        exit
     )
 )
 goto :eof
