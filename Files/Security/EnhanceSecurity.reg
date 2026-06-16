@@ -8,49 +8,124 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\PKCS]
 "ServerMinKeyBitLength"=dword:00000800
 
-; Disable insecure RC4 cipher suites - Both 128-bit and 64-bit RC4 variants are vulnerable
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 128/128]
+; Disable insecure RC4 40-bit cipher suite (Weak stream cipher with multiple vulnerabilities)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 40/128]
+"Enabled"=dword:00000000
+
+; Disable insecure RC4 56-bit cipher suite
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 56/128]
 "Enabled"=dword:00000000
 
 ; Disable 64-bit RC4 cipher suite
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 64/128]
 "Enabled"=dword:00000000
 
+; Disable insecure RC4 cipher suites - Both 128-bit and 64-bit RC4 variants are vulnerable
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 128/128]
+"Enabled"=dword:00000000
+
 ; Disable DES cipher suite (DES is cryptographically broken with 56-bit keys)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\DES 56/56]
 "Enabled"=dword:00000000
 
-; Disable Triple DES cipher suite (Though stronger than DES, still vulnerable to attacks)
+; Disable Triple DES cipher suite (Though stronger than DES, still vulnerable to Sweet32 attack)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\Triple DES 168]
 "Enabled"=dword:00000000
+
+; Disable insecure NULL cipher suite (Transmits data with zero encryption)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\NULL]
+"Enabled"=dword:00000000
+
+; Explicitly enable strong AES 128-bit cipher suite
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\AES 128/128]
+"Enabled"=dword:00000001
+
+; Explicitly enable strong AES 256-bit cipher suite (Preferred strong encryption)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\AES 256/256]
+"Enabled"=dword:00000001
 
 ; Disable MD5 hash algorithm (MD5 is cryptographically broken and vulnerable to collision attacks)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\MD5]
 "Enabled"=dword:00000000
 
+; Disable SHA-1 hash algorithm - Vulnerable to SHAttered collision attack (Test certificate chain compatibility first)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\SHA]
+"Enabled"=dword:00000000
+
+; Explicitly enable SHA-256 hash algorithm
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\SHA256]
+"Enabled"=dword:00000001
+
+; Explicitly enable SHA-384 hash algorithm
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\SHA384]
+"Enabled"=dword:00000001
+
+; Explicitly enable SHA-512 hash algorithm
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\SHA512]
+"Enabled"=dword:00000001
+
+; Disable legacy PCT 1.0 protocol (Obsolete, pre-dates modern TLS)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\PCT 1.0\Server]
+"Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\PCT 1.0\Client]
+"Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
+
 ; Disable legacy SSL 2.0 protocol (Highly insecure with multiple known vulnerabilities)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 2.0\Server]
 "Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 2.0\Client]
+"Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
 
 ; Disable legacy SSL 3.0 protocol (Vulnerable to POODLE attack and other weaknesses)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Server]
 "Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Client]
+"Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
 
 ; Disable TLS 1.0 protocol (Old protocol with known security limitations)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server]
 "Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client]
+"Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
 
 ; Disable TLS 1.1 protocol (Older protocol with known security limitations)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server]
 "Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client]
+"Enabled"=dword:00000000
+"DisabledByDefault"=dword:00000001
 
 ; Enable TLS 1.2 protocol (Modern secure protocol with strong cryptography)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server]
 "Enabled"=dword:00000001
+"DisabledByDefault"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client]
+"Enabled"=dword:00000001
+"DisabledByDefault"=dword:00000000
 
 ; Enable TLS 1.3 protocol (Latest and most secure TLS protocol)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server]
 "Enabled"=dword:00000001
+"DisabledByDefault"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client]
+"Enabled"=dword:00000001
+"DisabledByDefault"=dword:00000000
 
 ; SMBv1=0: Disables insecure SMBv1 protocol which has multiple vulnerabilities
 ; restrictnullsessaccess=1: Restricts null session access for enhanced security
@@ -60,21 +135,25 @@ Windows Registry Editor Version 5.00
 "restrictnullsessaccess"=dword:00000001
 "AutoShareWks"=dword:00000000
 
-; Configure strong cryptography for .NET Framework v2.0
+; Configure strong cryptography for .NET Framework v2.0 - Enable SchUseStrongCrypto and SystemDefaultTlsVersions
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v2.0.50727]
 "SchUseStrongCrypto"=dword:00000001
+"SystemDefaultTlsVersions"=dword:00000001
 
-; Configure strong cryptography for .NET Framework v4.0
+; Configure strong cryptography for .NET Framework v4.0 - Enable SchUseStrongCrypto and SystemDefaultTlsVersions
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v4.0.30319]
 "SchUseStrongCrypto"=dword:00000001
+"SystemDefaultTlsVersions"=dword:00000001
 
 ; Configure strong cryptography for 32-bit .NET Framework v2.0 on 64-bit systems
 [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v2.0.50727]
 "SchUseStrongCrypto"=dword:00000001
+"SystemDefaultTlsVersions"=dword:00000001
 
 ; Configure strong cryptography for 32-bit .NET Framework v4.0 on 64-bit systems
 [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v4.0.30319]
 "SchUseStrongCrypto"=dword:00000001
+"SystemDefaultTlsVersions"=dword:00000001
 
 ; Disable Basic authentication in Terminal Services - Requires stronger authentication methods
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services]
@@ -88,9 +167,17 @@ Windows Registry Editor Version 5.00
 
 ; LmCompatibilityLevel=5: Enforces NTLMv2 responses only, rejects LM and NTLM
 ; NoLMHash=1: Prevents storage of LM hash for new passwords
+; RestrictAnonymous=1: Blocks anonymous share enumeration
+; RestrictAnonymousSAM=1: Blocks anonymous SAM enumeration
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
 "LmCompatibilityLevel"=dword:00000005
 "NoLMHash"=dword:00000001
+"RestrictAnonymous"=dword:00000001
+"RestrictAnonymousSAM"=dword:00000001
+
+; Disable WDigest authentication - Prevents plaintext credential caching in LSASS memory (blocks Mimikatz-style attacks)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest]
+"UseLogonCredential"=dword:00000000
 
 ; fAllowFullControl=0: Disables full control remote assistance
 ; fAllowToGetHelp=0: Disables getting help through remote assistance
@@ -98,10 +185,17 @@ Windows Registry Editor Version 5.00
 "fAllowFullControl"=dword:00000000
 "fAllowToGetHelp"=dword:00000000
 
-; Disable ICMP redirect - Prevents routing table manipulation attacks
 ; EnableICMPRedirect=0: Disables acceptance of ICMP redirect messages
+; DisableIPSourceRouting=2: Drops all source-routed packets (prevents IP spoofing attacks)
+; NoNameReleaseOnDemand=1: Blocks NetBIOS name release poisoning
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters]
 "EnableICMPRedirect"=dword:00000000
+"DisableIPSourceRouting"=dword:00000002
+"NoNameReleaseOnDemand"=dword:00000001
+
+; Disable LLMNR multicast name resolution - Prevents Responder/LLMNR poisoning attacks
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient]
+"EnableMulticast"=dword:00000000
 
 ; Configure User Account Control (UAC) settings - Enhanced privilege escalation protection
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
@@ -153,3 +247,7 @@ Windows Registry Editor Version 5.00
 ; Disable WiFi hotspot login (Prevents automatic login to public networks)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WifiNetworkManager\HotspotLogin]
 "IsEnabled"=dword:00000000
+
+; Enable Structured Exception Handling Overwrite Protection (SEHOP) - Blocks SEH-based buffer overflow exploits
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel]
+"DisableExceptionChainValidation"=dword:00000000
