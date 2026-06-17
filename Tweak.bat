@@ -752,7 +752,7 @@ if "%choice%"=="2" goto ENABLE_DEFENDER
 if "%choice%"=="3" goto REMOVE_DEFENDER
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
-call :INVALID (0-6) WINDOWS_DEFENDER_MENU
+call :INVALID (0-3) WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
 echo. & echo WARNING: This will disable WINDOWS DEFENDER COMPLETELY!
@@ -889,7 +889,7 @@ if "%choice%"=="4" goto NETWORK_RESET
 if "%choice%"=="5" goto NETWORK_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID (0-6) NETWORK_MENU
+call :INVALID (0-5) NETWORK_MENU
 
 :NETWORK_TWEAKS
 call :PATH "Network" "NetworkTweaks"
