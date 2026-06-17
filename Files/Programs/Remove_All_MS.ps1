@@ -1,122 +1,59 @@
-# List of Appx packages to remove
-$AppxPackages = @(
-    "*AdobePhotoshopExpress*",
-    "*CandyCrush*",
-    "*Facebook*",
-    "*LinkedIn*",
-    "*Netflix*",
-    "*Spotify*",
-    "*Twitter*",
-    "*Xbox*",
-    "Microsoft.BingFinance",
-    "Microsoft.BingNews",
-    "Microsoft.BingSports",
-    "Microsoft.BingTravel",
-    "Microsoft.BingWeather",
-    "Microsoft.GamingApp",
-    "Microsoft.GetHelp",
-    "Microsoft.GetStarted",
-    "Microsoft.Messaging",
-    "Microsoft.Microsoft3DViewer",
-    "Microsoft.MicrosoftOfficeHub",
-    "Microsoft.MicrosoftSolitaireCollection",
-    "Microsoft.NetworkSpeedTest",
-    "Microsoft.News",
-    "Microsoft.Office.OneNote",
-    "Microsoft.People",
-    "Microsoft.Print3D",
-    "Microsoft.SkypeApp",
-    "Microsoft.WindowsAlarms",
-    "Microsoft.WindowsCommunicationsApps",
-    "Microsoft.WindowsFeedbackHub",
-    "Microsoft.WindowsMaps",
-    "Microsoft.WindowsSoundRecorder",
-    "Microsoft.Xbox.TCUI",
-    "Microsoft.XboxApp",
-    "Microsoft.XboxGameCallableUI",
-    "Microsoft.XboxGameOverlay",
-    "Microsoft.XboxGamingOverlay",
-    "Microsoft.XboxIdentities",
-    "Microsoft.XboxIdentityProvider",
-    "Microsoft.XboxSpeechToTextOverlay",
-    "Microsoft.ZuneMusic",
-    "Microsoft.ZuneVideo"
+# PowerShell script to remove specified Appx packages for all users and clear provisioning
+# Run this script with administrative privileges
+
+# List of package name patterns to match (Safe patterns that won't trigger system errors)
+$AppxPatterns = @(
+    "AdobePhotoshopExpress", "CandyCrush", "Facebook", "LinkedIn", "Netflix", "Spotify", 
+    "Twitter", "XboxApp", "BingFinance", "BingNews", "BingSports", "BingTravel", 
+    "BingWeather", "GamingApp", "GetHelp", "GetStarted", "Messaging", "Microsoft3DViewer", 
+    "MicrosoftOfficeHub", "MicrosoftSolitaireCollection", "NetworkSpeedTest", "News", 
+    "Office.OneNote", "Print3D", "SkypeApp", "WindowsAlarms", 
+    "WindowsCommunicationsApps", "FeedbackHub", "WindowsMaps", "SoundRecorder", 
+    "ZuneMusic", "ZuneVideo"
 )
 
-# Start removing Appx packages
-Write-Host "`nStarting remove Microsoft store apps"
+# Convert array to a single regex pattern
+$RegexPattern = ($AppxPatterns | ForEach-Object { [regex]::Escape($_) }) -join '|'
 
-# Loop through each package pattern
-foreach ($pattern in $AppxPackages) {
+# Remove from Provisioned Packages (For future/new users)
+Write-Host "`nChecking for Provisioned Packages to remove"
+$provisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -match $RegexPattern }
+
+foreach ($pkg in $provisionedPackages) {
     try {
-        # Find packages matching the pattern
-        $packages = Get-AppxPackage -AllUsers | Where-Object { $_.Name -like $pattern }
-        
-        # Remove each matching package
-        foreach ($package in $packages) {
-            Write-Host " - Removing: $($package.Name)"
-            
-            # Remove for current user
-            Remove-AppxPackage -Package $package.PackageFullName -ErrorAction SilentlyContinue
-            
-            # Remove for all users if running as admin
-            if ($IsAdmin) {
-                Remove-AppxPackage -Package $package.PackageFullName -AllUsers -ErrorAction SilentlyContinue
-            }
-           
-        }
+        Remove-AppxProvisionedPackage -Online -PackageName $pkg.PackageName -ErrorAction Stop | Out-Null
+        Write-Host "[Provisioned] Successfully removed: $($pkg.DisplayName)"
     }
     catch {
-        Write-Host "Error removing pattern '$pattern': $_"
+        Write-Warning "Failed to remove provisioned package $($pkg.DisplayName): $_"
     }
 }
 
-# Checking for Microsoft Teams
-$TeamsPath = "$Env:LocalAppData\Microsoft\Teams\Update.exe"
+# Remove from Allt Users
+Write-Host "`nChecking for installed Appx Packages"
+$packagesToRemove = Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $RegexPattern }
 
-if (Test-Path $TeamsPath) {
-    Write-Host "Uninstalling Teams"
+if ($packagesToRemove.Count -eq 0 -and $provisionedPackages.Count -eq 0) {
+    Write-Host "No matching packages found. System is already clean"
+    exit 0
+}
+
+Write-Host "Found $($packagesToRemove.Count) installed package(s) to remove:"
+
+$removedCount = 0
+$errorCount = 0
+
+foreach ($pkg in $packagesToRemove) {
     try {
-        # Start Teams uninstaller
-        Start-Process $TeamsPath -ArgumentList "-uninstall" -Wait -ErrorAction Stop
+        Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
+        Write-Host "[Installed] Successfully removed: $($pkg.Name)"
+        $removedCount++
     }
     catch {
-        Write-Host "Error uninstalling Teams: $_"
-    }
-    
-    # Wait for uninstall to complete
-    Start-Sleep -Seconds 5
-    
-    Write-Host "Deleting Teams directory"
-    try {
-        # Remove Teams directories for all users
-        Remove-Item "C:\Users\*\AppData\Local\Microsoft\Teams" -Recurse -Force -ErrorAction SilentlyContinue
-        Remove-Item $TeamsPath -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    catch {
-        Write-Host "Error deleting Teams directory: $_"
+        Write-Warning "Failed to remove installed package $($pkg.Name): $_"
+        $errorCount++
     }
 }
 
-# Clean up provisioned apps
-Write-Host "Cleaning up provisioned apps"
-
-# Loop through each pattern defined in the $AppxPackages list
-foreach ($pattern in $AppxPackages) {
-    try {
-        # Find provisioned packages matching the display name or package name pattern
-        $provisioned = Get-AppxProvisionedPackage -Online | 
-            Where-Object { $_.DisplayName -like $pattern -or $_.PackageName -like $pattern }
-        
-        # Remove each identified provisioned package
-        foreach ($app in $provisioned) {
-            Write-Host "Removing provisioned: $($app.DisplayName)"
-            
-            # Executing the removal command
-            Remove-AppxProvisionedPackage -Online -PackageName $app.PackageName -ErrorAction SilentlyContinue
-        }
-    }
-    catch {
-        Write-Host "Error removing provisioned package '$pattern': $_"
-    }
-}
+Write-Host "`nRemoved: $removedCount"
+Write-Host "Failed: $errorCount"

@@ -1,4 +1,4 @@
-$path = "C:\ProgramData\Win_Tweaks"
+$path = "C:\ProgramData\WinTweaks"
 
 if (Test-Path $path) {
 	
