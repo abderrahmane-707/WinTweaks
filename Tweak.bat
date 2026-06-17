@@ -1262,7 +1262,7 @@ echo.
 echo. & echo Selected:
 call :SHOW_SELECTED
 
-echo. & set "choice=" & set /p choice=--> "Select an option and press [S] to Start: "
+echo. & set "choice=" & set /p "choice=--> Select an option and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 if /i "%choice%"=="S" goto INSTALL_PROGRAMS
