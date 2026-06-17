@@ -1941,7 +1941,7 @@ if exist "%BACKUP_DIR%\*.hive" (
 ) else (
     echo No hive files found
 )
-call :LOG REGISTRY_BACKUP_MENU
+call :LOG SYSTEM_MENU
 
 :ACTIVATION_MENU
 cls & echo. & echo.
