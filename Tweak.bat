@@ -2402,9 +2402,7 @@ if "%choice%"=="1" goto %ROUTINE%
 if "%choice%"=="2" goto %REV_ROUTINE%
 if "%choice%"=="0" goto %MENU%
 
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between (0-2)
-pause
-goto SUB_MENU
+call :INVALID (0-2) SUB_MENU
 
 :INVALID
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between %1
