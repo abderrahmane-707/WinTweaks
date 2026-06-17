@@ -1223,15 +1223,11 @@ where choco >nul 2>&1 && goto PROGRAMS_MENU_VAR
 cls & echo Install Chocolatey package manager
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
 
-where choco >nul 2>&1 || (
-    echo Choco not found
-    echo Install it manually from: https://chocolatey.org/install
-    pause
-    goto PROGRAMS_MANAGER_MENU
-)
 :: Update the environment (PATH) in the current CMD session
 if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 
+
+goto CHECK_CHOCO
 
 :PROGRAMS_MENU_VAR
 set "ON=(YES)"
@@ -1404,15 +1400,10 @@ if "!OPT18!"=="%ON%" echo  - MEGA & set "ANY=1"
 if "!ANY!"=="0" echo  - No programs selected
 goto :eof
 
+:: Chocolatey must be available to upgrade the programs
 :UPDATE_PROGRAMS
 cls & echo Update all installed programs from Chocolatey
-
-:: Chocolatey must be available to upgrade the programs
-where choco >nul 2>&1 || (
-    echo Choco not found
-    pause
-    goto PROGRAMS_MANAGER_MENU
-)
+goto CHECK_CHOCO
 
 :: Execute the upgrade command for every package managed by Chocolatey
 choco upgrade all -y
@@ -2334,6 +2325,12 @@ if !errorlevel! equ 0 (
     echo [NOT FOUND] %~1 >> "%LOG_FILE%" 2>&1
 )
 goto :eof
+
+:CHECK_CHOCO
+where choco >nul 2>&1 || (
+    echo Choco not found
+    call :GO PROGRAMS_MANAGER_MENU
+)
 
 :TIME_STAMP_FILE
 :: Retrieve current system time in a format that won't break file paths
