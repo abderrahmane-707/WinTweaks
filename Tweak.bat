@@ -168,7 +168,7 @@ call :LOG SERVICES_MENU
 call :TIME_STAMP_FILE "Performance" "ServiceStartupStatus"
 
 echo. & echo Exporting service startup status
-powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Host ($_.Name + ',' + $_.StartType) }" >> "%REPORT_FILE%" 2>&1
+powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%REPORT_FILE%" 2>&1
 
 call :LOG SERVICES_MENU
 
