@@ -606,21 +606,21 @@ call :GO PRIVACY_SECURITY_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Windows Updates ----------------------------
 echo.
-echo                          [1] Disable All Updates                        [2] Reset Windows Updates
+echo                          [1] Disable Updates                              [2] Enable Updates
 echo.
-echo                          [3] Default Updates Settings                   [0] Back
+echo                          [3] Reset Updates                                [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto DISABLE_ALL_UPDATES
+if "%choice%"=="1" goto DISABLE_UPDATES
 if "%choice%"=="2" goto ENABLE_UPDATES
 if "%choice%"=="3" goto RESET_UPDATES
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
 call :INVALID (0-3) WINDOWS_UPDATES_MENU
 
-:DISABLE_ALL_UPDATES
+:DISABLE_UPDATES
 call :PATH "Security" "DisableUpdates"
 
 echo. & echo Disable Windows update via registry
