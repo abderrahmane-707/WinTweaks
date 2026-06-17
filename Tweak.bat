@@ -1229,6 +1229,9 @@ where choco >nul 2>&1 || (
     pause
     goto PROGRAMS_MANAGER_MENU
 )
+:: Update the environment (PATH) in the current CMD session
+if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
 
 :PROGRAMS_MENU_VAR
 set "ON=(YES)"
