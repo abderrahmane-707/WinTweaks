@@ -806,10 +806,10 @@ for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\Powe
 
 echo Remove Windows Defender files
 for %%D in (
-    "C:\Program Files (x86)\Windows Defender"
-    "C:\Program Files\Windows Defender Advanced Threat Protection"
-    "C:\Program Files\Windows Defender"
-    "C:\ProgramData\Microsoft\Windows Defender"
+    "%ProgramData%\Microsoft\Windows Defender"
+    "%ProgramFiles%\Windows Defender Advanced Threat Protection"
+    "%ProgramFiles%\Windows Defender"
+    "%ProgramFiles(x86)%\Windows Defender"
 ) do (
     "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q ""%%~D"""
 )
