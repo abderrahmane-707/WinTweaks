@@ -701,7 +701,7 @@ for %%D in (atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll v
 
 :: Revert system security policies to the Windows default baseline
 echo Apply default security settings
-secedit /configure /cfg %SYSTEMROOT%\inf\defltbase.inf /db defltbase.sdb /verbose >> "%LOG_FILE%" 2>&1
+secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db defltbase.sdb /verbose >> "%LOG_FILE%" 2>&1
 
 :: Forcefully clear all BITS download jobs for all users on the system
 echo Cleaning BITS jobs
