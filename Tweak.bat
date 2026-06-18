@@ -1141,9 +1141,9 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSStat
 call :GO DNS_MENU
 
 :NETWORK_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\NetworkInfo.ps1"
-call :GO NETWORK_MENU
-
+call :PATH "Network" "NetworkInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\NetworkInfo.ps1" "%LOG_FILE%"
+call :LOG NETWORK_MENU
 
 :PROGRAMS_MANAGER_MENU
 cls & echo. & echo.
