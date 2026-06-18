@@ -170,7 +170,7 @@ call :TIME_STAMP_FILE "Performance" "ServiceStartupStatus"
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%REPORT_FILE%" 2>&1
 
-echo. & echo Report file saved in: !REPORT_FILE!
+echo. & echo Report file saved in: %REPORT_FILE%
 call :GO SERVICES_MENU
 
 :DISABLE_TASKS
@@ -1056,7 +1056,7 @@ echo. & choice /C YN /N /M "Export results as a text file? (Y/N): "
 if %errorlevel% equ 1 (
     call :TIME_STAMP_FILE "Network" "WifiPassword"
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" >> "!REPORT_FILE!" 2>&1
-    echo. & echo Report file saved in: !REPORT_FILE!
+    echo. & echo Report file saved in: %REPORT_FILE%
 )
 call :GO NETWORK_MENU
 
