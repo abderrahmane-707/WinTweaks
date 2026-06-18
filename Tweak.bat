@@ -1920,9 +1920,9 @@ call :GO ACTIVATION_MENU
 
 :: Display basic system information 
 :SYSTEM_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\SystemInfo.ps1"
-call :GO SYSTEM_MENU
-
+call :PATH "System" "SystemInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\SystemInfo.ps1" "%LOG_FILE%"
+call :LOG SYSTEM_MENU
 
 :TOOLS_MENU
 cls & echo. & echo.
