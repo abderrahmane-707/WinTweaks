@@ -1127,8 +1127,8 @@ call :LOG DNS_MENU
 
 :SET_DHCP
 cls
-call :DHCP
 call :PATH "Network" "DHCP"
+call :DHCP
 
 call :LOG DNS_MENU
 
