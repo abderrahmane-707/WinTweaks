@@ -1,29 +1,54 @@
-# Retrieve CPU information using WMI (Windows Management Instrumentation)
-$cpuInfo = Get-WmiObject Win32_Processor
+# Accept log path parameter or default to script directory
+param (
+    [string]$LogPath
+)
 
-Write-Host "Processor Details:"
-Write-Host " Manufacturer:  $($cpuInfo.Manufacturer)"
-Write-Host " Name:  $($cpuInfo.Name)"
-Write-Host " Description:  $($cpuInfo.Description)"
+# Write message to console and append to log file with UTF-8 encoding
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    Write-Host $Message
+    Add-Content -Path $LogPath -Value $Message -Encoding utf8
+}
 
-Write-Host "`nArchitecture And Specifications:"
-Write-Host " Architecture:  $($cpuInfo.AddressWidth)-bit"
-Write-Host " Cores:  $($cpuInfo.NumberOfCores)"
-Write-Host " Logical Processors:  $($cpuInfo.NumberOfLogicalProcessors)"
+# Retrieve processor information via CIM
+try {
+    $cpuInstances = Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop
 
-Write-Host "`nClock Speed:"
-Write-Host " Current Clock:  $([math]::Round($cpuInfo.CurrentClockSpeed, 2)) MHz"
-Write-Host " Max Clock Speed:  $([math]::Round($cpuInfo.MaxClockSpeed, 2)) MHz"
+    if ($cpuInstances) {
+        foreach ($cpuInfo in $cpuInstances) {
 
-Write-Host "`nCache Information:"
-Write-Host " L2 Cache Size:  $($cpuInfo.L2CacheSize) KB"
-Write-Host " L3 Cache Size:  $($cpuInfo.L3CacheSize) KB"
+            Write-Log "`nProcessor Details ($($cpuInfo.DeviceID))"
+            Write-Log " Manufacturer:         $($cpuInfo.Manufacturer)"
+            Write-Log " Name:                 $($cpuInfo.Name.Trim())"
+            Write-Log " Description:          $($cpuInfo.Description)"
 
-Write-Host "`nStatus And Identification:"
-Write-Host " Device ID:  $($cpuInfo.DeviceID)"
-Write-Host " Processor ID:  $($cpuInfo.ProcessorId)"
-Write-Host " Socket Designation:  $($cpuInfo.SocketDesignation)"
+            Write-Log "`nArchitecture And Specifications:"
+            Write-Log " Architecture:        $($cpuInfo.AddressWidth)-bit"
+            Write-Log " Cores:               $($cpuInfo.NumberOfCores)"
+            Write-Log " Logical Processors:  $($cpuInfo.NumberOfLogicalProcessors)"
 
-Write-Host "`nLoad And Status:"
-Write-Host " Current Load:  $($cpuInfo.LoadPercentage)%"
-Write-Host " Status:  $($cpuInfo.Status)"
+            Write-Log "`nClock Speed:"
+            Write-Log " Current Clock:       $([math]::Round($cpuInfo.CurrentClockSpeed, 2)) MHz"
+            Write-Log " Max Clock Speed:     $([math]::Round($cpuInfo.MaxClockSpeed, 2)) MHz"
+
+            Write-Log "`nCache Information:"
+            Write-Log " L2 Cache Size:       $($cpuInfo.L2CacheSize) KB"
+            Write-Log " L3 Cache Size:       $($cpuInfo.L3CacheSize) KB"
+
+            Write-Log "`nStatus And Identification:"
+            Write-Log " Device ID:           $($cpuInfo.DeviceID)"
+            Write-Log " Processor ID:        $($cpuInfo.ProcessorId)"
+            Write-Log " Socket Designation:  $($cpuInfo.SocketDesignation)"
+
+            Write-Log "`nLoad And Status:"
+            Write-Log " Current Load:        $($cpuInfo.LoadPercentage)%"
+            Write-Log " Status:              $($cpuInfo.Status)"
+        }
+    } else {
+        Write-Log " No processor information found on this system."
+    }
+} catch {
+    Write-Log " Error retrieving processor information: $_"
+}

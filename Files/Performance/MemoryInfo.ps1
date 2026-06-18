@@ -1,68 +1,75 @@
+# Accept log path from the calling batch file (must be the first line)
+param (
+    [string]$PassedLogPath
+)
+
+# Use the supplied path directly; no fallback
+$LogPath = $PassedLogPath
+
+# Write output to console and log file (UTF-8)
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    Write-Host $Message
+    Add-Content -Path $LogPath -Value $Message -Encoding utf8
+}
+
+# Collect and report memory information
 try {
-    # Get operating system information including memory statistics
+    # Get OS memory counters and total physical RAM
     $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
-    
-    # Get computer system information including total physical memory
     $computerSystem = Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
-    
-    # Calculate memory statistics:
-    # Total physical memory in GB (converted from bytes, rounded to 2 decimal places)
+
+    # Memory calculations (GB)
     $totalPhysicalGB = [math]::Round($computerSystem.TotalPhysicalMemory / 1GB, 2)
-    
-    # Free physical memory in GB (converted from KB to MB to GB, rounded)
-    $freePhysicalGB = [math]::Round($os.FreePhysicalMemory / 1MB, 2)
-    
-    # Calculate used memory by subtracting free from total
+    # Convert free memory from KB to GB
+    $freePhysicalGB = [math]::Round(($os.FreePhysicalMemory * 1KB) / 1GB, 2)
     $usedPhysicalGB = [math]::Round($totalPhysicalGB - $freePhysicalGB, 2)
-    
-    # Calculate memory usage percentage (used divided by total, multiplied by 100)
     $memoryUsage = [math]::Round(($usedPhysicalGB / $totalPhysicalGB) * 100, 2)
 
-    # Display memory overview information
-    Write-Host "Memory Information:"
-    Write-Host " Total Memory:  $totalPhysicalGB GB"
-    Write-Host " Used Memory:  $usedPhysicalGB GB"
-    Write-Host " Free Memory:  $freePhysicalGB GB"
-    Write-Host " Memory Usage:  $memoryUsage %"
+    # Memory overview
+    Write-Log "`nMemory Information:"
+    Write-Log " Total Memory:  $totalPhysicalGB GB"
+    Write-Log " Used Memory:   $usedPhysicalGB GB"
+    Write-Log " Free Memory:   $freePhysicalGB GB"
+    Write-Log " Memory Usage:  $memoryUsage %"
 
-    # Display detailed information about individual memory modules (RAM sticks)
-    Write-Host "`nMemory Slots:"
+    # Per-slot details
+    Write-Log "`nMemory Slots:"
     $memoryModules = Get-CimInstance Win32_PhysicalMemory -ErrorAction Stop
-    
+
     if ($memoryModules) {
-        # Process each memory module (RAM stick) found in the system
         foreach ($module in $memoryModules) {
-            # Convert SMBIOS memory type codes to human-readable format
+            # Map SMBIOS memory type codes to names
             $memoryType = switch ($module.SMBIOSMemoryType) {
                 20 { "DDR" }
                 21 { "DDR2" }
                 24 { "DDR3" }
                 26 { "DDR4" }
                 34 { "DDR5" }
-                default { $module.SMBIOSMemoryType }  # Display raw code if unknown
+                default { $module.SMBIOSMemoryType }
             }
 
-            # Convert form factor codes to human-readable format
+            # Map form factor codes to descriptions
             $formFactor = switch ($module.FormFactor) {
-                8 { "DIMM (Desktop)" }   # Desktop memory module
-                12 { "SODIMM (Laptop)" } # Laptop memory module
-                default { $module.FormFactor }  # Display raw code if unknown
+                8  { "DIMM (Desktop)" }
+                12 { "SODIMM (Laptop)" }
+                default { $module.FormFactor }
             }
 
-            # Display detailed information for this memory module
-            Write-Host " Slot $($module.DeviceLocator):"
-            Write-Host "  Manufacturer:  $($module.Manufacturer)"
-            Write-Host "  Part Number:  $($module.PartNumber)"
-            Write-Host "  Capacity:  $([math]::Round($module.Capacity / 1GB, 2)) GB"
-            Write-Host "  Speed:  $($module.Speed) MHz"
-            Write-Host "  Type:  $memoryType"
-            Write-Host "  Form Factor:  $formFactor"
+            Write-Log " Slot $($module.DeviceLocator):"
+            Write-Log "  Manufacturer:  $($module.Manufacturer)"
+            Write-Log "  Part Number:   $($module.PartNumber)"
+            Write-Log "  Capacity:       $([math]::Round($module.Capacity / 1GB, 2)) GB"
+            Write-Log "  Speed:          $($module.Speed) MHz"
+            Write-Log "  Type:           $memoryType"
+            Write-Log "  Form Factor:   $formFactor"
         }
+    } else {
+        Write-Log " No memory module information available"
     }
-    else {
-        Write-Host " No memory module information available"
-    }
+
 } catch {
-    # Handle any errors that occur during CIM queries
-    Write-Host " Error retrieving system information: $($_.Exception.Message)"
+    Write-Log " Error retrieving system information: $($_.Exception.Message)"
 }

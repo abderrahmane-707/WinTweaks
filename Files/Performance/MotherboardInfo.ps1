@@ -1,82 +1,90 @@
-# Helper function to convert byte arrays to readable strings, removing null terminators
-function Convert-ByteArrayToString {
-  param([byte[]]$Bytes)
-  return [System.Text.Encoding]::ASCII.GetString($Bytes).TrimEnd("`0")
+# Receive log path from calling batch file (must be first statement)
+param (
+    [string]$PassedLogPath
+)
+
+# Use supplied path directly
+$LogPath = $PassedLogPath
+
+# Write output to console and log file (UTF-8)
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    Write-Host $Message
+    Add-Content -Path $LogPath -Value $Message -Encoding utf8
 }
 
-# Display motherboard information from WMI
-Write-Host "Motherboard Information:"
+# Motherboard information
+Write-Log "`nMotherboard Information:"
 try {
-  # Get motherboard/baseboard information using WMI
-  $motherboard = Get-WmiObject Win32_BaseBoard
-  
-  if ($motherboard) {
-    Write-Host " Manufacturer:  $($motherboard.Manufacturer)"
-    Write-Host " Product/Model:  $($motherboard.Product)"
-    Write-Host " Version:  $($motherboard.Version)"
-    Write-Host " Serial Number:  $($motherboard.SerialNumber)"
-    
-    # Display additional motherboard characteristics
-    Write-Host " Hosting Board:  $($motherboard.HostingBoard)"
-    Write-Host " Hot Swappable:  $($motherboard.HotSwappable)"
-    Write-Host " Removable:  $($motherboard.Removable)"
-    Write-Host " Replaceable:  $($motherboard.Replaceable)"
-    Write-Host " Requires Daughter Board:  $($motherboard.RequiresDaughterBoard)"
-  } else {
-    Write-Host " No motherboard information found via WMI."
-  }
-} catch {
-  Write-Host " Error accessing motherboard information: $($_.Exception.Message)"
-}
+    # Modern CIM-based retrieval (replaces deprecated Get-WmiObject)
+    $motherboard = Get-CimInstance Win32_BaseBoard -ErrorAction Stop
 
-# Display BIOS/UEFI firmware information
-Write-Host "`nBIOS/UEFI Information:"
-try {
-  # Determine firmware type (UEFI vs Legacy BIOS)
-  $firmware = Get-WmiObject Win32_ComputerSystem | Select-Object -ExpandProperty PCSystemType
-  if ($firmware -eq 2) {
-    Write-Host " Firmware Type:  UEFI"
-  } elseif ($firmware -eq 1) {
-    Write-Host " Firmware Type:  Legacy BIOS"
-  } else {
-    Write-Host " Firmware Type:  Unknown"
-  }
-} catch {
-    Write-Host " Firmware Type:  Could not determine"
-}
+    if ($motherboard) {
+        Write-Log " Manufacturer:   $($motherboard.Manufacturer)"
+        Write-Log " Product/Model:  $($motherboard.Product)"
+        Write-Log " Version:        $($motherboard.Version)"
+        Write-Log " Serial Number:  $($motherboard.SerialNumber)"
 
-# Display BIOS details
-try {
-  $bios = Get-WmiObject Win32_BIOS
-  
-  if ($bios) {
-    Write-Host " BIOS Manufacturer:  $($bios.Manufacturer)"
-    Write-Host " BIOS Name:  $($bios.Name)"
-    Write-Host " BIOS Version:  $($bios.Version)"
-    Write-Host " BIOS Serial Number:  $($bios.SerialNumber)"
-    Write-Host " BIOS Release Date:  $($bios.ReleaseDate)"
-  }
-} catch {
-  Write-Host " Error accessing BIOS information $($_.Exception.Message)"
-}
-
-# Display SMBIOS (System Management BIOS) information
-Write-Host "`nSMBIOS Information:"
-try {
-  # Check if SMBIOS information is available
-  $smbios = Get-WmiObject Win32_SMBIOSMemory -ErrorAction SilentlyContinue
-  
-  if ($smbios) {    
-    # Access raw SMBIOS tables from a different WMI namespace for detailed information
-    $smbiosData = Get-WmiObject -Namespace root\wmi -Class MSSmBios_RawSMBiosTables -ErrorAction SilentlyContinue
-    
-    if ($smbiosData) {
-      # SMBIOS version consists of major and minor version numbers
-      $smbiosVersion = "$($smbiosData.SmbiosMajorVersion).$($smbiosData.SmbiosMinorVersion)"
-      Write-Host " SMBIOS Version:  $smbiosVersion"
-      Write-Host " SMBIOS Data Length:  $($smbiosData.Size) bytes"
+        Write-Log " Hosting Board:  $($motherboard.HostingBoard)"
+        Write-Log " Hot Swappable:  $($motherboard.HotSwappable)"
+        Write-Log " Removable:      $($motherboard.Removable)"
+        Write-Log " Replaceable:    $($motherboard.Replaceable)"
+        Write-Log " Requires Daughter Board:  $($motherboard.RequiresDaughterBoard)"
+    } else {
+        Write-Log " No motherboard information found."
     }
-  }
 } catch {
-  Write-Host " SMBIOS detailed information not available."
+    Write-Log " Error accessing motherboard information: $($_.Exception.Message)"
+}
+
+# Firmware type detection (UEFI vs Legacy BIOS)
+Write-Log "`nFirmware/BIOS Information:"
+try {
+    # SecureBoot registry key exists only on UEFI systems
+    if (Test-Path "HKLM:\System\CurrentControlSet\Control\SecureBoot\State") {
+        $firmwareType = "UEFI"
+    } else {
+        $firmwareType = "Legacy BIOS"
+    }
+    Write-Log " Firmware Type:  $firmwareType"
+} catch {
+    Write-Log " Firmware Type:  Could not determine"
+}
+
+# BIOS details
+try {
+    $bios = Get-CimInstance Win32_BIOS -ErrorAction Stop
+
+    if ($bios) {
+        Write-Log " BIOS Manufacturer:   $($bios.Manufacturer)"
+        Write-Log " BIOS Name:           $($bios.Name)"
+        Write-Log " BIOS Version:        $($bios.Version)"
+        Write-Log " BIOS Serial Number:  $($bios.SerialNumber)"
+        Write-Log " BIOS Release Date:   $($bios.ReleaseDate)"
+    }
+} catch {
+    Write-Log " Error accessing BIOS information: $($_.Exception.Message)"
+}
+
+# SMBIOS information
+Write-Log "`nSMBIOS Information:"
+try {
+    $smbios = Get-CimInstance Win32_SMBIOSMemory -ErrorAction SilentlyContinue
+
+    if ($smbios) {
+        # Read raw SMBIOS tables via CIM (root\wmi namespace)
+        $smbiosData = Get-CimInstance -Namespace root\wmi -ClassName MSSmBios_RawSMBiosTables -ErrorAction SilentlyContinue
+
+        if ($smbiosData) {
+            $smbiosVersion = "$($smbiosData.SmbiosMajorVersion).$($smbiosData.SmbiosMinorVersion)"
+            Write-Log " SMBIOS Version:      $smbiosVersion"
+            Write-Log " SMBIOS Data Length:  $($smbiosData.Size) bytes"
+        }
+    } else {
+        Write-Log " SMBIOS information not available on this system."
+    }
+} catch {
+    Write-Log " SMBIOS detailed information error: $($_.Exception.Message)"
 }

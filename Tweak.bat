@@ -400,28 +400,33 @@ call :INVALID (0-6) HW_INFO_MENU
 
 :: Display detailed processor
 :CPU_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\CPUInfo.ps1"
-call :GO HW_INFO_MENU
+call :PATH "Performance" "CPUInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\CPUInfo.ps1" "%LOG_FILE%"
+call :LOG HW_INFO_MENU
 
 :: Display Graphics Card details
 :GPU_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\GPUInfo.ps1"
-call :GO HW_INFO_MENU
+call :PATH "Performance" "GPUInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\GPUInfo.ps1" "%LOG_FILE%"
+call :LOG HW_INFO_MENU
 
 :: Display Storage stats
 :HARD_DISK_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\HardDiskInfo.ps1"
-call :GO HW_INFO_MENU
+call :PATH "Performance" "HardDiskInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\HardDiskInfo.ps1" "%LOG_FILE%"
+call :LOG HW_INFO_MENU
 
 :: Display RAM information
 :RAM_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MemoryInfo.ps1"
-call :GO HW_INFO_MENU
+call :PATH "Performance" "MemoryInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MemoryInfo.ps1" "%LOG_FILE%"
+call :LOG HW_INFO_MENU
 
 :: Display Motherboard information
 :MOTHERBOARD_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MotherboardInfo.ps1"
-call :GO HW_INFO_MENU
+call :PATH "Performance" "MotherboardInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MotherboardInfo.ps1" "%LOG_FILE%"
+call :LOG HW_INFO_MENU
 
 :: Generate an advanced HTML report regarding battery health and cycle count
 :BATTERY_INFO
