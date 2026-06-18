@@ -248,7 +248,6 @@ for %%X in (
         if exist "%LOCALAPPDATA%\%%A" (
             echo Cleaning %%B
             for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
-                :: Remove cache folders
                 for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "Media Cache" "Download Service") do (
                     rd /s /q "%%P\%%~D" >nul 2>&1
                 )
@@ -264,8 +263,6 @@ for %%X in (
     for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
         if exist "%APPDATA%\%%A" (
             echo Cleaning %%B
-
-            :: Remove cache
             if exist "%LOCALAPPDATA%\%%A\Profiles" (
                 for /d %%P in ("%LOCALAPPDATA%\%%A\Profiles\*") do (
                     for %%D in ("cache2" "thumbnails" "jumpListCache" "startupCache") do (
@@ -273,7 +270,6 @@ for %%X in (
                     )
                 )
             )
-            :: Delete crash reports
             rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
         )
     )
@@ -547,11 +543,11 @@ if exist "%LOCALAPPDATA%\Microsoft\Edge\User Data" (
 :: Remove all Mozilla Firefox personal data
 echo Cleaning Mozilla Firefox data
 if exist "%APPDATA%\Mozilla\Firefox" (
-    rd /s /q "%APPDATA%\Mozilla\Firefox"
+    rd /s /q "%APPDATA%\Mozilla\Firefox" >nul 2>&1
 )
 
 if exist "%LOCALAPPDATA%\Mozilla\Firefox" (
-    rd /s /q "%LOCALAPPDATA%\Mozilla\Firefox"
+    rd /s /q "%LOCALAPPDATA%\Mozilla\Firefox" >nul 2>&1
 )
 
 echo Cleaning registry entries
@@ -563,7 +559,7 @@ del /f /s /q "%SYSTEMROOT%\Prefetch\*" >nul 2>&1
 
 :: Clean System Log files
 echo Cleaning system log files
-for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /s /q %%L\*"
+for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /s /q %%L\*" >nul 2>&1
 
 :: Clear Windows Event Viewer logs
 echo Cleaning Windows Event Logs
@@ -1856,7 +1852,7 @@ vssadmin list writers >> "%LOG_FILE%" 2>&1
 echo Creating system restore point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-if %errorlevel% neq 0 echo. & echo Creating system restore point has failed
+if %errorlevel% neq 0 echo. & echo Creating system restore point has failed after troubleshooting
 call :LOG SYSTEM_MENU
 
 :REG_BACK
@@ -2255,7 +2251,7 @@ goto :eof
 :: %~2 = Start Type
 sc query "%~1" >nul 2>&1
 if !errorlevel! equ 0 (
-    sc config "%~1" start= %~2 >nul 2>&1
+    sc config "%~1" start=%~2 >nul 2>&1
     if !errorlevel! equ 0 (
         echo [SUCCESS] %~1 >>"%LOG_FILE%" 2>&1
     ) else (
