@@ -1,90 +1,50 @@
-Write-Host "System Information:"
+param (
+    [string]$LogPath
+)
+
+# In-memory buffer to avoid repetitive disk writes.
+$LogLines = [System.Collections.Generic.List[string]]::new()
+
+# Writes to console and appends to the in-memory buffer.
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    Write-Host $Message
+    $LogLines.Add($Message)
+}
+
+Write-Log "System Information:"
+
 try {
-    # Execute systeminfo command and suppress error output
-    $output = systeminfo 2>$null
-    if (-not $output) {
-        throw "systeminfo returned no output"
-    }
-    
-    # Flags to control which sections to skip during output processing
-    $skipNetwork   = $false
-    $skipProcessor = $false
+    # Single-pass CIM queries directly from the kernel — extremely fast.
+    $os   = Get-CimInstance -ClassName Win32_OperatingSystem
+    $cs   = Get-CimInstance -ClassName Win32_ComputerSystem
+    $proc = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
+    $bios = Get-CimInstance -ClassName Win32_Bios
+    $tz   = Get-CimInstance -ClassName Win32_TimeZone
 
-    # Process each line of systeminfo output
-    foreach ($line in $output) {
-        # Skip the entire Network Card(s) section
-        # When we encounter "Network Card(s):", set flag to skip until next non-empty line
-        if ($line -match '^Network Card\(s\):') {
-            $skipNetwork = $true
-            continue  # Skip this line and move to next iteration
-        }
-        
-        # If we're in the network section, skip lines until we hit a non-empty line
-        if ($skipNetwork) {
-            if ($line -match '^\S') {  # Line starts with non-whitespace (new section)
-                $skipNetwork = $false
-            } else {
-                continue  # Skip this line (it's part of network section)
-            }
-        }
-        
-        # Skip the Processor(s) section lines that show individual processors
-        if ($line -match '^Processor\(s\):') {
-            $skipProcessor = $true
-            continue
-        }
-
-        # If we're in the processor section, skip lines that show individual processors
-        if ($skipProcessor) {
-            if ($line -match '^\s+\[\d+\]:') {  # Lines like "  [01]: Intel ..."
-                continue
-            } else {
-                $skipProcessor = $false
-            }
-        }
-        
-        # Skip specific lines that match these patterns (less important information)
-        if ($line -match '^(OS Build Type:|Registered Organization:|Windows Directory:|Boot Device:|Domain:|Logon Server:|OS Configuration:|Hyper-V Requirements:)') {
-            continue
-        }
-        
-        # Display the line (with indentation)
-        Write-Host "  $line"
-    }
+    # Structured report output — memory section intentionally omitted as requested.
+    Write-Log "  Host Name:                 $($cs.Name)"
+    Write-Log "  OS Name:                   $($os.Caption)"
+    Write-Log "  OS Version:                $($os.Version)"
+    Write-Log "  OS Manufacturer:           $($os.Manufacturer)"
+    Write-Log "  Registered Owner:          $($os.RegisteredUser)"
+    Write-Log "  Product ID:                $($os.SerialNumber)"
+    Write-Log "  Original Install Date:     $($os.InstallDate.ToString('yyyy-MM-dd HH:mm:ss'))"
+    Write-Log "  System Boot Time:          $($os.LastBootUpTime.ToString('yyyy-MM-dd HH:mm:ss'))"
+    Write-Log "  System Manufacturer:       $($cs.Manufacturer)"
+    Write-Log "  System Model:              $($cs.Model)"
+    Write-Log "  System Type:               $($cs.SystemType)"
+    Write-Log "  Processor(s):              $($proc.Name)"
+    Write-Log "  BIOS Version:              $($bios.SMBIOSBIOSVersion)"
+    Write-Log "  System Directory:          $($os.SystemDirectory)"
+    Write-Log "  System Locale:             $($os.MUILanguages -join ', ')"
+    Write-Log "  Time Zone:                 $($tz.Description)"
 }
 catch {
-    Write-Host "  Error retrieving system information"
+    Write-Log "  Error retrieving system information: $_"
 }
 
-# Display system performance metrics header
-Write-Host "`nSystem Performance:"
-try {
-    # Calculate CPU usage percentage (average across all cores)
-    $cpuLoad = (Get-CimInstance Win32_Processor -ErrorAction Stop | 
-                Measure-Object -Property LoadPercentage -Average).Average
-    
-    # Get memory information and calculate memory usage percentage
-    $mem = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
-    # Formula: (Total - Free) / Total * 100, rounded to 1 decimal place
-    $memUsed = [math]::Round((($mem.TotalVisibleMemorySize - $mem.FreePhysicalMemory) / 
-                              $mem.TotalVisibleMemorySize) * 100, 1)
-    
-    # Get system drive (usually C:) information and calculate disk usage percentage
-    $disk = Get-CimInstance Win32_LogicalDisk -ErrorAction Stop | 
-            Where-Object { $_.DeviceID -eq $env:SystemDrive }
-    
-    # Calculate disk usage percentage if disk information is available
-    $diskUsed = if ($disk) { 
-        [math]::Round((($disk.Size - $disk.FreeSpace) / $disk.Size) * 100, 1) 
-    } else { 
-        "N/A"  # Disk information not available
-    }
-    
-    # Display performance metrics
-    Write-Host " CPU Usage: $cpuLoad %"
-    Write-Host " Memory Usage: $memUsed %"
-    Write-Host " System Disk Usage: $diskUsed %"
-    
-} catch {
-    Write-Host " Error retrieving performance information"
-}
+# Flush all buffered lines to disk in a single high-performance write operation.
+$LogLines | Out-File -FilePath $LogPath -Append -Encoding utf8

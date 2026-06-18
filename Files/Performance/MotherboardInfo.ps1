@@ -1,12 +1,9 @@
-# Receive log path from calling batch file (must be first statement)
+# Accept log file path from caller (no default fallback)
 param (
-    [string]$PassedLogPath
+    [string]$LogPath
 )
 
-# Use supplied path directly
-$LogPath = $PassedLogPath
-
-# Write output to console and log file (UTF-8)
+# Write output to screen and log file using UTF-8 encoding
 function Write-Log {
     param (
         [string]$Message

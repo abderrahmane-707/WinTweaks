@@ -1,12 +1,7 @@
-# Accept log path from the calling batch file (must be the first line)
 param (
-    [string]$PassedLogPath
+    [string]$LogPath
 )
 
-# Use the supplied path directly; no fallback
-$LogPath = $PassedLogPath
-
-# Write output to console and log file (UTF-8)
 function Write-Log {
     param (
         [string]$Message
@@ -28,12 +23,18 @@ try {
     $usedPhysicalGB = [math]::Round($totalPhysicalGB - $freePhysicalGB, 2)
     $memoryUsage = [math]::Round(($usedPhysicalGB / $totalPhysicalGB) * 100, 2)
 
+    # Virtual Memory calculations (GB)
+    $totalVirtualGB = [math]::Round(($os.TotalVirtualMemorySize * 1KB) / 1GB, 2)
+    $freeVirtualGB = [math]::Round(($os.FreeVirtualMemory * 1KB) / 1GB, 2)
+
     # Memory overview
     Write-Log "`nMemory Information:"
-    Write-Log " Total Memory:  $totalPhysicalGB GB"
-    Write-Log " Used Memory:   $usedPhysicalGB GB"
-    Write-Log " Free Memory:   $freePhysicalGB GB"
-    Write-Log " Memory Usage:  $memoryUsage %"
+    Write-Log " Total Memory:              $totalPhysicalGB GB"
+    Write-Log " Used Memory:               $usedPhysicalGB GB"
+    Write-Log " Free Memory:               $freePhysicalGB GB"
+    Write-Log " Memory Usage:              $memoryUsage %"
+    Write-Log " Virtual Memory: Max Size:  $totalVirtualGB GB"
+    Write-Log " Virtual Memory: Available: $freeVirtualGB GB"
 
     # Per-slot details
     Write-Log "`nMemory Slots:"
@@ -61,9 +62,9 @@ try {
             Write-Log " Slot $($module.DeviceLocator):"
             Write-Log "  Manufacturer:  $($module.Manufacturer)"
             Write-Log "  Part Number:   $($module.PartNumber)"
-            Write-Log "  Capacity:       $([math]::Round($module.Capacity / 1GB, 2)) GB"
-            Write-Log "  Speed:          $($module.Speed) MHz"
-            Write-Log "  Type:           $memoryType"
+            Write-Log "  Capacity:      $([math]::Round($module.Capacity / 1GB, 2)) GB"
+            Write-Log "  Speed:         $($module.Speed) MHz"
+            Write-Log "  Type:          $memoryType"
             Write-Log "  Form Factor:   $formFactor"
         }
     } else {

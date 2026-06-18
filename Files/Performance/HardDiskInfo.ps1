@@ -1,14 +1,9 @@
-# Accept log path or default to script directory
+# Accept log file path from caller (no default fallback)
 param (
     [string]$LogPath
 )
 
-# Fall back to default log name if none supplied
-if ([string]::IsNullOrEmpty($LogPath)) {
-    $LogPath = Join-Path $PSScriptRoot "storage_report.log"
-}
-
-# Write to console and append to log file (UTF‑8)
+# Write output to screen and log file using UTF-8 encoding
 function Write-Log {
     param (
         [string]$Message
