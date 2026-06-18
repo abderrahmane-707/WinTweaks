@@ -45,7 +45,7 @@ Fax,Disabled
 fdPHost,Manual
 FDResPub,Manual
 fhsvc,Manual
-FontCache,Disabled
+FontCache,Manual
 FrameServer,Manual
 FrameServerMonitor,Manual
 GraphicsPerfSvc,Manual
