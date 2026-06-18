@@ -1050,15 +1050,9 @@ ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 call :LOG NETWORK_MENU
 
 :WIFI_PASSWORDS
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1"
-
-echo. & choice /C YN /N /M "Export results as a text file? (Y/N): "
-if %errorlevel% equ 1 (
-    call :TIME_STAMP_FILE "Network" "WifiPassword"
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" >> "!REPORT_FILE!" 2>&1
-    echo. & echo Report file saved in: %REPORT_FILE%
-)
-call :GO NETWORK_MENU
+call :PATH "Network" "WifiPassword"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%LOG_FILE%"
+call :LOG NETWORK_MENU
 
 :DNS_MENU
 cls & echo. & echo.

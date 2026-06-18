@@ -1,4 +1,21 @@
-Write-Host "Saved networks and their passwords"
+param (
+    [string]$PassedLogPath
+)
+
+$LogPath = $PassedLogPath
+
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    Write-Host $Message
+    Add-Content -Path $LogPath -Value $Message -Encoding utf8
+}
+
+function Convert-ByteArrayToString {
+    param([byte[]]$Bytes)
+    return [System.Text.Encoding]::ASCII.GetString($Bytes).TrimEnd("`0")
+}
 
 # Extract value after a colon
 function Get-ValueAfterColon {
@@ -13,13 +30,15 @@ function Get-ValueAfterColon {
     return $parts[1].Trim().Replace('"','')
 }
 
+Write-Log "Saved networks and their passwords"
+
 # Enumerate saved Wi-Fi profiles
 $profiles = netsh wlan show profiles |
     Select-String "All User Profile" |
     ForEach-Object { $_.Line.Split(":", 2)[1].Trim() }
 
 if (-not $profiles) {
-    Write-Host "No Wi-Fi profiles found."
+    Write-Log "No Wi-Fi profiles found"
     exit
 }
 
@@ -38,13 +57,12 @@ foreach ($profileName in $profiles) {
         $keyLine
     }
     else {
-        "Not available (Run as Admin?)"
+        "Not available"
     }
 
-    # Display profile information
-    Write-Host ""
-    Write-Host "SSID:            $ssid"
-    Write-Host " Authentication: $auth"
-    Write-Host " Cipher:         $cipher"
-    Write-Host " Password:       $password"
+    # Display and Log profile information
+    Write-Log "`nSSID:            $ssid"
+    Write-Log " Authentication: $auth"
+    Write-Log " Cipher:         $cipher"
+    Write-Log " Password:       $password"
 }
