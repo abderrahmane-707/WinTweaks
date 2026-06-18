@@ -885,15 +885,11 @@ for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotun
 )
 
 echo Set Cloudflare DNS on all connected interfaces
-for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
-    echo  - Set Cloudflare DNS on: %%~b
-    
-    netsh interface ipv4 set dns name="%%~b" static 1.1.1.1 primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv4 add dns name="%%~b" 1.0.0.1 index=2 >> "%LOG_FILE%" 2>&1
-
-    netsh interface ipv6 set dns name="%%~b" static 2606:4700:4700::1111 primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 add dns name="%%~b" 2606:4700:4700::1001 index=2 >> "%LOG_FILE%" 2>&1
-)
+set DNS_IPv4_1=1.1.1.1
+set DNS_IPv4_2=1.0.0.1
+set DNS_IPv6_1=2606:4700:4700::1111
+set DNS_IPv6_2=2606:4700:4700::1001
+call :INTERFACE
 
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
@@ -1001,7 +997,7 @@ ipconfig /release >> "%LOG_FILE%" 2>&1
 :: Restart all physically connected network interfaces
 :: This effectively "plugs and unplugs" the cable via software
 echo Restart all connected interfaces
-for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
+for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
     echo - Restart: %%~b
     :: Disable the interface
     netsh interface set interface name="%%~b" admin=disabled >> "%LOG_FILE%" 2>&1
@@ -1125,18 +1121,8 @@ call :INVALID (0-10) DNS_MENU
 :SET_DNS
 call :PATH "Network" "DNS"
 
-cls & echo Set %DNS_NAME% server on all connected interfaces
-for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
-    echo  - Configure: %%~b
-    
-    :: Set the Primary and Secondary IPv4 DNS server
-    netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
-    
-    :: Set the Primary and Secondary IPv6 DNS server
-    netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
-)
+echo Set %DNS_NAME% server on all connected interfaces
+call :INTERFACE
 
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
@@ -2222,7 +2208,7 @@ goto :eof
 echo Set DHCP on all connected interfaces
 
 :: Find all active network adapters
-for /f "tokens=3,*" %%a in ('netsh interface show interface ^| findstr "Connected"') do (
+for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
     echo - Resetting IP and DNS on: %%~b
     
     :: Revert IPv4 to obtain an IP address automatically from the router
@@ -2300,7 +2286,20 @@ goto :eof
 where choco >nul 2>&1 || (
     echo Choco not found
     call :GO PROGRAMS_MANAGER_MENU
+:INTERFACE
+for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
+    echo  - Configure: %%~b
+    
+    :: Set the Primary and Secondary IPv4 DNS server
+    netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
+    
+    :: Set the Primary and Secondary IPv6 DNS server
+    netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
 )
+goto :eof
+
 
 :TIME_STAMP_FILE
 :: Retrieve current system time in a format that won't break file paths
