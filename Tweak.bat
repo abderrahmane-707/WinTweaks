@@ -2088,7 +2088,8 @@ goto TOOLS_MENU
 
 :: Launch Disk Cleanup
 :CLEAN_MGR
-cleanmgr.exe /d C: /VERYLOWDISK
+cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
+
 goto TOOLS_MENU
 
 :: Delete "%ProgramData%\WinTweaks" folder
