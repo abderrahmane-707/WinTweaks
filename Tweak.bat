@@ -863,8 +863,9 @@ reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
 call :LOG PRIVACY_SECURITY_MENU
 
 :SECURITY_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\SecurityInfo.ps1"
-call :GO PRIVACY_SECURITY_MENU
+call :PATH "Security" "SecurityInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\SecurityInfo.ps1" "%LOG_FILE%"
+call :LOG PRIVACY_SECURITY_MENU
 
 
 :NETWORK_MENU
