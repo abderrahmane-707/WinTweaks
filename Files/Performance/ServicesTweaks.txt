@@ -35,7 +35,7 @@ DisplayEnhancementService,Manual
 DmEnrollmentSvc,Manual
 dmwappushservice,Manual
 dot3svc,Manual
-DPS,Disabled
+DPS,Manual
 DsmSvc,Manual
 DsSvc,Manual
 DusmSvc,Disabled
