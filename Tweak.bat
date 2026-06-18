@@ -130,6 +130,7 @@ call :PATH "Performance" "%LOG%"
 for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     set "SERVICE_NAME=%%A"
     set "SERVICE_STATUS=%%B"
+	set "SC_PARAM="
     
     :: Check if service exists in the system
     sc query "!SERVICE_NAME!" >nul 2>&1
