@@ -1183,7 +1183,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco
 if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 
 
-goto CHECK_CHOCO
+call :CHECK_CHOCO
 
 :PROGRAMS_MENU_VAR
 set "ON=(YES)"
@@ -1359,7 +1359,7 @@ goto :eof
 :: Chocolatey must be available to upgrade the programs
 :UPDATE_PROGRAMS
 cls & echo Update all installed programs from Chocolatey
-goto CHECK_CHOCO
+call :CHECK_CHOCO
 
 :: Execute the upgrade command for every package managed by Chocolatey
 choco upgrade all -y
@@ -2282,10 +2282,6 @@ if !errorlevel! equ 0 (
 )
 goto :eof
 
-:CHECK_CHOCO
-where choco >nul 2>&1 || (
-    echo Choco not found
-    call :GO PROGRAMS_MANAGER_MENU
 :INTERFACE
 for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
     echo  - Configure: %%~b
@@ -2300,7 +2296,12 @@ for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "F
 )
 goto :eof
 
+:CHECK_CHOCO
+where choco >nul 2>&1
+if %errorlevel% equ 0 goto :eof
 
+echo Choco not found
+call :GO PROGRAMS_MANAGER_MENU
 :TIME_STAMP_FILE
 :: Retrieve current system time in a format that won't break file paths
 for /f "tokens=*" %%a in ('powershell -Command "Get-Date -Format 'yyyyMMddHHmmss'"') do set datetime=%%a
