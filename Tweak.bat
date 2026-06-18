@@ -340,37 +340,7 @@ powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a >nul
 call :GO POWER_PLAN_MENU
 
 :ACTIVE_PLAN
-:: Output of the active power scheme
-set "TEMP_FILE=%TEMP%\ActivePowerPlan.guid"
-
-:: Get the currently active power plan
-powercfg /getactivescheme > "%TEMP_FILE%" 2>&1
-
-:: Extract the power plan GUID from the command output
-for /f "usebackq tokens=4" %%A in ("%TEMP_FILE%") do set "PLAN_GUID=%%A"
-
-:: Remove any accidental spaces from the extracted GUID
-set "PLAN_GUID=%PLAN_GUID: =%"
-
-:: Compare the GUID
-if /I "!PLAN_GUID!"=="381b4222-f694-41f0-9685-ff5bb260df2e" (
-    set "PLAN_NAME=Balanced"
-
-) else if /I "!PLAN_GUID!"=="8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" (
-    set "PLAN_NAME=High Performance"
-
-) else if /I "!PLAN_GUID!"=="a1841308-3541-4fab-bc81-f71556f20b4a" (
-    set "PLAN_NAME=Power Saver"
-    
-) else (
-    set "PLAN_NAME=Unknown Power Plan"
-)
-
-echo.
-echo Active power plan GUID: !PLAN_GUID!
-echo Active power plan Name: !PLAN_NAME!
-
-del "%TEMP_FILE%" >nul 2>&1
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\ActivePlan.ps1"
 call :GO POWER_PLAN_MENU
 
 :HW_INFO_MENU
