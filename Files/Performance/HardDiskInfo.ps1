@@ -15,6 +15,7 @@ function Write-Log {
 # Convert raw bytes to human‑readable units (Bytes/KB/MB/GB/TB)
 function Format-Size {
     param([double]$SizeInBytes)
+    if ($SizeInBytes -le 0 -or $SizeInBytes -eq $null) { return "N/A" }
     $sizes = @("Bytes", "KB", "MB", "GB", "TB")
     $order = 0
     while ($SizeInBytes -ge 1024 -and $order -lt $sizes.Length - 1) {
@@ -40,7 +41,7 @@ try {
     $disks = Get-CimInstance Win32_DiskDrive -ErrorAction Stop | Sort-Object Index
     if ($disks) {
         foreach ($disk in $disks) {
-            $diskType = "Unknown"
+            $diskType = "N/A"
 
             # Prefer accurate detection from Get-PhysicalDisk
             $mapKey = "$($disk.Index)"
@@ -57,16 +58,20 @@ try {
                 $diskType = "SSD (Solid State Drive)"
             }
 
-            $modelName = if ($disk.Model) { $disk.Model.Trim() } else { "Unknown" }
+            $modelName = if ($disk.Model) { $disk.Model.Trim() } else { "N/A" }
+            $serialNumber = if ($disk.SerialNumber) { $disk.SerialNumber.Trim() } else { "N/A" }
+            $interfaceType = if ($disk.InterfaceType) { $disk.InterfaceType.Trim() } else { "N/A" }
+            $totalSectors = if ($disk.TotalSectors) { $disk.TotalSectors } else { "N/A" }
+            $diskSize = if ($disk.Size) { Format-Size $disk.Size } else { "N/A" }
 
             Write-Log " Disk #$($disk.Index):"
-            Write-Log "  Model:   $modelName"
-            Write-Log "  Device ID:   $($disk.DeviceID)"
-            Write-Log "  Serial Number:   $($disk.SerialNumber)"
-            Write-Log "  Type:  $diskType"
-            Write-Log "  Size:  $(Format-Size $disk.Size)"
-            Write-Log "  Interface:   $($disk.InterfaceType)"
-            Write-Log "  Total Sectors:   $($disk.TotalSectors)"
+            Write-Log "   Model:             $modelName"
+            Write-Log "   Device ID:         $($disk.DeviceID)"
+            Write-Log "   Serial Number:     $serialNumber"
+            Write-Log "   Type:              $diskType"
+            Write-Log "   Size:              $diskSize"
+            Write-Log "   Interface:         $interfaceType"
+            Write-Log "   Total Sectors:     $totalSectors"
             Write-Log ""
         }
     } else {
@@ -83,17 +88,23 @@ try {
     if ($partitions) {
         foreach ($partition in $partitions) {
             # Map common partition type codes
-            $partitionType = switch ($partition.Type) {
-                "GPT: System"                { "GPT System" }
-                "GPT: Basic Data"            { "GPT Basic Data" }
-                "GPT: Microsoft reserved"    { "GPT Microsoft Reserved" }
-                "Installable File System"    { "Installable File System" }
-                default                      { $partition.Type }
-            }
-            Write-Log "  Device ID:   $($partition.DeviceID)"
-            Write-Log "  Type:  $partitionType"
-            Write-Log "  Size:  $(Format-Size $partition.Size)"
-            Write-Log "  Starting Offset:   $($partition.StartingOffset)"
+            $partitionType = if ($partition.Type) {
+                switch ($partition.Type) {
+                    "GPT: System"                { "GPT System" }
+                    "GPT: Basic Data"            { "GPT Basic Data" }
+                    "GPT: Microsoft reserved"    { "GPT Microsoft Reserved" }
+                    "Installable File System"    { "Installable File System" }
+                    default                      { $partition.Type }
+                }
+            } else { "N/A" }
+
+            $partitionSize = if ($partition.Size) { Format-Size $partition.Size } else { "N/A" }
+            $startingOffset = if ($partition.StartingOffset) { $partition.StartingOffset } else { "N/A" }
+
+            Write-Log "  Device ID:         $($partition.DeviceID)"
+            Write-Log "  Type:              $partitionType"
+            Write-Log "  Size:              $partitionSize"
+            Write-Log "  Starting Offset:   $startingOffset"
             Write-Log ""
         }
     } else {
@@ -108,23 +119,26 @@ Write-Log "Logical Drives:"
 try {
     $drives = Get-CimInstance Win32_LogicalDisk -ErrorAction Stop | Sort-Object DeviceID
     if ($drives) {
-        # Accumulate totals in bytes to avoid rounding errors
         $totalSystemStorageBytes = 0.0
         $totalFreeStorageBytes = 0.0
 
         foreach ($drive in $drives) {
             $driveType = switch ($drive.DriveType) {
-                0 { 'Unknown' }
+                0 { 'N/A' }
                 1 { 'No Root Directory' }
                 2 { 'Removable Disk' }
                 3 { 'Local Disk' }
                 4 { 'Network Drive' }
                 5 { 'CD-ROM' }
                 6 { 'RAM Disk' }
-                default { 'Other' }
+                default { 'N/A' }
             }
 
-            $driveName = if ($drive.VolumeName) { " ($($drive.VolumeName))" } else { "" }
+            # Extract drive letter only (e.g., "C:")
+            $cleanID = $drive.DeviceID.TrimEnd(':')
+            $driveHeader = "$($cleanID):"
+            
+            $fileSystem = if ($drive.FileSystem) { $drive.FileSystem } else { "N/A" }
 
             if ($drive.Size -gt 0) {
                 $total = [math]::Round($drive.Size / 1GB, 2)
@@ -135,19 +149,19 @@ try {
                 $totalSystemStorageBytes += $drive.Size
                 $totalFreeStorageBytes += $drive.FreeSpace
 
-                Write-Log " Drive $($drive.DeviceID)$driveName`:"
-                Write-Log "  Type: $driveType"
-                Write-Log "  File System:   $($drive.FileSystem)"
-                Write-Log "  Capacity:  $total GB"
-                Write-Log "  Used Space:  $used GB"
-                Write-Log "  Free Space:  $free GB"
-                Write-Log "  Usage Percentage:  $percent%"
+                Write-Log " Drive $driveHeader"
+                Write-Log "   Type:              $driveType"
+                Write-Log "   File System:       $fileSystem"
+                Write-Log "   Capacity:          $total GB"
+                Write-Log "   Used Space:        $used GB"
+                Write-Log "   Free Space:        $free GB"
+                Write-Log "   Usage Percentage:  $percent%"
                 Write-Log ""
             } else {
-                Write-Log " Drive $($drive.DeviceID)$driveName`:"
-                Write-Log "  Type:  $driveType"
-                Write-Log "  File System:   $($drive.FileSystem)"
-                Write-Log "  Capacity:  Not Available"
+                Write-Log " Drive $driveHeader"
+                Write-Log "   Type:              $driveType"
+                Write-Log "   File System:       $fileSystem"
+                Write-Log "   Capacity:          N/A"
                 Write-Log ""
             }
         }
@@ -158,10 +172,10 @@ try {
             $totalUsedStorageBytes = $totalSystemStorageBytes - $totalFreeStorageBytes
             $systemUsagePercent = [math]::Round(($totalUsedStorageBytes / $totalSystemStorageBytes) * 100, 2)
 
-            Write-Log " Total Capacity:  $(Format-Size $totalSystemStorageBytes)"
-            Write-Log " Used Space:  $(Format-Size $totalUsedStorageBytes)"
-            Write-Log " Free Space:  $(Format-Size $totalFreeStorageBytes)"
-            Write-Log " System Usage:  $systemUsagePercent%"
+            Write-Log " Total Capacity:     $(Format-Size $totalSystemStorageBytes)"
+            Write-Log " Used Space:         $(Format-Size $totalUsedStorageBytes)"
+            Write-Log " Free Space:         $(Format-Size $totalFreeStorageBytes)"
+            Write-Log " System Usage:       $systemUsagePercent%"
         }
     } else {
         Write-Log " No logical drive information available"
