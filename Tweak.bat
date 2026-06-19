@@ -229,50 +229,14 @@ if "!BROWSERS_OPEN!"=="1" (
     choice /C YN /N /M "Close them? (Y/N): "
     echo.
     if errorlevel 2 (
-        echo Skipping files currently used by browsers
+        echo Skipping cleaning browsers
     ) else (
         echo Closing browsers
         for %%B in (%BROWSERS%) do (
             taskkill /IM "%%B" /F /T >nul 2>&1
         )
         timeout /t 2 >nul
-    )
-)
-
-::  Chromium-based browsers (Chrome, Edge, Brave)
-for %%X in (
-    "Google\Chrome\User Data|Google Chrome"
-    "Microsoft\Edge\User Data|Microsoft Edge"
-    "BraveSoftware\Brave-Browser\User Data|Brave"
-) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-        if exist "%LOCALAPPDATA%\%%A" (
-            echo Cleaning %%B
-            for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
-                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "Media Cache" "Download Service") do (
-                    rd /s /q "%%P\%%~D" >nul 2>&1
-                )
-            )
-        )
-    )
-)
-
-::  Mozilla Firefox
-for %%X in (
-    "Mozilla\Firefox|Mozilla Firefox"
-) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-        if exist "%APPDATA%\%%A" (
-            echo Cleaning %%B
-            if exist "%LOCALAPPDATA%\%%A\Profiles" (
-                for /d %%P in ("%LOCALAPPDATA%\%%A\Profiles\*") do (
-                    for %%D in ("cache2" "thumbnails" "jumpListCache" "startupCache") do (
-                        rd /s /q "%%P\%%~D" >nul 2>&1
-                    )
-                )
-            )
-            rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
-        )
+		call :CLEAN_BROWSER
     )
 )
 
@@ -2159,6 +2123,45 @@ for /f "usebackq delims=" %%i in ("%~2") do (
     echo !TASK_RESULT!: !TASK_NAME! >>"%LOG_FILE%"
 )
 goto :eof
+
+:CLEAN_BROWSER
+::  Chromium-based browsers (Chrome, Edge, Brave)
+for %%X in (
+    "Google\Chrome\User Data|Google Chrome"
+    "Microsoft\Edge\User Data|Microsoft Edge"
+    "BraveSoftware\Brave-Browser\User Data|Brave"
+) do (
+    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
+        if exist "%LOCALAPPDATA%\%%A" (
+            echo Cleaning %%B
+            for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
+                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "Media Cache" "Download Service") do (
+                    rd /s /q "%%P\%%~D" >> "%LOG_FILE%" 2>&1
+                )
+            )
+        )
+    )
+)
+
+::  Mozilla Firefox
+for %%X in (
+    "Mozilla\Firefox|Mozilla Firefox"
+) do (
+    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
+        if exist "%APPDATA%\%%A" (
+            echo Cleaning %%B
+            if exist "%LOCALAPPDATA%\%%A\Profiles" (
+                for /d %%P in ("%LOCALAPPDATA%\%%A\Profiles\*") do (
+                    for %%D in ("cache2" "thumbnails" "jumpListCache" "startupCache") do (
+                        rd /s /q "%%P\%%~D" >> "%LOG_FILE%" 2>&1
+                    )
+                )
+            )
+            rd /s /q "%APPDATA%\%%A\Crash Reports" >> "%LOG_FILE%" 2>&1
+        )
+    )
+)
+goto:eof
 
 :CLEANING_FUNCTION
 echo Cleaning Temp folders
