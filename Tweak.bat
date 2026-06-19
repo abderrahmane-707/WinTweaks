@@ -211,6 +211,8 @@ reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
 call :LOG PERFORMANCE_MENU
 
 :CLEAN_UP
+call :PATH "Performance" "CleanUP"
+
 cls
 :: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
@@ -233,7 +235,7 @@ if "!BROWSERS_OPEN!"=="1" (
     ) else (
         echo Closing browsers
         for %%B in (%BROWSERS%) do (
-            taskkill /IM "%%B" /F /T >nul 2>&1
+            taskkill /IM "%%B" /F /T >> "%LOG_FILE%" 2>&1
         )
         timeout /t 2 >nul
 		call :CLEAN_BROWSER
@@ -241,7 +243,7 @@ if "!BROWSERS_OPEN!"=="1" (
 )
 
 call :CLEANING_FUNCTION
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :POWER_PLAN_MENU
 cls & echo. & echo.
@@ -2167,35 +2169,38 @@ goto:eof
 echo Cleaning Temp folders
 for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
     if exist "%%~F" (
-        del /f /q "%%~F\*" >nul 2>&1
+        del /f /q "%%~F\*" >> "%LOG_FILE%" 2>&1
         for /d %%D in ("%%~F\*") do (
-            rd /s /q "%%D" >nul 2>&1
+            rd /s /q "%%D" >> "%LOG_FILE%" 2>&1
         )
     )
 )
 
 :: Clear the "Recent Items" list shown in File Explorer
 echo Cleaning Recent Files
-del /f /q "%APPDATA%\Microsoft\Windows\Recent\*.lnk" >nul 2>&1
+del /f /q "%APPDATA%\Microsoft\Windows\Recent\*.lnk" >> "%LOG_FILE%" 2>&1
 
 :: Rebuild icon and thumbnail cache
 echo Cleaning Thumbnail and Icon cache
-del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
-del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >> "%LOG_FILE%" 2>&1
+del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >> "%LOG_FILE%" 2>&1
+start explorer.exe
 
 :: Delete PowerShell command history
 echo Cleaning PowerShell command history
-del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
+del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >> "%LOG_FILE%" 2>&1
 
 choice /C YN /N /M "Run Disk Cleanup to complete the cleaning? (Y/N): "
 if %errorlevel% equ 1 (
     echo Running Disk Cleanup
-    cleanmgr.exe /d C: /VERYLOWDISK
+	cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
 )
 
 :: Force empty the Recycle Bin for all drives
 echo Emptying Recycle Bin
-powershell -Command "Clear-RecycleBin -Force" >nul 2>&1
+powershell -Command "Clear-RecycleBin -Force" >> "%LOG_FILE%" 2>&1
 goto :eof
 
 :DHCP
