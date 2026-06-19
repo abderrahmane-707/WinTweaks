@@ -102,7 +102,7 @@ $dxVersion = Get-DirectXVersion
 if ($gpuInfo) {
     $i = 1
     foreach ($g in $gpuInfo) {
-        Write-Log "`nGPU #$i - $($g.Name)"
+        Write-Log "GPU #$i - $($g.Name)"
         Write-Log " Basic Information:"
         Write-Log "  Name:                    $($g.Name)"
         Write-Log "  Video Processor:         $($g.VideoProcessor)"
@@ -119,7 +119,8 @@ if ($gpuInfo) {
         Write-Log "  Driver Date:             $($g.DriverDate)"
         Write-Log "  INF Name:                $($g.InfName)"
         Write-Log "  Device ID:               $($g.Index)"
+		Write-Log ""
         $i++
     }
-    Write-Log "`nDirectX Version: $dxVersion"
+    Write-Log "DirectX Version: $dxVersion"
 }

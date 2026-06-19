@@ -13,7 +13,7 @@ function Write-Log {
 }
 
 # Motherboard information
-Write-Log "`nMotherboard Information:"
+Write-Log "`Motherboard Information:"
 try {
     # Modern CIM-based retrieval (replaces deprecated Get-WmiObject)
     $motherboard = Get-CimInstance Win32_BaseBoard -ErrorAction Stop

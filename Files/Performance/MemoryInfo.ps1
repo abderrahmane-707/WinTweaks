@@ -28,7 +28,7 @@ try {
     $freeVirtualGB = [math]::Round(($os.FreeVirtualMemory * 1KB) / 1GB, 2)
 
     # Memory overview
-    Write-Log "`nMemory Information:"
+    Write-Log "Memory Information:"
     Write-Log " Total Memory:              $totalPhysicalGB GB"
     Write-Log " Used Memory:               $usedPhysicalGB GB"
     Write-Log " Free Memory:               $freePhysicalGB GB"

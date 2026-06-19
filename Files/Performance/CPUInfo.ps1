@@ -19,7 +19,7 @@ try {
     if ($cpuInstances) {
         foreach ($cpuInfo in $cpuInstances) {
 
-            Write-Log "`nProcessor Details ($($cpuInfo.DeviceID))"
+            Write-Log "Processor Details ($($cpuInfo.DeviceID))"
             Write-Log " Manufacturer:         $($cpuInfo.Manufacturer)"
             Write-Log " Name:                 $($cpuInfo.Name.Trim())"
             Write-Log " Description:          $($cpuInfo.Description)"
