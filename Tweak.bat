@@ -123,8 +123,8 @@ if "%choice%"=="0" goto PERFORMANCE_MENU
 call :INVALID (0-4) SERVICES_MENU
 
 :SET_SERVICES
-echo. & echo %MESSAGE%
 call :PATH "Performance" "%LOG%"
+echo. & echo %MESSAGE%
 
 :: Process each line in the configuration file
 for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
@@ -177,7 +177,7 @@ call :GO SERVICES_MENU
 :DISABLE_TASKS
 call :PATH "Performance" "DisableScheduledTasks"
 
-echo Disable unnecessary scheduled tasks
+echo. & echo Disable unnecessary scheduled tasks
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
 
 call :LOG PERFORMANCE_MENU
@@ -185,7 +185,7 @@ call :LOG PERFORMANCE_MENU
 :ENABLE_TASKS
 call :PATH "Performance" "EnableScheduledTasks"
 
-echo Enable unnecessary scheduled tasks
+echo. & echo Enable unnecessary scheduled tasks
 call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 
 call :LOG PERFORMANCE_MENU
@@ -391,8 +391,8 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set ROUTINE=DISABLE_TELEMETRY
     set REV_ROUTINE=REV_DISABLE_TELEMETRY
-    set APPLY=Disable Windows telemetry and some tracking components
-    set REVERT=Default Windows telemetry and some tracking components
+    set APPLY=Disable Windows telemetry
+    set REVERT=Default Windows telemetry
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
@@ -693,13 +693,13 @@ if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 call :INVALID (0-3) WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
-echo. & echo WARNING: This will disable WINDOWS DEFENDER COMPLETELY!
+echo. & echo WARNING: This will disable Windows defender!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :PATH "Security" "DisableDefender"
 
-echo Disable Windows defender via registry
+echo. & echo Disable Windows defender via registry
 reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disable Windows defender services
@@ -836,7 +836,7 @@ echo Optimizing TCP Global Parameters
 :: rss=enabled :               Distributes network processing across multiple CPU cores
 :: autotuninglevel=high :      Optimizes the TCP receive window for high-speed connections
 for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotuninglevel=high") do (
-    echo  - Setting: %%~P
+    echo  - %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
 
@@ -860,121 +860,12 @@ reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
 
 echo Reset TCP settings to default
 for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotuninglevel=normal") do (
-    echo  - Resetting: %%~P
+    echo  - %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
 
 call :DHCP
 
-call :LOG NETWORK_MENU
-
-:NETWORK_RESET
-cls
-call :PATH "Network" "NetworkReset"
-
-echo Stopping Network Services
-
-:: Dhcp:      Registers and updates IP addresses and DNS
-:: Dnscache:  Caches DNS names to resolve website addresses faster
-:: dot3svc:   Handles authentication for wired (Ethernet) network connections
-:: netman:    Manages objects in the Network
-:: netprofm:  Identifies the networks the computer has connected to
-:: nlasvc:    Collects and stores configuration information
-:: Nsi:       Delivers network notifications
-:: WlanSvc:   Connect to Wi-Fi
-:: WwanSvc:   Manages mobile broadband
-for %%S in ("Dhcp" "Dnscache" "dot3svc" "netman" "netprofm" "nlasvc" "Nsi" "WlanSvc" "WwanSvc") do call :SC_CONTROL "%%S" "stop"
-
-echo Configuring Essential Services
-for %%S in ("Dhcp" "Dnscache" "nlasvc" "Nsi" "WlanSvc") do (
-    call :SC_CONFIGURE "%%S" "auto"
-    call :SC_CONTROL "%%S" "start"
-)
-
-echo Configuring Interface Services
-for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do (
-    call :SC_CONFIGURE "%%S" "demand" 
-    call :SC_CONTROL "%%S" "start"
-)
-
-:: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
-echo Reset TCP/IP Stack
-netsh int ip reset >> "%LOG_FILE%" 2>&1
-
-:: Reset TCP and UDP protocols to clear any custom/corrupted configurations
-echo Reset TCP/UDP
-netsh int tcp reset >> "%LOG_FILE%" 2>&1
-netsh int udp reset >> "%LOG_FILE%" 2>&1
-
-:: Repair the Winsock Catalog (useful if internet is blocked by malware or bad drivers)
-echo Reset Winsock
-netsh winsock reset >> "%LOG_FILE%" 2>&1
-
-:: Clear any system-wide HTTP proxy settings that might redirect traffic
-echo Reset WinHTTP proxy
-netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
-
-:: Reset IPv6 specific settings to their default state
-echo Reset IPv6 settings
-netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
-
-:: Restore Windows Firewall to its default out-of-the-box rules
-echo Reset Firewall Rules
-netsh advfirewall reset >> "%LOG_FILE%" 2>&1
-
-:: Clears the local cache used to optimize WAN traffic
-echo Resetting BranchCache
-netsh branchcache reset
-
-:: Forces the HTTP.sys driver to write all pending logs to the disk immediately
-echo Flushing HTTP log buffers
-netsh http flush logbuffer
-
-:: Refresh NetBIOS names by purging and reloading the remote cache table
-echo Refreshing NetBIOS names
-nbtstat -RR >> "%LOG_FILE%" 2>&1
-
-:: Clear the DNS Resolver cache to fix "Page Not Found" errors
-echo Flushing DNS
-ipconfig /flushdns >> "%LOG_FILE%" 2>&1
-
-:: Clear the ARP (Address Resolution Protocol) cache to refresh local IP-to-MAC mappings
-echo Cleaning ARP cache
-arp -d * >> "%LOG_FILE%" 2>&1
-
-:: Remove entries from the IPv6 neighbor cache (similar to ARP for IPv6)
-echo Cleaning IPv6 Neighbor
-netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
-
-:: Release current DHCP IP addresses for all adapters
-echo Releasing IP addresses
-ipconfig /release >> "%LOG_FILE%" 2>&1
-
-:: Restart all physically connected network interfaces
-:: This effectively "plugs and unplugs" the cable via software
-echo Restart all connected interfaces
-for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
-    echo - Restart: %%~b
-    :: Disable the interface
-    netsh interface set interface name="%%~b" admin=disabled >> "%LOG_FILE%" 2>&1
-    timeout /t 2 >nul
-    :: Re-enable the interface
-    netsh interface set interface name="%%~b" admin=enabled >> "%LOG_FILE%" 2>&1
-)
-
-:: Request new IP addresses from the router/DHCP server
-echo Renewing IP addresses
-ipconfig /renew >> "%LOG_FILE%" 2>&1
-
-:: Refresh DHCP leases and re-register DNS names with the server
-echo Registering DNS name
-ipconfig /registerdns >> "%LOG_FILE%" 2>&1
-
-call :LOG NETWORK_MENU
-
-:WIFI_PASSWORDS
-call :PATH "Network" "WifiPassword"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%LOG_FILE%"
 call :LOG NETWORK_MENU
 
 :DNS_MENU
@@ -1077,7 +968,7 @@ call :INVALID (0-10) DNS_MENU
 :SET_DNS
 call :PATH "Network" "DNS"
 
-echo Set %DNS_NAME% server on all connected interfaces
+echo. & echo Set %DNS_NAME% server on all connected interfaces
 call :INTERFACE
 
 echo Flushing DNS cache
@@ -1086,10 +977,9 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG DNS_MENU
 
 :SET_DHCP
-cls
 call :PATH "Network" "DHCP"
+cls
 call :DHCP
-
 call :LOG DNS_MENU
 
 :DNS_SERVER_TEST
@@ -1099,6 +989,114 @@ call :GO DNS_MENU
 :DNS_STATUS
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSStatus.ps1"
 call :GO DNS_MENU
+
+:WIFI_PASSWORDS
+call :PATH "Network" "WifiPassword"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%LOG_FILE%"
+call :LOG NETWORK_MENU
+
+:NETWORK_RESET
+call :PATH "Network" "NetworkReset"
+
+cls & echo Stopping Network Services
+
+:: Dhcp:      Registers and updates IP addresses and DNS
+:: Dnscache:  Caches DNS names to resolve website addresses faster
+:: dot3svc:   Handles authentication for wired (Ethernet) network connections
+:: netman:    Manages objects in the Network
+:: netprofm:  Identifies the networks the computer has connected to
+:: nlasvc:    Collects and stores configuration information
+:: Nsi:       Delivers network notifications
+:: WlanSvc:   Connect to Wi-Fi
+:: WwanSvc:   Manages mobile broadband
+for %%S in ("Dhcp" "Dnscache" "dot3svc" "netman" "netprofm" "nlasvc" "Nsi" "WlanSvc" "WwanSvc") do call :SC_CONTROL "%%S" "stop"
+
+echo Configuring Essential Services
+for %%S in ("Dhcp" "Dnscache" "nlasvc" "Nsi" "WlanSvc") do (
+    call :SC_CONFIGURE "%%S" "auto"
+    call :SC_CONTROL "%%S" "start"
+)
+
+echo Configuring Interface Services
+for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do (
+    call :SC_CONFIGURE "%%S" "demand" 
+    call :SC_CONTROL "%%S" "start"
+)
+
+:: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
+echo Reset TCP/IP Stack
+netsh int ip reset >> "%LOG_FILE%" 2>&1
+
+:: Reset TCP and UDP protocols to clear any custom/corrupted configurations
+echo Reset TCP/UDP
+netsh int tcp reset >> "%LOG_FILE%" 2>&1
+netsh int udp reset >> "%LOG_FILE%" 2>&1
+
+:: Repair the Winsock Catalog (useful if internet is blocked by malware or bad drivers)
+echo Reset Winsock
+netsh winsock reset >> "%LOG_FILE%" 2>&1
+
+:: Clear any system-wide HTTP proxy settings that might redirect traffic
+echo Reset WinHTTP proxy
+netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
+
+:: Reset IPv6 specific settings to their default state
+echo Reset IPv6 settings
+netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
+
+:: Restore Windows Firewall to its default out-of-the-box rules
+echo Reset Firewall Rules
+netsh advfirewall reset >> "%LOG_FILE%" 2>&1
+
+:: Clears the local cache used to optimize WAN traffic
+echo Resetting BranchCache
+netsh branchcache reset >> "%LOG_FILE%" 2>&1
+
+:: Forces the HTTP.sys driver to write all pending logs to the disk immediately
+echo Flushing HTTP log buffers
+netsh http flush logbuffer >> "%LOG_FILE%" 2>&1
+
+:: Refresh NetBIOS names by purging and reloading the remote cache table
+echo Refreshing NetBIOS names
+nbtstat -RR >> "%LOG_FILE%" 2>&1
+
+:: Clear the DNS Resolver cache to fix "Page Not Found" errors
+echo Flushing DNS
+ipconfig /flushdns >> "%LOG_FILE%" 2>&1
+
+:: Clear the ARP (Address Resolution Protocol) cache to refresh local IP-to-MAC mappings
+echo Cleaning ARP cache
+arp -d * >> "%LOG_FILE%" 2>&1
+
+:: Remove entries from the IPv6 neighbor cache (similar to ARP for IPv6)
+echo Cleaning IPv6 Neighbor
+netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
+
+:: Release current DHCP IP addresses for all adapters
+echo Releasing IP addresses
+ipconfig /release >> "%LOG_FILE%" 2>&1
+
+:: Restart all physically connected network interfaces
+:: This effectively "plugs and unplugs" the cable via software
+echo Restart all connected interfaces
+for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
+    echo - Restart: %%~b
+    :: Disable the interface
+    netsh interface set interface name="%%~b" admin=disabled >> "%LOG_FILE%" 2>&1
+    timeout /t 2 >nul
+    :: Re-enable the interface
+    netsh interface set interface name="%%~b" admin=enabled >> "%LOG_FILE%" 2>&1
+)
+
+:: Request new IP addresses from the router/DHCP server
+echo Renewing IP addresses
+ipconfig /renew >> "%LOG_FILE%" 2>&1
+
+:: Refresh DHCP leases and re-register DNS names with the server
+echo Registering DNS name
+ipconfig /registerdns >> "%LOG_FILE%" 2>&1
+
+call :LOG NETWORK_MENU
 
 :NETWORK_INFO
 call :PATH "Network" "NetworkInfo"
@@ -1378,8 +1376,8 @@ if "%choice%"=="3" (
 if "%choice%"=="4" (
     set ROUTINE=HIDE_SHORTCUT_ARROW
     set REV_ROUTINE=SHOW_SHORTCUT_ARROW
-    set APPLY=Remove arrow from shortcut
-    set REVERT=Default arrow shortcut
+    set APPLY=Remove shortcut arrow
+    set REVERT=Show shortcut arrow
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1403,7 +1401,7 @@ if "%choice%"=="7" (
     set ROUTINE=POWER_SETTINGS
     set REV_ROUTINE=REMOVE_POWER_SETTINGS
     set APPLY=Activate power settings
-    set REVERT=Deleting power settings
+    set REVERT=Remove power settings
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1445,7 +1443,7 @@ if "%choice%"=="1" (
     set ROUTINE=SHOW_EXTENSIONS
     set REV_ROUTINE=HIDE_EXTENSIONS
     set APPLY=Show files extensions
-    set REVERT=Disable display of file extensions
+    set REVERT=Hide file extensions
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
@@ -1453,14 +1451,14 @@ if "%choice%"=="2" (
     set ROUTINE=SHOW_HIDDEN
     set REV_ROUTINE=DIS_HIDDEN
     set APPLY=Show hidden files
-    set REVERT=Disable display of hidden files
+    set REVERT=Hide hidden files
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
 if "%choice%"=="3" (
     set ROUTINE=HIDE_RECENT
     set REV_ROUTINE=SHOW_RECENT
-    set APPLY=Disable display of recent files
+    set APPLY=Hide recent files
     set REVERT=Show recent files
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
@@ -1537,62 +1535,6 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v A
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Create the "God Mode" folder on the desktop (access to all Windows settings in one list)
-:POWER_SETTINGS
-mkdir "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Delete the "God Mode" folder from the desktop
-:REMOVE_POWER_SETTINGS
-rd /s /q "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Remove the small arrow icon that appears on desktop shortcuts
-:HIDE_SHORTCUT_ARROW
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /d "C:\Windows\System32\imageres.dll,197" /f >nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /t REG_BINARY /d 00000000 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Restore the default Windows shortcut arrow icon
-:SHOW_SHORTCUT_ARROW
-reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /f >nul 2>&1
-reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Restore the classic Windows Photo Viewer
-:PHOTO_VIEWER
-reg import "Files\Customization\RestoreClassicPhotoViewer.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Remove the classic Windows Photo Viewer registry entries
-:REMOVE_PHOTO_VIEWER
-reg import "Files\Customization\RemoveClassicPhotoViewer.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Disable Trash feature
-:TRASH
-reg import "Files\Customization\DisableTrash.reg" >nul 2>&1
-reg import "Files\Security\DisableTelemetry.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Restore default Windows Trash
-:DEF_TRASH
-reg import "Files\Customization\DefaultTrash.reg" >nul 2>&1
-reg import "Files\Security\DefaultTelemetry.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Ensure NumLock is OFF at the login screen and for the current user
-:NUM_LOCK_OFF
-reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483648 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
-:: Ensure NumLock is ON at the login screen and for the current user
-:NUM_LOCK_ON
-reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483650 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
-
 :: Disable notifications
 :DIS_NOTIFICATION
 reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
@@ -1607,6 +1549,30 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v To
 reg add "HKLM\SOFTWARE\Microsoft\Windows Defender Security Center\Notifications" /v DisableNotifications /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
+:: Remove the small arrow icon that appears on desktop shortcuts
+:HIDE_SHORTCUT_ARROW
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /d "C:\Windows\System32\imageres.dll,197" /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /t REG_BINARY /d 00000000 /f >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Restore the default Windows shortcut arrow icon
+:SHOW_SHORTCUT_ARROW
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /f >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Ensure NumLock is OFF at the login screen and for the current user
+:NUM_LOCK_OFF
+reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
+reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483648 /f >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Ensure NumLock is ON at the login screen and for the current user
+:NUM_LOCK_ON
+reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
+reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483650 /f >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
 :: Set the Hardware Clock to UTC
 :UTC
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f >nul 2>&1
@@ -1615,6 +1581,38 @@ call :GO CUSTOMIZATION_MENU
 :: Set the Hardware Clock to Local Time
 :LOCAL_TIME
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 0 /f >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Create the "God Mode" folder on the desktop (access to all Windows settings in one list)
+:POWER_SETTINGS
+mkdir "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Delete the "God Mode" folder from the desktop
+:REMOVE_POWER_SETTINGS
+rd /s /q "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Disable Trash feature
+:TRASH
+reg import "Files\Customization\DisableTrash.reg" >nul 2>&1
+reg import "Files\Security\DisableTelemetry.reg" >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Restore default Windows Trash
+:DEF_TRASH
+reg import "Files\Customization\DefaultTrash.reg" >nul 2>&1
+reg import "Files\Security\DefaultTelemetry.reg" >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Restore the classic Windows Photo Viewer
+:PHOTO_VIEWER
+reg import "Files\Customization\RestoreClassicPhotoViewer.reg" >nul 2>&1
+call :GO CUSTOMIZATION_MENU
+
+:: Remove the classic Windows Photo Viewer registry entries
+:REMOVE_PHOTO_VIEWER
+reg import "Files\Customization\RemoveClassicPhotoViewer.reg" >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :CONTEXT_MENU
@@ -1757,11 +1755,10 @@ if "%choice%"=="0" goto MAIN_MENU
 call :INVALID (0-4) SYSTEM_MENU
 
 :RESTORE_POINT
-cls
 call :PATH "System" "RestorePoint"
 
 :: Execute a PowerShell script to create restore point
-echo Creating System Restore Point
+cls & echo Creating System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 if %errorlevel% equ 0 call :LOG SYSTEM_MENU
 
@@ -1816,8 +1813,8 @@ if %errorlevel% neq 0 echo. & echo Creating system restore point has failed afte
 call :LOG SYSTEM_MENU
 
 :REG_BACK
-cls
 call :PATH "System" "FullRegistryBackup"
+cls
 call :TIME_STAMP_DIR "System" "FullRegistryBackup"
 
 :: Define the main system Hives for binary export
@@ -1838,12 +1835,12 @@ for %%A in (
 )
 
 if exist "%BACKUP_DIR%\*.hive" (
-    choice /C YN /N /M "Compress files? (Y/N): "
+    echo. & choice /C YN /N /M "Compress files? (Y/N): "
     if errorlevel 2 (
         echo. & echo Backup files saved in: %BACKUP_DIR%
     ) else (
         :: Call PowerShell to zip the hives files
-        powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
+        powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%" >>"%LOG_FILE%" 2>&1
     )
 ) else (
     echo No hive files found
@@ -2208,7 +2205,7 @@ echo Set DHCP on all connected interfaces
 
 :: Find all active network adapters
 for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
-    echo - Resetting IP and DNS on: %%~b
+    echo  - Resetting: %%~b
     
     :: Revert IPv4 to obtain an IP address automatically from the router
     netsh interface ipv4 set address name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
@@ -2232,20 +2229,20 @@ if !errorlevel! equ 0 (
     if /i "%~2"=="stop" (
         sc stop "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [STOPPED] %~1 >>"%LOG_FILE%" 2>&1
+            echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
-            echo [FAILED TO STOP] %~1 >>"%LOG_FILE%" 2>&1
+            echo [FAILED  - %~2] %~1 >>"%LOG_FILE%" 2>&1
         )
     ) else if /i "%~2"=="start" (
         sc start "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [STARTED] %~1 >>"%LOG_FILE%" 2>&1
+            echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
-            echo [FAILED TO START] %~1 >>"%LOG_FILE%" 2>&1
+            echo [FAILED  - %~2] %~1 >>"%LOG_FILE%" 2>&1
         )
     )
 ) else (
-    echo [NOT FOUND] %~1 >>"%LOG_FILE%" 2>&1
+    echo [NOT FOUND - %~2] %~1 >>"%LOG_FILE%" 2>&1
 )
 goto :eof
 
@@ -2256,12 +2253,12 @@ sc query "%~1" >nul 2>&1
 if !errorlevel! equ 0 (
     sc config "%~1" start=%~2 >nul 2>&1
     if !errorlevel! equ 0 (
-        echo [SUCCESS] %~1 >>"%LOG_FILE%" 2>&1
+        echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
     ) else (
-        echo [FAILED] %~1 >>"%LOG_FILE%" 2>&1
+        echo [FAILED - %~2] %~1 >>"%LOG_FILE%" 2>&1
     )
 ) else (
-    echo [NOT FOUND] %~1 >>"%LOG_FILE%" 2>&1
+    echo [NOT FOUND - %~2] %~1 >>"%LOG_FILE%" 2>&1
 )
 goto :eof
 
@@ -2301,14 +2298,13 @@ if %errorlevel% equ 0 goto :eof
 
 echo Choco not found
 call :GO PROGRAMS_MANAGER_MENU
+
 :TIME_STAMP_FILE
 :: Retrieve current system time in a format that won't break file paths
 for /f "tokens=*" %%a in ('powershell -Command "Get-Date -Format 'yyyyMMddHHmmss'"') do set datetime=%%a
 set "REPORT_DIR=%ProgramData%\WinTweaks\%~1"
 
-:: Construct the filename with a clean YYYY-MM-DD_HH-MM-SS format
-set "REPORT_FILE=%REPORT_DIR%\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%.txt"
-
+:: Create the folder if it does not exist
 if not exist "%REPORT_DIR%" (
     mkdir "%REPORT_DIR%" >nul 2>&1
     if errorlevel 1 (
@@ -2317,6 +2313,9 @@ if not exist "%REPORT_DIR%" (
         exit
     )
 )
+
+:: Construct the filename with a clean YYYY-MM-DD_HH-MM-SS format
+set "REPORT_FILE=%REPORT_DIR%\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%.log"
 goto :eof
 
 :TIME_STAMP_DIR
