@@ -1369,9 +1369,9 @@ call :GO PROGRAMS_MANAGER_MENU
 
 :: Get information about all installed and startup programs
 :PROGRAMS_INFO
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1"
-call :GO PROGRAMS_MANAGER_MENU
-
+call :PATH "Programs" "ProgramsInfo"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1" "%LOG_FILE%"
+call :LOG PROGRAMS_MANAGER_MENU
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
