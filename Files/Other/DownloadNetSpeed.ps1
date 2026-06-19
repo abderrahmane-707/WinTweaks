@@ -17,7 +17,7 @@ if (-not (Test-Path $ExePath)) {
 
     try {
         # Optimize download
-        $ProgressPreference = 'SilentlyContinue'
+        $ProgressPreference = 'Continue'
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
         Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZip -ErrorAction Stop
@@ -30,6 +30,7 @@ if (-not (Test-Path $ExePath)) {
 
     try {
         # Extract package
+        Write-Host "Extracting Speedtest CLI"
         Expand-Archive -Path $TempZip -DestinationPath $ExtractDir -Force
     }
     catch {
