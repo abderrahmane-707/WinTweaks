@@ -364,7 +364,7 @@ call :LOG HW_INFO_MENU
 :: Generate an advanced HTML report regarding battery health and cycle count
 :BATTERY_INFO
 cls & echo Creating battery report
-set "REPORT_FILE=%USERPROFILE%\Documents\BatteryReport.html"
+set "REPORT_FILE=%TEMP%\BatteryReport.html"
 
 powercfg /batteryreport /output "%REPORT_FILE%"
 
