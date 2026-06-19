@@ -12,7 +12,7 @@ if (!(Test-Path $OOSU_EXE)) {
     Write-Host "Downloading OO ShutUp10"
 
     # Suppress download progress
-    $ProgressPreference = 'SilentlyContinue'
+    $ProgressPreference = 'Continue'
 
     # Enable TLS 1.2
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
