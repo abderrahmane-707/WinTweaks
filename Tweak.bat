@@ -1001,27 +1001,26 @@ call :PATH "Network" "NetworkReset"
 cls & echo Stopping Network Services
 
 :: Dhcp:      Registers and updates IP addresses and DNS
-:: Dnscache:  Caches DNS names to resolve website addresses faster
 :: dot3svc:   Handles authentication for wired (Ethernet) network connections
 :: netman:    Manages objects in the Network
 :: netprofm:  Identifies the networks the computer has connected to
 :: nlasvc:    Collects and stores configuration information
-:: Nsi:       Delivers network notifications
 :: WlanSvc:   Connect to Wi-Fi
 :: WwanSvc:   Manages mobile broadband
-for %%S in ("Dhcp" "Dnscache" "dot3svc" "netman" "netprofm" "nlasvc" "Nsi" "WlanSvc" "WwanSvc") do call :SC_CONTROL "%%S" "stop"
+for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :SC_CONTROL "%%S" "stop"
 
 echo Configuring Essential Services
-for %%S in ("Dhcp" "Dnscache" "nlasvc" "Nsi" "WlanSvc") do (
+for %%S in ("Dhcp" "nlasvc" "WlanSvc") do (
     call :SC_CONFIGURE "%%S" "auto"
-    call :SC_CONTROL "%%S" "start"
 )
 
 echo Configuring Interface Services
 for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do (
     call :SC_CONFIGURE "%%S" "demand" 
-    call :SC_CONTROL "%%S" "start"
 )
+
+echo Starting Network Services
+for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :SC_CONTROL "%%S" "start"
 
 :: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
 echo Reset TCP/IP Stack
