@@ -2227,14 +2227,14 @@ goto :eof
 sc query "%~1" >nul 2>&1
 if !errorlevel! equ 0 (
     if /i "%~2"=="stop" (
-        sc stop "%~1" >nul 2>&1
+        net stop "%~1" >nul
         if !errorlevel! equ 0 (
             echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
             echo [FAILED  - %~2] %~1 >>"%LOG_FILE%" 2>&1
         )
     ) else if /i "%~2"=="start" (
-        sc start "%~1" >nul 2>&1
+        net start "%~1" >nul
         if !errorlevel! equ 0 (
             echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
