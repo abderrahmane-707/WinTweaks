@@ -1,22 +1,12 @@
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
-"NoAutoUpdate"=-
-"NoAutoRebootWithLoggedOnUsers"=-
 "DoNotConnectToWindowsUpdateInternetLocations"=-
 "DisableWindowsUpdateAccess"=-
-"ElevateNonAdmins"=-
-"DisableOSUpgrade"=-
-"ActiveHoursStart"=-
-"ActiveHoursEnd"=-
-"UseWUServer"=-
 "WUServer"=-
 "WUStatusServer"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings]
-"PauseFeatureUpdatesEndTime"=-
-"PauseQualityUpdatesEndTime"=-
-"PauseUpdatesExpiryTime"=-
-"BranchReadinessLevel"=-
-"DeferFeatureUpdatesPeriodInDays"=-
-"DeferQualityUpdatesPeriodInDays"=-
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU]
+"NoAutoUpdate"=-
+"UseWUServer"=-
+"NoAutoRebootWithLoggedOnUsers"=-
