@@ -12,10 +12,6 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo]
 "DisabledByGroupPolicy"=dword:00000001
 
-; Disable tailored experiences with diagnostic data (Stops personalized content based on usage data)
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Privacy]
-"TailoredExperiencesWithDiagnosticDataEnabled"=dword:00000000
-
 ; Disable WiFi hotspot reporting (Prevents sharing WiFi location data)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting]
 "value"=dword:00000000
@@ -51,13 +47,11 @@ Windows Registry Editor Version 5.00
 
 ; EnableActivityFeed=0: Turns off Activity History feed
 ; EnableCdp=0: Disables Cross Device Platform (clipboard sync, etc.)
-; EnableMmx=0: Disables My Music eXperience features
 ; PublishUserActivities=0: Prevents activity publishing
 ; UploadUserActivities=0: Prevents activity uploading to cloud
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableActivityFeed"=dword:00000000
 "EnableCdp"=dword:00000000
-"EnableMmx"=dword:00000000
 "PublishUserActivities"=dword:00000000
 "UploadUserActivities"=dword:00000000
 
@@ -80,12 +74,6 @@ Windows Registry Editor Version 5.00
 ; Disable instrumentation in Explorer - Turns off instrumentation features in file explorer
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "NoInstrumentation"=dword:00000001
-
-; SpynetReporting=0: Disables threat detection reporting
-; SubmitSamplesConsent=2: Sets to never submit samples automatically
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet]
-"SpynetReporting"=dword:00000000
-"SubmitSamplesConsent"=dword:00000002
 
 ; Ensures telemetry is completely disabled at another policy level
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection]

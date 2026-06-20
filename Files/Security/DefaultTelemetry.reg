@@ -8,9 +8,6 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo]
 "DisabledByGroupPolicy"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Privacy]
-"TailoredExperiencesWithDiagnosticDataEnabled"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting]
 "value"=-
 
@@ -39,7 +36,6 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableActivityFeed"=-
 "EnableCdp"=-
-"EnableMmx"=-
 "PublishUserActivities"=-
 "UploadUserActivities"=-
 
@@ -57,10 +53,6 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "NoInstrumentation"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet]
-"SpynetReporting"=-
-"SubmitSamplesConsent"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection]
 "AllowTelemetry"=-
