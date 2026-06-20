@@ -403,7 +403,7 @@ if "%choice%"=="5" (
     set ROUTINE=ENHANCE_SECURITY
     set REV_ROUTINE=REV_ENHANCE_SECURITY
     set APPLY=Enhance system security
-    set REVERT=Set security settings to default
+    set REVERT=Default system security
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
@@ -1572,7 +1572,7 @@ reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483650 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
-:: Set the Hardware Clock to UTC
+:: Set the Hardware Clock to UTC (recommended for Dual-Boot with Linux)
 :UTC
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
