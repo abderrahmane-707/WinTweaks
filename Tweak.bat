@@ -145,7 +145,7 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
         
         :: Execute configuration if status is valid
         if defined SC_PARAM (
-            sc config "!SERVICE_NAME!" start=!SC_PARAM! >nul 2>&1
+            sc config "!SERVICE_NAME!" start= !SC_PARAM! >nul 2>&1
             
             :: Evaluate command result
             if !errorlevel! equ 0 (
@@ -2250,7 +2250,7 @@ goto :eof
 :: %~2 = Start Type
 sc query "%~1" >nul 2>&1
 if !errorlevel! equ 0 (
-    sc config "%~1" start=%~2 >nul 2>&1
+    sc config "%~1" start= %~2 >nul 2>&1
     if !errorlevel! equ 0 (
         echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
     ) else (
