@@ -7,13 +7,14 @@ Windows Registry Editor Version 5.00
 "HideSCAMeetNow"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
-"DisableSearchOnline"=-
 "DisableSearchBoxSuggestions"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
 "AllowCloudSearch"=-
 "ConnectedSearchUseWeb"=-
 "DisableWebSearch"=-
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
 "BingSearchEnabled"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
@@ -22,48 +23,19 @@ Windows Registry Editor Version 5.00
 "DisableSoftLanding"=-
 "DisableWindowsTips"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
-"DisablePrivacyExperience"=-
-
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
 "AllowGameDVR"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR]
-"value"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 "DODownloadMode"=-
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\System]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
 "AllowExperimentation"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowExperimentation]
-"value"=-
 
 ; Enables Sticky Keys accessibility feature with default settings
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
 "Flags"="510"
 
-; Enable featured software updates
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
-"EnableFeaturedSoftware"=dword:00000001
-
-; Enable Maps app background updates
-[HKEY_LOCAL_MACHINE\SYSTEM\Maps]
-"AutoUpdateEnabled"=dword:00000001
-
 ; Disable Long Path support
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem]
 "LongPathsEnabled"=dword:00000000
-
-; Enable Scoobe
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
-"ScoobeSystemSettingEnabled"=dword:00000001
-
-; Enable apps to run in background
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications]
-"GlobalUserDisabled"=dword:00000000
-
-; Resume periodic scanning for available Wi-Fi networks
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
-"BackgroundScanEnabled"=dword:00000001

@@ -10,7 +10,6 @@ Windows Registry Editor Version 5.00
 
 ; Disable online search in File Explorer
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
-"DisableSearchOnline"=dword:00000001
 "DisableSearchBoxSuggestions"=dword:00000001
 
 ; Configure Windows Search to block cloud/web features
@@ -18,6 +17,9 @@ Windows Registry Editor Version 5.00
 "AllowCloudSearch"=dword:00000000
 "ConnectedSearchUseWeb"=dword:00000000
 "DisableWebSearch"=dword:00000001
+
+; Disable bing search
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
 "BingSearchEnabled"=dword:00000000
 
 ; Disable Windows consumer features and suggestions (Blocks tips, ads, and recommendations)
@@ -27,53 +29,22 @@ Windows Registry Editor Version 5.00
 "DisableSoftLanding"=dword:00000001
 "DisableWindowsTips"=dword:00000001
 
-; Skip privacy experience during OOBE
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OOBE]
-"DisablePrivacyExperience"=dword:00000001
-
 ; Disable Game DVR (Turns off Xbox game recording functionality)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
 "AllowGameDVR"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR]
-"value"=dword:00000000
 
 ; Disable share updates over the network
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 "DODownloadMode"=dword:00000000
 
-; Force-disables current experimentation
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\current\device\System]
+; Disables experimentation
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
 "AllowExperimentation"=dword:00000000
-
-; Sets the default system policy to 'Disallowed' to ensure consistency
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\System\AllowExperimentation]
-"value"=dword:00000000
 
 ; Disable Sticky Keys sound effect
 [HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
 "Flags"="506"
 
-; Disable featured software updates
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update]
-"EnableFeaturedSoftware"=dword:00000000
-
-; Disable automatic map updates
-[HKEY_LOCAL_MACHINE\SYSTEM\Maps]
-"AutoUpdateEnabled"=dword:00000000
-
 ; Allows file paths longer than 260 characters
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem]
 "LongPathsEnabled"=dword:00000001
-
-; Disable Scoobe (Get Started) experiences
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement]
-"ScoobeSystemSettingEnabled"=dword:00000000
-
-; Disable apps from running in background when not in use
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications]
-"GlobalUserDisabled"=dword:00000001
-
-; Stops Windows from periodically searching for available Wi-Fi networks when connected
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WlanSvc\Parameters]
-"BackgroundScanEnabled"=dword:00000000
