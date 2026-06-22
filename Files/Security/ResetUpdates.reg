@@ -1,9 +1,13 @@
 Windows Registry Editor Version 5.00
 
+; Remove system-wide Windows Update policies
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
 
+; Remove system-wide Delivery Optimization policies
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 
+; Remove current user Windows Update policies
 [-HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
 
+; Remove current user Delivery Optimization policies
 [-HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]

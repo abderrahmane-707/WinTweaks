@@ -1,18 +1,13 @@
 Windows Registry Editor Version 5.00
 
-; NoAutoUpdate=1: Completely disables automatic update installation
-; NoAutoRebootWithLoggedOnUsers=1: Prevents automatic reboots when users are logged in
-; DoNotConnectToWindowsUpdateInternetLocations=1: Blocks all connections to Microsoft update servers
-; DisableWindowsUpdateAccess=1: Removes access to Windows Update interface entirely
-; UseWUServer=1: Forces Windows to use a local WSUS server instead of Microsoft
-; WUServer="127.0.0.1": Points update server to localhost (local machine, no actual server)
-; WUStatusServer="127.0.0.1": Points status server to localhost as well
+; Block Windows Update access and redirect to a fake local server
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
 "DoNotConnectToWindowsUpdateInternetLocations"=dword:00000001
 "DisableWindowsUpdateAccess"=dword:00000001
 "WUServer"="http://127.0.0.1"
 "WUStatusServer"="http://127.0.0.1"
 
+; Disable automatic updates and prevent auto-rebooting
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU]
 "NoAutoUpdate"=dword:00000001
 "UseWUServer"=dword:00000001

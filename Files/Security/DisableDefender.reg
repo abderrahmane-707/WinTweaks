@@ -1,33 +1,37 @@
 Windows Registry Editor Version 5.00
 
+; Disable Windows Defender Antivirus
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender]
 "DisableAntiSpyware"=dword:00000001
 
+; Disable real-time protection and behavior monitoring
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection]
 "DisableBehaviorMonitoring"=dword:00000001
 "DisableOnAccessProtection"=dword:00000001
 "DisableScanOnRealtimeEnable"=dword:00000001
 
-; EnableSmartScreen=0: Disables SmartScreen filter for file downloads
-; ShellSmartScreenLevel="Off": Sets SmartScreen to completely off state
+; Disable Windows SmartScreen
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "EnableSmartScreen"=dword:00000000
 "ShellSmartScreenLevel"="Off"
 
-; Disables SmartScreen protection in Edge browser
+; Disable SmartScreen in Microsoft Edge
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge]
 "SmartScreenEnabled"=dword:00000000
 
-; Disable Notifications
+; Disable enhanced Defender notifications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WindowsDefenderSecurityCenter\DisableEnhancedNotifications]
 "value"=dword:00000001
 
+; Disable standard Defender notifications
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WindowsDefenderSecurityCenter\DisableNotifications]
 "value"=dword:00000001
 
+; Hide Windows Security tray icon
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PolicyManager\default\WindowsDefenderSecurityCenter\HideWindowsSecurityNotificationAreaControl]
 "value"=dword:00000001
 
+; Disable Defender Security Center notifications via Policies
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications]
 "DisableEnhancedNotifications"=dword:00000001
 "DisableNotifications"=dword:00000001
