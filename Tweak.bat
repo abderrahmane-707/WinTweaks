@@ -695,7 +695,7 @@ echo Disable Windows defender services
 :: Sense :                  Windows Defender Advanced Threat Protection (Endpoint Detection)
 :: webthreatdefsvc :        Microsoft Defender Antivirus Web Threat Protection
 :: webthreatdefusersvc :    User-specific Web Threat Protection service
-for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do call :REG_CONFIGURE  "%%S" "4"
+for %%S in (WinDefend WdNisSvc wscsvc SecurityHealthService Sense webthreatdefsvc webthreatdefusersvc) do call :REG_CONFIGURE  "%%S" "4"
 
 call :LOG PRIVACY_SECURITY_MENU
 
@@ -706,7 +706,7 @@ echo. & echo Default Windows defender registry value
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo Enable Windows defender services
-for %%S in ("WinDefend" "WdNisSvc" "wscsvc" "SecurityHealthService" "Sense" "webthreatdefsvc" "webthreatdefusersvc") do call :REG_CONFIGURE  "%%S" "2"
+for %%S in (WinDefend WdNisSvc wscsvc SecurityHealthService Sense webthreatdefsvc webthreatdefusersvc) do call :REG_CONFIGURE  "%%S" "2"
 
 echo Enable tamper protection
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableTamperProtection 0 -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
@@ -2214,14 +2214,14 @@ goto :eof
 sc query "%~1" >nul 2>&1
 if !errorlevel! equ 0 (
     if /i "%~2"=="stop" (
-        net stop "%~1" >nul 2>&1
+        net stop %~1 >nul 2>&1
         if !errorlevel! equ 0 (
             echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
             echo [FAILED  - %~2] %~1 >>"%LOG_FILE%" 2>&1
         )
     ) else if /i "%~2"=="start" (
-        net start "%~1" >nul 2>&1
+        net start %~1 >nul 2>&1
         if !errorlevel! equ 0 (
             echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
@@ -2238,7 +2238,7 @@ goto :eof
 :: %~2 = Start Type
 sc query "%~1" >nul 2>&1
 if !errorlevel! equ 0 (
-    sc config "%~1" start= %~2 >nul 2>&1
+    sc config %~1 start= %~2 >nul 2>&1
     if !errorlevel! equ 0 (
         echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
     ) else (
