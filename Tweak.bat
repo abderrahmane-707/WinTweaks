@@ -233,7 +233,7 @@ if "!BROWSERS_OPEN!"=="1" (
     ) else (
         echo Closing browsers
         for %%B in (%BROWSERS%) do (
-            taskkill /IM "%%B" /F /T >> "%LOG_FILE%" 2>&1
+            taskkill /IM "%%B" /F /T >nul 2>&1
         )
         timeout /t 2 >nul
 		call :CLEAN_BROWSER
