@@ -564,10 +564,7 @@ echo. & echo Disable Windows update via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows Update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :NET_CONTROL "%%S" "stop"
-    call :SC_CONFIGURE "%%S" "disabled"   
-)
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "disabled"
 
 echo Deleting SoftwareDistribution
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
@@ -584,10 +581,7 @@ echo. & echo Default Windows update registry value
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Enabling Windows update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :SC_CONFIGURE "%%S" "demand"   
-    call :NET_CONTROL "%%S" "start" 
-)
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "demand"
 
 call :LOG PRIVACY_SECURITY_MENU
 
@@ -596,16 +590,6 @@ call :PATH "Security" "ResetUpdates"
 
 echo. & echo Reset Update Registry
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
-
-echo Stop update services
-
-:: BITS :          Background Intelligent Transfer Service
-:: CryptSvc :      System files signatures
-:: DoSvc :         Delivery Optimization
-:: UsoSvc :        Update Orchestrator Service
-:: WaaSMedicSvc :  Windows Update Medic Service
-:: wuauserv :      Windows Update Service
-for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :NET_CONTROL "%%S" "stop"
 
 :: Remove pending updates and update history
 echo Deleting SoftwareDistribution
@@ -634,7 +618,6 @@ for %%D in (atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll v
     regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
-
 :: Revert system security policies to the Windows default baseline
 echo Apply default security settings
 secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
@@ -643,11 +626,14 @@ secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.s
 echo Cleaning BITS jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
+:: BITS :          Background Intelligent Transfer Service
+:: CryptSvc :      System files signatures
+:: DoSvc :         Delivery Optimization
+:: UsoSvc :        Update Orchestrator Service
+:: WaaSMedicSvc :  Windows Update Medic Service
+:: wuauserv :      Windows Update Service
 echo Enabling Windows update services
-for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :SC_CONFIGURE "%%S" "demand" 
-    call :NET_CONTROL "%%S" "start"  
-)
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "demand"
 
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
