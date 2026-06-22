@@ -1799,7 +1799,9 @@ vssadmin list writers >> "%LOG_FILE%" 2>&1
 echo Creating system restore point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
 
-if %errorlevel% neq 0 echo. & echo Creating system restore point has failed after troubleshooting
+if %errorlevel% neq 0 (
+    echo. & echo Creating system restore point has failed after troubleshooting   
+)
 call :LOG SYSTEM_MENU
 
 :REG_BACK
