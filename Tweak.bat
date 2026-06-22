@@ -185,7 +185,7 @@ call :LOG PERFORMANCE_MENU
 :ENABLE_TASKS
 call :PATH "Performance" "EnableScheduledTasks"
 
-echo. & echo Enable unnecessary scheduled tasks
+echo. & echo Re-enable previously disabled scheduled tasks
 call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 
 call :LOG PERFORMANCE_MENU
@@ -1777,7 +1777,7 @@ for %%D in (swprv.dll eventcls.dll) do (
     regsvr32 /s /i"%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
-echo   Registering VSS Service
+echo Registering VSS Service
 vssvc /register  >> "%LOG_FILE%" 2>&1
 
 for %%S in ("VSS" "swprv") do (
@@ -2001,7 +2001,7 @@ echo                          [3] Fix Bad Sectors                               
 echo.
 echo                        ---------------------------------------------------------------------------
 
-echo. & set "choice=" & set /p choice="Select an option for "%drive%" drive: "
+echo. & set "choice=" & set /p choice="Select an option for %drive% drive: "
 if "%choice%"=="1" goto DISK_STATUS 
 if "%choice%"=="2" goto FIX_FILE
 if "%choice%"=="3" goto FIX_SECTORS
