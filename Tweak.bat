@@ -1951,7 +1951,11 @@ call :GO DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
-cls & echo Cleaning Windows components
+cls & echo WARNING: This will permanently removes rollback capability for Windows Updates!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto DISM_MENU
+
+echo Cleaning Windows components
 dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
 call :GO DISM_MENU
 
