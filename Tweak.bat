@@ -1663,43 +1663,43 @@ call :INVALID (0-4) CONTEXT_MENU
 
 :CMD_CONTEXT
 :: Define the menu text and add the cmd icon
-reg add "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser" /ve /d "Open CMD Here" /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser" /v "Icon" /d "cmd.exe" /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser\command" /ve /d "cmd.exe /k pushd \"%%1\"" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /ve /d "Open CMD Here" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHere\command" /ve /d "cmd.exe /k pushd \"%%1\"" /f >nul 2>&1
 
 :: Repeat the process for the background
-reg add "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser" /ve /d "Open CMD Here" /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser" /v "Icon" /d "cmd.exe" /f >nul 2>&1
-reg add "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser\command" /ve /d "cmd.exe /k pushd \"%%V\"" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /ve /d "Open CMD Here" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere\command" /ve /d "cmd.exe /k pushd \"%%V\"" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Remove the "Open Command Prompt Here
 :REV_CMD_CONTEXT
-reg delete "HKEY_CURRENT_USER\Software\Classes\Directory\shell\OpenCmdHereUser" /f >nul 2>&1
-reg delete "HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\OpenCmdHereUser" /f >nul 2>&1
+reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /f >nul 2>&1
+reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Add "Open Command Prompt Here (Admin)" to folder and background context menus
 :CMD_CONTEXT_ADMIN
 :: Define the menu text and add the UAC shield icon
-reg add "HKCR\Directory\shell\OpenCmdHere" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
-reg add "HKCR\Directory\shell\OpenCmdHere" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
-reg add "HKCR\Directory\shell\OpenCmdHere" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
 
 :: Use PowerShell to trigger a CMD process with 'RunAs' (Administrator) privileges in the current directory
-reg add "HKCR\Directory\shell\OpenCmdHere\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
 
 :: Repeat the process for the background of a folder (right-clicking on empty space)
-reg add "HKCR\Directory\Background\shell\OpenCmdHere" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
-reg add "HKCR\Directory\Background\shell\OpenCmdHere" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
-reg add "HKCR\Directory\Background\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
-reg add "HKCR\Directory\Background\shell\OpenCmdHere\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Remove the "Open Command Prompt Here (Admin)"
 :REV_CMD_CONTEXT_ADMIN
-reg delete "HKCR\Directory\shell\OpenCmdHere" /f >nul 2>&1
-reg delete "HKCR\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
+reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /f >nul 2>&1
+reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Add "Restart Explorer" to the Desktop right-click menu
