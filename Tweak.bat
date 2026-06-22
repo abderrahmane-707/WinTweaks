@@ -591,6 +591,16 @@ call :PATH "Security" "ResetUpdates"
 echo. & echo Reset Update Registry
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
+echo Stop update services
+
+:: BITS :          Background Intelligent Transfer Service
+:: CryptSvc :      System files signatures
+:: DoSvc :         Delivery Optimization
+:: UsoSvc :        Update Orchestrator Service
+:: WaaSMedicSvc :  Windows Update Medic Service
+:: wuauserv :      Windows Update Service
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :NET_CONTROL "%%S" "stop"
+
 :: Remove pending updates and update history
 echo Deleting SoftwareDistribution
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
@@ -626,14 +636,11 @@ secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.s
 echo Cleaning BITS jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
-:: BITS :          Background Intelligent Transfer Service
-:: CryptSvc :      System files signatures
-:: DoSvc :         Delivery Optimization
-:: UsoSvc :        Update Orchestrator Service
-:: WaaSMedicSvc :  Windows Update Medic Service
-:: wuauserv :      Windows Update Service
 echo Enabling Windows update services
-for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "demand"
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
+    call :SC_CONFIGURE "%%S" "demand" 
+    call :NET_CONTROL "%%S" "start"  
+)
 
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
