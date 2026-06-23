@@ -564,8 +564,10 @@ echo. & echo Disable Windows update via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows Update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "disabled"
-
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
+    call :NET_CONTROL "%%S" "stop"
+    call :SC_CONFIGURE "%%S" "disabled"
+)
 echo Deleting SoftwareDistribution
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
@@ -581,7 +583,10 @@ echo. & echo Default Windows update registry value
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Enabling Windows update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "demand"
+for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
+    call :SC_CONFIGURE "%%S" "demand"
+    call :NET_CONTROL "%%S" "start"
+)
 
 call :LOG PRIVACY_SECURITY_MENU
 
