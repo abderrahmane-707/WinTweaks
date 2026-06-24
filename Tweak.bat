@@ -697,18 +697,6 @@ call :PATH "Security" "DisableDefender"
 
 echo. & echo Disable Windows defender via registry
 reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
-
-echo Disable Windows defender services
-
-:: WinDefend :              Microsoft Defender Antivirus Service
-:: WdNisSvc :               Microsoft Defender Antivirus Network Inspection Service
-:: wscsvc :                 Windows Security Center Service
-:: SecurityHealthService :  Windows Security Health Service (Dashboard and Tray icon)
-:: Sense :                  Windows Defender Advanced Threat Protection (Endpoint Detection)
-:: webthreatdefsvc :        Microsoft Defender Antivirus Web Threat Protection
-:: webthreatdefusersvc :    User-specific Web Threat Protection service
-for %%S in (WinDefend WdNisSvc wscsvc SecurityHealthService Sense webthreatdefsvc webthreatdefusersvc) do call :REG_CONFIGURE  "%%S" "4"
-
 call :LOG PRIVACY_SECURITY_MENU
 
 :ENABLE_DEFENDER
@@ -716,13 +704,6 @@ call :PATH "Security" "DefaultDefender"
 
 echo. & echo Default Windows defender registry value
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
-
-echo Enable Windows defender services
-for %%S in (WinDefend WdNisSvc wscsvc SecurityHealthService Sense webthreatdefsvc webthreatdefusersvc) do call :REG_CONFIGURE  "%%S" "2"
-
-echo Enable tamper protection
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableTamperProtection 0 -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
-
 call :LOG PRIVACY_SECURITY_MENU
 
 :REMOVE_DEFENDER
