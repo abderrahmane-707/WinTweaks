@@ -1731,11 +1731,7 @@ echo Creating a restore point failed. Attempting to fix system dependencies
 :: Enable System Restore via registry if they were disabled by policy
 echo. & echo Enabling restore point from registry
 reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
-    
-:: Force a Group Policy update to ensure the registry changes are applied immediately
-echo Updating policies
-gpupdate /force >> "%LOG_FILE%" 2>&1
-    
+
 echo Stopping restore point services
 
 :: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
