@@ -563,11 +563,12 @@ call :PATH "Security" "DisableUpdates"
 echo. & echo Disable Windows update via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Disabling Windows Update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :NET_CONTROL "%%S" "stop"
-    call :SC_CONFIGURE "%%S" "disabled"
-)
+echo Disable Windows Update services
+for %%S in (BITS UsoSvc wuauserv) do call :SC_CONFIGURE "%%S" "disabled"
+
+echo Stop Windows update services
+for %%S in (BITS UsoSvc wuauserv) do call :NET_CONTROL "%%S" "stop"
+
 echo Deleting SoftwareDistribution
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
@@ -582,11 +583,9 @@ call :PATH "Security" "DefaultUpdates"
 echo. & echo Default Windows update registry value
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Enabling Windows update services
-for %%S in ("BITS" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv") do (
-    call :SC_CONFIGURE "%%S" "demand"
-    call :NET_CONTROL "%%S" "start"
-)
+echo Enable Windows update services
+call :SC_CONFIGURE "UsoSvc" "delayed-auto"
+for %%S in (BITS wuauserv) do call :SC_CONFIGURE "%%S" "demand"
 
 call :LOG PRIVACY_SECURITY_MENU
 
