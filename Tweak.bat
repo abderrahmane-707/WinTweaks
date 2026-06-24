@@ -1002,11 +1002,6 @@ for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "start"
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
 
-:: Reset TCP and UDP protocols to clear any custom/corrupted configurations
-echo Reset TCP/UDP
-netsh int tcp reset >> "%LOG_FILE%" 2>&1
-netsh int udp reset >> "%LOG_FILE%" 2>&1
-
 :: Repair the Winsock Catalog (useful if internet is blocked by malware or bad drivers)
 echo Reset Winsock
 netsh winsock reset >> "%LOG_FILE%" 2>&1
