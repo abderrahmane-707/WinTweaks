@@ -616,7 +616,7 @@ rd /s /q "%SYSTEMROOT%\System32\catroot2" >> "%LOG_FILE%" 2>&1
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
 echo Deleting BITS QMGR
-del /f /q "%ALLUSERSPROFILE%\Application Data\Microsoft\Network\Downloader\qmgr*.dat" >> "%LOG_FILE%" 2>&1
+del /f /q "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\\qmgr*.dat" >> "%LOG_FILE%" 2>&1
 
 echo Delete update log file
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
