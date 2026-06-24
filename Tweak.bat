@@ -597,13 +597,14 @@ reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stop Windows update services
 
-:: BITS :          Background Intelligent Transfer Service
-:: CryptSvc :      System files signatures
-:: DoSvc :         Delivery Optimization
-:: UsoSvc :        Update Orchestrator Service
-:: WaaSMedicSvc :  Windows Update Medic Service
-:: wuauserv :      Windows Update Service
-for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv) do call :NET_CONTROL "%%S" "stop"
+:: BITS:                  Background Intelligent Transfer Service
+:: CryptSvc:              System files signatures
+:: DoSvc:                 Delivery Optimization
+:: UsoSvc:                Update Orchestrator Service
+:: WaaSMedicSvc:          Windows Update Medic Service
+:: wuauserv:              Windows Update Service
+:: WinHttpAutoProxySvc:   Automatically discover proxy settings using WPAD
+for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "stop"
 
 :: Remove pending updates and update history
 echo Deleting SoftwareDistribution
@@ -641,10 +642,12 @@ echo Cleaning BITS jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
 echo Enabling Windows update services
-for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv) do (
-    call :SC_CONFIGURE "%%S" "demand" 
-    call :NET_CONTROL "%%S" "start"  
-)
+call :SC_CONFIGURE "CryptSvc" "auto"
+call :SC_CONFIGURE "UsoSvc" "delayed-auto"
+for %%S in (BITS wuauserv DoSvc WaaSMedicSvc WinHttpAutoProxySvc) do call :SC_CONFIGURE "%%S" "demand"
+
+echo Start Windows update services
+for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "start"
 
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
@@ -1623,6 +1626,7 @@ if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
 call :INVALID (0-4) CONTEXT_MENU
 
+:: Add the "Open Command Prompt Here"
 :CMD_CONTEXT
 :: Define the menu text and add the cmd icon
 reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /ve /d "Open CMD Here" /f >nul 2>&1
