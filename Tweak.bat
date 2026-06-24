@@ -1041,6 +1041,7 @@ netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
 :: Release current DHCP IP addresses for all adapters
 echo Releasing IP addresses
 ipconfig /release >> "%LOG_FILE%" 2>&1
+ipconfig /release6 >> "%LOG_FILE%" 2>&1
 
 :: Restart all physically connected network interfaces
 :: This effectively "plugs and unplugs" the cable via software
@@ -1048,9 +1049,14 @@ echo Restart all connected interfaces
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\RestartInterfaces.ps1"
 timeout /t 3 /nobreak >nul
 
+:: Clear the Routing Table to remove static routes and corrupt gateway entries
+echo Reset Routing Table
+route -f >> "%LOG_FILE%" 2>&1
+
 :: Request new IP addresses from the router/DHCP server
 echo Renewing IP addresses
 ipconfig /renew >> "%LOG_FILE%" 2>&1
+ipconfig /renew6  >> "%LOG_FILE%" 2>&1
 
 :: Refresh DHCP leases and re-register DNS names with the server
 echo Registering DNS name
