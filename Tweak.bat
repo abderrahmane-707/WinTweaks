@@ -1543,7 +1543,7 @@ call :GO CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to Local Time
 :LOCAL_TIME
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 0 /f >nul 2>&1
+reg delete "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Create the "God Mode" folder on the desktop (access to all Windows settings in one list)
