@@ -1022,10 +1022,6 @@ netsh advfirewall reset >> "%LOG_FILE%" 2>&1
 echo Resetting BranchCache
 netsh branchcache reset >> "%LOG_FILE%" 2>&1
 
-:: Forces the HTTP.sys driver to write all pending logs to the disk immediately
-echo Flushing HTTP log buffers
-netsh http flush logbuffer >> "%LOG_FILE%" 2>&1
-
 :: Refresh NetBIOS names by purging and reloading the remote cache table
 echo Refreshing NetBIOS names
 nbtstat -RR >> "%LOG_FILE%" 2>&1
