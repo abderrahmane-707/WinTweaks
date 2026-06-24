@@ -1054,14 +1054,8 @@ ipconfig /release >> "%LOG_FILE%" 2>&1
 :: Restart all physically connected network interfaces
 :: This effectively "plugs and unplugs" the cable via software
 echo Restart all connected interfaces
-for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
-    echo - Restart: %%~b
-    :: Disable the interface
-    netsh interface set interface name="%%~b" admin=disabled >> "%LOG_FILE%" 2>&1
-    timeout /t 2 >nul
-    :: Re-enable the interface
-    netsh interface set interface name="%%~b" admin=enabled >> "%LOG_FILE%" 2>&1
-)
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\RestartInterfaces.ps1"
+timeout /t 3 /nobreak >nul
 
 :: Request new IP addresses from the router/DHCP server
 echo Renewing IP addresses
