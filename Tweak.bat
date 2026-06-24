@@ -595,7 +595,7 @@ call :PATH "Security" "ResetUpdates"
 echo. & echo Reset Update Registry
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Stop update services
+echo Stop Windows update services
 
 :: BITS :          Background Intelligent Transfer Service
 :: CryptSvc :      System files signatures
@@ -974,9 +974,9 @@ call :LOG NETWORK_MENU
 :NETWORK_RESET
 call :PATH "Network" "NetworkReset"
 
-cls & echo Stopping Network Services
+cls & echo Stop Network Services
 
-:: Dhcp:      Registers and updates IP addresses and DNS
+:: Dhcp:      Obtains and renews IP configuration from DHCP servers
 :: dnscache:  Temporarily store DNS results to speed up queries
 :: dot3svc:   Handles authentication for wired (Ethernet) network connections
 :: netman:    Manages objects in the Network
@@ -988,13 +988,9 @@ for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "stop"
 
 echo Set Network services to default startup
 for %%S in (Dhcp dnscache nlasvc WlanSvc) do call :SC_CONFIGURE "%%S" "auto"
+for %%S in (dot3svc netman netprofm WwanSvc) do call :SC_CONFIGURE "%%S" "demand"
 
-echo Configuring Interface Services
-for %%S in (dot3svc netman netprofm WwanSvc) do (
-    call :SC_CONFIGURE "%%S" "demand" 
-)
-
-echo Starting Network Services
+echo Start Network Services
 for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "start"
 
 :: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
@@ -1639,7 +1635,7 @@ reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /v "Icon"
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere\command" /ve /d "cmd.exe /k pushd \"%%V\"" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
-:: Remove the "Open Command Prompt Here
+:: Remove "Open Command Prompt Here"
 :REV_CMD_CONTEXT
 reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
