@@ -977,6 +977,7 @@ call :PATH "Network" "NetworkReset"
 cls & echo Stopping Network Services
 
 :: Dhcp:      Registers and updates IP addresses and DNS
+:: dnscache:  Temporarily store DNS results to speed up queries
 :: dot3svc:   Handles authentication for wired (Ethernet) network connections
 :: netman:    Manages objects in the Network
 :: netprofm:  Identifies the networks the computer has connected to
@@ -985,10 +986,8 @@ cls & echo Stopping Network Services
 :: WwanSvc:   Manages mobile broadband
 for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "stop"
 
-echo Configuring Essential Services
-for %%S in (Dhcp nlasvc WlanSvc) do (
-    call :SC_CONFIGURE "%%S" "auto"
-)
+echo Set Network services to default startup
+for %%S in (Dhcp dnscache nlasvc WlanSvc) do call :SC_CONFIGURE "%%S" "auto"
 
 echo Configuring Interface Services
 for %%S in (dot3svc netman netprofm WwanSvc) do (
