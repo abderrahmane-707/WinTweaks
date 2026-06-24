@@ -2194,25 +2194,43 @@ goto :eof
 :NET_CONTROL
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)
-sc query %~1 >nul 2>&1
-if !errorlevel! equ 0 (
-    if /i "%~2"=="stop" (
-        net stop %~1 >nul 2>&1
+
+:: Check if the service exists
+sc query "%~1" >nul 2>&1
+if !errorlevel! neq 0 (
+    echo [NOT FOUND - %~2] %~1 >>"%LOG_FILE%" 2>&1
+    goto :eof
+)
+
+:: Execute the action based on the requested operation (stop or start)
+if /i "%~2"=="stop" (
+    :: Check if the service is already stopped
+    sc query "%~1" | find /i "STOPPED" >nul
+    if !errorlevel! equ 0 (
+        echo [ALREADY STOPPED] %~1 >>"%LOG_FILE%" 2>&1
+    ) else (
+        :: Try to stop the service
+        net stop "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
+            echo [SUCCESS - stop] %~1 >>"%LOG_FILE%" 2>&1
         ) else (
-            echo [FAILED  - %~2] %~1 >>"%LOG_FILE%" 2>&1
-        )
-    ) else if /i "%~2"=="start" (
-        net start %~1 >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
-        ) else (
-            echo [FAILED  - %~2] %~1 >>"%LOG_FILE%" 2>&1
+            echo [FAILED  - stop] %~1 >>"%LOG_FILE%" 2>&1
         )
     )
-) else (
-    echo [NOT FOUND - %~2] %~1 >>"%LOG_FILE%" 2>&1
+) else if /i "%~2"=="start" (
+    :: Check if the service is already running
+    sc query "%~1" | find /i "RUNNING" >nul
+    if !errorlevel! equ 0 (
+        echo [ALREADY RUNNING] %~1 >>"%LOG_FILE%" 2>&1
+    ) else (
+        :: Try to start the service
+        net start "%~1" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo [SUCCESS - start] %~1 >>"%LOG_FILE%" 2>&1
+        ) else (
+            echo [FAILED  - start] %~1 >>"%LOG_FILE%" 2>&1
+        )
+    )
 )
 goto :eof
 
