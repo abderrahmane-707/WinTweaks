@@ -113,7 +113,7 @@ if "%choice%"=="2" (
 )
 if "%choice%"=="3" (
     set FILE=Files\Performance\DefaultServicesSettings.txt
-    set MESSAGE=Restore most Windows services to default settings
+    set MESSAGE=Restore most Windows services to default startup
     set LOG=DefaultServicesSettings
     goto SET_SERVICES
 )
@@ -236,7 +236,7 @@ if "!BROWSERS_OPEN!"=="1" (
             taskkill /IM "%%B" /F /T >nul 2>&1
         )
         timeout /t 2 >nul
-		call :CLEAN_BROWSER
+        call :CLEAN_BROWSER
     )
 )
 
@@ -444,7 +444,7 @@ call :LOG PRIVACY_SECURITY_MENU
 call :PATH "Security" "DefaultTelemetry"
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
-set "TEMP_FILE=%temp%\HostsClean.txt"
+set "TEMP_FILE=%TEMP%\HostsClean.txt"
 
 echo. & echo Default Windows telemetry registry value
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
@@ -472,8 +472,8 @@ if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 echo.
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
-set BROWSERS_OPEN=0
-
+set "BROWSERS_OPEN=0"
+1
 for %%B in (%BROWSERS%) do (
     tasklist /FI "IMAGENAME eq %%B" 2>nul | find /I "%%B" >nul
     if not errorlevel 1 (
@@ -1317,7 +1317,7 @@ call :LOG PROGRAMS_MANAGER_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Customization ------------------------------
 echo.
-echo                           [1] File Explorer                                    [2] Dark Mode
+echo                           [1] File Explorer                                    [2] Theme
 echo.
 echo                           [3] Notification                                     [4] Shortcut Arrow
 echo.
@@ -1687,7 +1687,7 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /ve /d "
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /v "Icon" /d "explorer.exe,0" /f >nul 2>&1
 
 :: The command kills the explorer.exe process and immediately restarts it
-reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" /ve /d "cmd.exe /c taskkill /f /im explorer.exe & start explorer.exe" /f >nul 2>&1
+reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" /ve /d "cmd.exe /c taskkill /F /IM explorer.exe >nul 2>&1 & start explorer.exe" /f >nul 2>&1
 call :GO CONTEXT_MENU
 
 :: Remove the "Restart Explorer" right-click menu
@@ -1749,7 +1749,7 @@ reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
 echo Updating policies
 gpupdate /force >> "%LOG_FILE%" 2>&1
     
-echo Starting restore point services
+echo Stopping restore point services
 
 :: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
 :: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
@@ -1760,12 +1760,13 @@ for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
 )
 
 for %%D in (swprv.dll eventcls.dll) do (
-    regsvr32 /s /i"%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+    regsvr32 /s /i "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 echo Registering VSS Service
 vssvc /register  >> "%LOG_FILE%" 2>&1
 
+echo Starting restore point services
 for %%S in ("VSS" "swprv") do (
     call :SC_CONFIGURE "%%S" "demand"
     call :NET_CONTROL "%%S" "start"
@@ -1806,7 +1807,7 @@ for %%A in (
     "HKCU,NTUSER"
     "HKCU\Software\Classes,UsrClass"
 ) do (
-    for /f "tokens=1,2 delims=," %%B in (%%A) do (
+	for /f "tokens=1,2 delims=," %%B in ("%%~A") do (
         echo  Export: %%B
         reg save "%%B" "%BACKUP_DIR%\%%C.hive" /y >>"%LOG_FILE%" 2>&1
     )
@@ -2124,7 +2125,7 @@ for %%X in (
     )
 )
 
-::  Mozilla Firefox
+:: Mozilla Firefox
 for %%X in (
     "Mozilla\Firefox|Mozilla Firefox"
 ) do (
@@ -2161,11 +2162,11 @@ del /f /q "%APPDATA%\Microsoft\Windows\Recent\*.lnk" >nul 2>&1
 
 :: Rebuild icon and thumbnail cache
 echo Cleaning Thumbnail and Icon cache
-taskkill /f /im explorer.exe >nul 2>&1
+taskkill /F /IM explorer.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
 del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
 del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
-start explorer.exe
+start explorer.exe >nul 2>&1
 
 :: Delete PowerShell command history
 echo Cleaning PowerShell command history
@@ -2179,7 +2180,7 @@ if %errorlevel% equ 1 (
 
 :: Force empty the Recycle Bin for all drives
 echo Emptying Recycle Bin
-powershell -Command "Clear-RecycleBin -Force"
+powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
 goto :eof
 
 :DHCP
@@ -2206,7 +2207,7 @@ goto :eof
 :NET_CONTROL
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)
-sc query "%~1" >nul 2>&1
+sc query %~1 >nul 2>&1
 if !errorlevel! equ 0 (
     if /i "%~2"=="stop" (
         net stop %~1 >nul 2>&1
@@ -2231,7 +2232,7 @@ goto :eof
 :SC_CONFIGURE
 :: %~1 = Service Name
 :: %~2 = Start Type
-sc query "%~1" >nul 2>&1
+sc query %~1 >nul 2>&1
 if !errorlevel! equ 0 (
     sc config %~1 start= %~2 >nul 2>&1
     if !errorlevel! equ 0 (
