@@ -2244,22 +2244,6 @@ if !errorlevel! equ 0 (
 )
 goto :eof
 
-:REG_CONFIGURE
-:: Check if the service key exists
-reg query "HKLM\SYSTEM\CurrentControlSet\Services\%~1" >nul 2>&1
-if !errorlevel! equ 0 (
-    :: Set the Start Type value
-    reg add "HKLM\SYSTEM\CurrentControlSet\Services\%~1" /v Start /t REG_DWORD /d %~2 /f >nul 2>&1
-    if !errorlevel! equ 0 (
-        echo [SUCCESS] %~1 >> "%LOG_FILE%" 2>&1
-    ) else (
-        echo [FAILED] %~1 >> "%LOG_FILE%" 2>&1
-    )
-) else (
-    echo [NOT FOUND] %~1 >> "%LOG_FILE%" 2>&1
-)
-goto :eof
-
 :INTERFACE
 for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
     echo  - Configure: %%~b
