@@ -649,8 +649,8 @@ bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
 echo Enabling Windows update services
 call :SC_CONFIGURE "CryptSvc" "auto"
-call :SC_CONFIGURE "UsoSvc" "delayed-auto"
-for %%S in (BITS wuauserv DoSvc WaaSMedicSvc WinHttpAutoProxySvc) do call :SC_CONFIGURE "%%S" "demand"
+for %%S in (UsoSvc DoSvc) do call :SC_CONFIGURE "%%S" "delayed-auto"
+for %%S in (BITS wuauserv WaaSMedicSvc WinHttpAutoProxySvc) do call :SC_CONFIGURE "%%S" "demand"
 
 echo Start Windows update services
 for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "start"
