@@ -1942,7 +1942,7 @@ cls & echo Available drives on your system:
 
 :: List all existing drive letters
 for %%d in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
-    if exist %%d:\ echo %%d:
+    if exist %%d:\ echo %%d\:
 )
 
 echo. & echo Enter drive letter to check
@@ -1971,6 +1971,9 @@ if not exist "%drive%:\" (
     goto CHKDSK
 )
 
+:: Convert to uppercase
+for %%c in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do if /i "%drive%"=="%%c" set "drive=%%c"
+
 :CHKDSK_MENU
 cls & echo. & echo.
 echo                        --------------------------------- CHKDSK ----------------------------------
@@ -1981,7 +1984,7 @@ echo                          [3] Fix Bad Sectors                               
 echo.
 echo                        ---------------------------------------------------------------------------
 
-echo. & set "choice=" & set /p choice="Select an option for %drive% drive: "
+echo. & set "choice=" & set /p choice="Select an option for %drive%\: drive: "
 if "%choice%"=="1" goto DISK_STATUS 
 if "%choice%"=="2" goto FIX_FILE
 if "%choice%"=="3" goto FIX_SECTORS
@@ -1991,7 +1994,7 @@ call :INVALID (0-3) CHKDSK_MENU
 
 :: Scans for errors but does not fix anything
 :DISK_STATUS
-cls & echo Displays status of drive: %drive%
+cls & echo Displays status of drive: %drive%\:
 timeout /t 2 >nul
 chkdsk %drive%:
 call :GO CHKDSK_MENU
