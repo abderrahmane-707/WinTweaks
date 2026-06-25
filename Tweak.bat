@@ -670,7 +670,11 @@ ipconfig /renew >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-call :LOG PRIVACY_SECURITY_MENU
+echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
+
+if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
+
+call :RESTART
 
 :WINDOWS_DEFENDER_MENU
 cls & echo. & echo.
@@ -699,7 +703,12 @@ call :PATH "Security" "DisableDefender"
 
 echo. & echo Disable Windows defender via registry
 reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
-call :LOG PRIVACY_SECURITY_MENU
+
+echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
+
+if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
+
+call :RESTART
 
 :ENABLE_DEFENDER
 call :PATH "Security" "DefaultDefender"
@@ -728,10 +737,7 @@ echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
 if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
 
-echo. & echo Restarting your computer in 5 seconds
-shutdown /r /t 5
-timeout /t 3 >nul
-exit
+call :RESTART
 
 :ENHANCE_SECURITY
 call :PATH "Security" "EnhanceSecurity"
@@ -1060,7 +1066,11 @@ ipconfig /renew6  >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-call :LOG NETWORK_MENU
+echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
+
+if errorlevel 2 call :LOG NETWORK_MENU
+
+call :RESTART
 
 :NETWORK_INFO
 call :PATH "Network" "NetworkInfo"
@@ -2324,6 +2334,12 @@ set "LOG_FILE=%TARGET_DIR%\%~2.log"
 :: Initialize the log file with a fresh timestamp header for every session
 (echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
 goto :eof
+
+:RESTART
+echo. & echo Restart your computer in 5 seconds
+shutdown /r /t 5
+timeout /t 3 >nul
+exit
 
 :: This section dynamically builds a menu based on variables set before calling it
 :SUB_MENU
