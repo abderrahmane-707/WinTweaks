@@ -130,7 +130,7 @@ echo. & echo %MESSAGE%
 for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     set "SERVICE_NAME=%%A"
     set "SERVICE_STATUS=%%B"
-	set "SC_PARAM="
+    set "SC_PARAM="
     
     :: Check if service exists in the system
     sc query "!SERVICE_NAME!" >nul 2>&1
@@ -427,7 +427,7 @@ echo Blocking windows telemetry and trash domains
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 :: Add empty line to host file first
 echo. >> "%HOSTS_PATH%"
-for /f "usebackq delims=" %%L in ("%~dp0Files\Security\TrackingDomains.txt") do (
+for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
     if errorlevel 1 (
         :: Add domain if not exist
@@ -473,11 +473,10 @@ if errorlevel 2 goto PRIVACY_SECURITY_MENU
 echo.
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set "BROWSERS_OPEN=0"
-1
 for %%B in (%BROWSERS%) do (
     tasklist /FI "IMAGENAME eq %%B" 2>nul | find /I "%%B" >nul
     if not errorlevel 1 (
-        set BROWSERS_OPEN=1
+        set "BROWSERS_OPEN=1"
     )
 )
 
@@ -616,7 +615,7 @@ rd /s /q "%SYSTEMROOT%\System32\catroot2" >> "%LOG_FILE%" 2>&1
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
 echo Deleting BITS QMGR
-del /f /q "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\\qmgr*.dat" >> "%LOG_FILE%" 2>&1
+del /f /q "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" >> "%LOG_FILE%" 2>&1
 
 echo Delete update log file
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
@@ -1109,7 +1108,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco
 
 :: Update the environment (PATH) in the current CMD session
 if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-
 
 call :CHECK_CHOCO
 
@@ -2022,7 +2020,6 @@ goto TOOLS_MENU
 :: Launch Disk Cleanup
 :CLEAN_MGR
 cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
-
 goto TOOLS_MENU
 
 :: Delete "%ProgramData%\WinTweaks" folder
@@ -2136,7 +2133,7 @@ for %%X in (
         )
     )
 )
-goto:eof
+goto :eof
 
 :CLEANING_FUNCTION
 echo Cleaning Temp folders
