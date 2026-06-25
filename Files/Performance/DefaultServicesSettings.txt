@@ -13,7 +13,7 @@ AVCTP,Manual
 AxInstSV,Manual
 BDESVC,Manual
 BFE,Automatic
-BITS,AutomaticDelayedStart
+BITS,Manual
 BrokerInfrastructure,Automatic
 Browser,Manual
 BTAGService,Manual
@@ -48,6 +48,7 @@ DispBrokerDesktopSvc,AutomaticDelayedStart
 DisplayEnhancementService,Manual
 DmEnrollmentSvc,Manual
 dmwappushservice,Manual
+dmwappushsvc,Manual
 Dnscache,Automatic
 DoSvc,AutomaticDelayedStart
 dot3svc,Manual
@@ -96,6 +97,7 @@ MapsBroker,Manual
 McpManagementService,Manual
 MixedRealityOpenXRSvc,Manual
 mpssvc,Automatic
+mrxsmb10,Disabled
 MSDTC,Manual
 MSiSCSI,Manual
 msiserver,Manual
@@ -161,6 +163,7 @@ ShellHWDetection,Automatic
 shpamsvc,Disabled
 smphost,Manual
 SmsRouter,Manual
+SNMP,Disabled
 SNMPTRAP,Manual
 spectrum,Manual
 Spooler,Automatic
