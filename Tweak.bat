@@ -1025,6 +1025,10 @@ netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
 echo Reset IPv6 settings
 netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
 
+:: Reset Windows Port Proxy configurations
+echo Reset Port Proxies
+netsh interface portproxy reset >> "%LOG_FILE%" 2>&1
+
 :: Restore Windows Firewall to its default out-of-the-box rules
 echo Reset Firewall Rules
 netsh advfirewall reset >> "%LOG_FILE%" 2>&1
@@ -1049,6 +1053,14 @@ arp -d * >> "%LOG_FILE%" 2>&1
 echo Cleaning IPv6 Neighbor
 netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
 
+:: Clear the IPv6 destination cache to resolve routing issues
+echo Cleaning IPv6 Destination Cache
+netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
+
+:: Clear the Routing Table to remove static routes and corrupt gateway entries
+echo Reset Routing Table
+route -f >> "%LOG_FILE%" 2>&1
+
 :: Release current DHCP IP addresses for all adapters
 echo Releasing IP addresses
 ipconfig /release >> "%LOG_FILE%" 2>&1
@@ -1059,10 +1071,6 @@ ipconfig /release6 >> "%LOG_FILE%" 2>&1
 echo Restart all connected interfaces
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\RestartInterfaces.ps1"
 timeout /t 3 /nobreak >nul
-
-:: Clear the Routing Table to remove static routes and corrupt gateway entries
-echo Reset Routing Table
-route -f >> "%LOG_FILE%" 2>&1
 
 :: Request new IP addresses from the router/DHCP server
 echo Renewing IP addresses
