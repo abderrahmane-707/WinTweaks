@@ -724,10 +724,8 @@ echo. & echo WARNING: This script will permanently delete Windows Defender from 
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
-call :PATH "Security" "RemoveDefender"
-
 echo. & echo Remove Windows Defender Security health UI
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >> "%LOG_FILE%" 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >nul
 
 echo Remove Windows Defender via registry
 for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
@@ -737,7 +735,7 @@ echo Remove Windows Defender files
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
-if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
+if errorlevel 2 call :GO PRIVACY_SECURITY_MENU
 
 call :RESTART
 
