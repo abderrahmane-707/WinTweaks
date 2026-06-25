@@ -592,6 +592,10 @@ for %%S in (BITS wuauserv) do call :SC_CONFIGURE "%%S" "demand"
 call :LOG PRIVACY_SECURITY_MENU
 
 :RESET_UPDATES
+echo. & echo WARNING: This will purge all Windows Update data and reset security policies!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto PRIVACY_SECURITY_MENU
+
 call :PATH "Security" "ResetUpdates"
 
 echo. & echo Reset Update Registry
@@ -981,9 +985,12 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPas
 call :LOG NETWORK_MENU
 
 :NETWORK_RESET
-call :PATH "Network" "NetworkReset"
+cls & echo WARNING: This script will reset all network configurations!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto NETWORK_MENU
 
-cls & echo Stop Network Services
+call :PATH "Network" "NetworkReset"
+echo Stop Network Services
 
 :: Dhcp:      Obtains and renews IP configuration from DHCP servers
 :: dnscache:  Temporarily store DNS results to speed up queries
