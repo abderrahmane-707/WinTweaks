@@ -595,7 +595,7 @@ rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 echo Delete Windows update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG WINDOWS_UPDATES_MENU
 
 :ENABLE_UPDATES
 call :PATH "Security" "DefaultUpdates"
@@ -607,12 +607,12 @@ echo Enable Windows update services
 call :SC_CONFIGURE "UsoSvc" "delayed-auto"
 for %%S in (BITS wuauserv) do call :SC_CONFIGURE "%%S" "demand"
 
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG WINDOWS_UPDATES_MENU
 
 :RESET_UPDATES
 echo. & echo WARNING: This will purge all Windows Update data and reset security policies!
 choice /C YN /N /M "Continue anyway? (Y/N): "
-if errorlevel 2 goto PRIVACY_SECURITY_MENU
+if errorlevel 2 goto WINDOWS_UPDATES_MENU
 
 call :PATH "Security" "ResetUpdates"
 
@@ -696,7 +696,7 @@ ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
-if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
+if errorlevel 2 call :LOG WINDOWS_UPDATES_MENU
 
 call :RESTART
 
@@ -721,7 +721,7 @@ call :INVALID (0-3) WINDOWS_DEFENDER_MENU
 :DISABLE_DEFENDER
 echo. & echo WARNING: This will disable Windows defender!
 choice /C YN /N /M "Continue anyway? (Y/N): "
-if errorlevel 2 goto PRIVACY_SECURITY_MENU
+if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 call :PATH "Security" "DisableDefender"
 
@@ -730,7 +730,7 @@ reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
-if errorlevel 2 call :LOG PRIVACY_SECURITY_MENU
+if errorlevel 2 call :LOG WINDOWS_DEFENDER_MENU
 
 call :RESTART
 
@@ -739,12 +739,12 @@ call :PATH "Security" "DefaultDefender"
 
 echo. & echo Default Windows defender registry value
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
 echo. & echo WARNING: This script will permanently delete Windows Defender from your system!
 choice /C YN /N /M "Continue anyway? (Y/N): "
-if errorlevel 2 goto PRIVACY_SECURITY_MENU
+if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Remove Windows Defender Security health UI
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >nul
@@ -757,7 +757,7 @@ echo Remove Windows Defender files
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
 
-if errorlevel 2 call :GO PRIVACY_SECURITY_MENU
+if errorlevel 2 call :GO WINDOWS_DEFENDER_MENU
 
 call :RESTART
 
