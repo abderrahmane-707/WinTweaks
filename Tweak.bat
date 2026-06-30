@@ -423,7 +423,7 @@ call :INVALID (0-6) PRIVACY_SECURITY_MENU
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
 
-echo. & echo Disable Windows telemetry via registry
+echo. & echo Disabling Windows telemetry via registry
 reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows telemetry services
@@ -454,13 +454,13 @@ call :PATH "Security" "DefaultTelemetry"
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 set "TEMP_FILE=%TEMP%\HostsClean.txt"
 
-echo. & echo Default Windows telemetry registry value
+echo. & echo Restoring default telemetry registry settings
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
-echo Set Windows telemetry services to manual startup
+echo Setting telemetry services to manual startup
 for %%S in (DiagTrack dmwappushsvc WerSvc) do call :SC_CONFIGURE "%%S" "demand"
 
-echo Delete Windows telemetry and trash domains
+echo Removing telemetry and trash domain entries from the Hosts file
 :: Backing up the Hosts file
 copy /y "%HOSTS_PATH%" "%ProgramData%\WinTweaks\Security\HostsOriginal" >> "%LOG_FILE%" 2>&1
 
@@ -533,7 +533,7 @@ for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Fi
 echo Cleaning Windows Event Logs
 for %%L in ("Application" "Security" "System" "Setup") do wevtutil clear-log %%L >nul 2>&1
 
-echo Cleaning Clipboard
+echo Clearing clipboard content
 echo. | clip >nul
 
 echo Flushing DNS cache
@@ -548,7 +548,7 @@ echo                        ------------------------------ Windows Updates -----
 echo.
 echo                          [1] Disable Updates                              [2] Enable Updates
 echo.
-echo                          [3] Reset Updates                                [0] Back
+echo                          [3] Reset / Repair Updates                       [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
@@ -563,19 +563,19 @@ call :INVALID (0-3) WINDOWS_UPDATES_MENU
 :DISABLE_UPDATES
 call :PATH "Security" "DisableUpdates"
 
-echo. & echo Disable Windows update via registry
+echo. & echo Disabling Windows Updates via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Disable Windows Update services
+echo Disabling Windows Update services
 for %%S in (BITS UsoSvc wuauserv) do call :SC_CONFIGURE "%%S" "disabled"
 
-echo Stop Windows update services
+echo Stopping Windows update services
 for %%S in (BITS UsoSvc wuauserv) do call :NET_CONTROL "%%S" "stop"
 
-echo Deleting SoftwareDistribution
+echo Deleting SoftwareDistribution folders
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
-echo Delete Windows update log
+echo Deleting Windows update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 call :LOG WINDOWS_UPDATES_MENU
@@ -583,10 +583,10 @@ call :LOG WINDOWS_UPDATES_MENU
 :ENABLE_UPDATES
 call :PATH "Security" "DefaultUpdates"
 
-echo. & echo Default Windows update registry value
+echo. & echo Restoring default Windows Update registry settings
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Enable Windows update services
+echo Setting Windows Update services to default startup
 call :SC_CONFIGURE "UsoSvc" "delayed-auto"
 for %%S in (BITS wuauserv) do call :SC_CONFIGURE "%%S" "demand"
 
@@ -599,10 +599,10 @@ if errorlevel 2 goto WINDOWS_UPDATES_MENU
 
 call :PATH "Security" "ResetUpdates"
 
-echo. & echo Reset Update Registry
+echo. & echo Resetting Windows Update registry keys to default
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Stop Windows update services
+echo Stopping Windows update services
 
 :: BITS:                  Background Intelligent Transfer Service
 :: CryptSvc:              System files signatures
@@ -614,28 +614,28 @@ echo Stop Windows update services
 for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "stop"
 
 :: Remove pending updates and update history
-echo Deleting SoftwareDistribution
+echo Deleting SoftwareDistribution folders
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
 :: Force Windows to rebuild the update database and signatures
-echo Deleting Catroot2
+echo Deleting Catroot2 folders
 rd /s /q "%SYSTEMROOT%\System32\catroot2" >> "%LOG_FILE%" 2>&1
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
-echo Deleting BITS QMGR
+echo Clearing BITS queue manager data files
 del /f /q "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" >> "%LOG_FILE%" 2>&1
 
-echo Delete update log file
+echo Deleting Windows update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 :: Restore default Security Descriptors (Permissions) for BITS and Windows Update services
 :: This fixes "Access Denied" errors that prevent services from starting
-echo Resetting service security descriptors
+echo Resetting security descriptors for BITS and wuauserv services
 sc sdset bits D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;AU)(A;;CCLCSWRPWPDTLOCRRC;;;PU) >> "%LOG_FILE%" 2>&1
 sc sdset wuauserv D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;AU)(A;;CCLCSWRPWPDTLOCRRC;;;PU) >> "%LOG_FILE%" 2>&1
 
 :: Re-register essential System DLLs (Libraries) for updates, web protocols, and encryption
-echo Reregistering system DLL
+echo Re-registering critical system libraries
 for %%D in (atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll vbscript.dll scrrun.dll msxml.dll msxml3.dll msxml6.dll actxprxy.dll softpub.dll wintrust.dll dssenh.dll rsaenh.dll gpkcsp.dll sccbase.dll slbcsp.dll cryptdlg.dll oleaut32.dll ole32.dll shell32.dll initpki.dll wuapi.dll wuaueng.dll wups.dll wups2.dll qmgr.dll qmgrprxy.dll wucltux.dll muweb.dll) do (
     regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
@@ -645,15 +645,15 @@ echo Apply default security settings
 secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
 
 :: Forcefully clear all BITS download jobs for all users on the system
-echo Cleaning BITS jobs
+echo Clearing all BITS download jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
-echo Enabling Windows update services
+echo Setting Windows Update services to default startup
 call :SC_CONFIGURE "CryptSvc" "auto"
 for %%S in (UsoSvc DoSvc) do call :SC_CONFIGURE "%%S" "delayed-auto"
 for %%S in (BITS wuauserv WaaSMedicSvc WinHttpAutoProxySvc) do call :SC_CONFIGURE "%%S" "demand"
 
-echo Start Windows update services
+echo Starting Windows Update services
 for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "start"
 
 echo Reset TCP/IP Stack
@@ -702,13 +702,13 @@ if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 call :INVALID (0-3) WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
-echo. & echo WARNING: This will disable Windows defender!
+echo. & echo WARNING: This will permanently disable Windows Defender real-time protection!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 call :PATH "Security" "DisableDefender"
 
-echo. & echo Disable Windows defender via registry
+echo. & echo Disabling Windows defender via registry
 reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
@@ -720,22 +720,22 @@ call :RESTART
 :ENABLE_DEFENDER
 call :PATH "Security" "DefaultDefender"
 
-echo. & echo Default Windows defender registry value
+echo. & echo Restoring default Windows Defender registry settings
 reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
 call :LOG WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
-echo. & echo WARNING: This script will permanently delete Windows Defender from your system!
+echo. & echo WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
-echo. & echo Remove Windows Defender Security health UI
+echo. & echo Removing Windows Defender Security Health UI component
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >nul
 
-echo Remove Windows Defender via registry
+echo Removing Windows Defender entries from the registry
 for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
 
-echo Remove Windows Defender files
+echo Deleting Windows Defender system files
 "Files\Security\PowerRun.exe" /TI /SW:0 "Files\Security\DefenderFileRemover.bat"
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
@@ -747,7 +747,7 @@ call :RESTART
 :ENHANCE_SECURITY
 call :PATH "Security" "EnhanceSecurity"
 
-echo. & echo Enhance security via registry
+echo. & echo Applying security hardening registry settings
 reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling unsafe Windows features
@@ -765,7 +765,7 @@ for %%S in (mrxsmb10 RemoteRegistry SNMP SNMPTRAP) do (
 )
 
 :: Remove 'defaultuser0', a temporary account often left behind after Windows installation
-echo Removing default user account
+echo Removing temporary default user account
 net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
 
 call :LOG PRIVACY_SECURITY_MENU
@@ -773,7 +773,7 @@ call :LOG PRIVACY_SECURITY_MENU
 :REV_ENHANCE_SECURITY
 call :PATH "Security" "DefaultSecurity"
 
-echo. & echo Default Windows security registry value
+echo. & echo Restoring default Windows security registry settings
 reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 call :LOG PRIVACY_SECURITY_MENU
@@ -851,6 +851,7 @@ reg delete "HKCU\Software\Policies" /f >> "%LOG_FILE%" 2>&1
 echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
+echo. & echo Backup files saved in: %BACKUP_DIR%
 call :LOG PRIVACY_SECURITY_MENU
 
 :SECURITY_INFO
@@ -2405,9 +2406,10 @@ goto :eof
 
 :CREATE_FOLDER
 set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2"
+echo.
 
 if exist "%BACKUP_DIR%" (
-    echo Backup directory: %BACKUP_DIR% already exists:
+    echo Backup directory: %BACKUP_DIR% already exists
     
     choice /C YN /N /M "Do you want to delete the existing backup and start fresh? (Y/N): "
     if errorlevel 2 exit /b 1
