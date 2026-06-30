@@ -17,7 +17,6 @@ camsvc,Manual
 CBDHsvc,Manual
 CDPSvc,Manual
 CertPropSvc,Manual
-ClipSVC,Manual
 cloudidsvc,Manual
 COMSysApp,Manual
 CscService,Manual
@@ -75,7 +74,6 @@ McpManagementService,Manual
 MixedRealityOpenXRSvc,Manual
 MSDTC,Manual
 MSiSCSI,Manual
-msiserver,Manual
 MsKeyboardFilter,Manual
 NaturalAuthentication,Manual
 NcaSvc,Manual
