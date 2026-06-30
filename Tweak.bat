@@ -1819,7 +1819,7 @@ call :LOG SYSTEM_MENU
 :REG_BACK
 call :PATH "System" "FullRegistryBackup"
 cls
-call :TIME_STAMP_DIR "System" "FullRegistryBackup"
+call :CREATE_FOLDER "System" "FullRegistryBackup"
 
 :: Define the main system Hives for binary export
 echo Creating Full Registry Backup
@@ -2330,16 +2330,28 @@ if not exist "%REPORT_DIR%" (
 set "REPORT_FILE=%REPORT_DIR%\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%.log"
 goto :eof
 
-:TIME_STAMP_DIR
-for /f "tokens=*" %%a in ('powershell -Command "Get-Date -Format 'yyyyMMddHHmmss'"') do set datetime=%%a
-set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%"
+:CREATE_FOLDER
+set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2"
 
-if not exist "%BACKUP_DIR%" (
+if exist "%BACKUP_DIR%" (
+    echo Backup directory: %BACKUP_DIR% already exists:
+    
+    choice /C YN /N /M "Do you want to delete the existing backup and start fresh? (Y/N): "
+    if errorlevel 2 exit /b 1
+    
+    echo Deleting old backup folder
+    rd /s /q "%BACKUP_DIR%" >nul 2>&1
+)
+
+if exist "%BACKUP_DIR%" (
+    echo Failed to delete old backup folder
+    exit /b 1
+) else (
     mkdir "%BACKUP_DIR%" >nul 2>&1
-    if errorlevel 1 (
+    if !errorlevel! neq 0 (
         echo [ERROR] Failed to create directory: %BACKUP_DIR%
         pause
-        exit
+        exit /b 1
     )
 )
 goto :eof
