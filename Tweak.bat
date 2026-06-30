@@ -158,7 +158,7 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
         
     ) else (
         :: Log if service is not found
-        echo [NOT FOUND]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%" 2>&1
+        echo [NOT FOUND]: !SERVICE_NAME! >> "%LOG_FILE%" 2>&1
     )
 )
 
@@ -177,7 +177,7 @@ call :GO SERVICES_MENU
 :DISABLE_TASKS
 call :PATH "Performance" "DisableScheduledTasks"
 
-echo. & echo Disable unnecessary scheduled tasks
+echo. & echo Disabling unnecessary scheduled tasks
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
 
 call :LOG PERFORMANCE_MENU
@@ -240,13 +240,13 @@ set "BROWSERS_OPEN=0"
 for %%A in (%BROWSERS%) do (
     tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
     if not errorlevel 1 (
+	    echo %%A are currently running
         set "BROWSERS_OPEN=1"
     )
 )
 
 if "!BROWSERS_OPEN!"=="1" (
-    echo Browsers are currently running
-    choice /C YN /N /M "Close them? (Y/N): "
+    choice /C YN /N /M "Close browsers to clean them? (Y/N): "
     echo.
     if errorlevel 2 (
         echo Skipping cleaning browsers
@@ -445,8 +445,6 @@ for %%S in (DiagTrack dmwappushsvc WerSvc) do call :SC_CONFIGURE "%%S" "disabled
 
 echo Blocking windows telemetry and trash domains
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
-:: Add empty line to host file first
-echo. >> "%HOSTS_PATH%"
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
     if errorlevel 1 (
@@ -2110,12 +2108,12 @@ call :GO OTHER_MENU
 :: %~2 = Path to text file containing task names
 for /f "usebackq delims=" %%i in ("%~2") do (
     set "TASK_NAME=%%i"
-    set "TASK_RESULT=SUCCESS"
+    set "TASK_RESULT=[SUCCESS]"
 
     :: Verify the task if exists
     schtasks /query /tn "%%i" >nul 2>&1
     if errorlevel 1 (
-        set "TASK_RESULT=NOT_FOUND"
+        set "TASK_RESULT=[NOT_FOUND]"
     ) else (
         :: Apply the change (Disable or Enable)
         if /i "%~1"=="Disable" (
@@ -2126,7 +2124,7 @@ for /f "usebackq delims=" %%i in ("%~2") do (
 
         :: Check if the command is failed
         if errorlevel 1 (
-            set "TASK_RESULT=FAILED"
+            set "TASK_RESULT=[FAILED]"
         )
     )
 
@@ -2240,7 +2238,7 @@ goto :eof
 :: Check if the service exists
 sc query "%~1" >nul 2>&1
 if !errorlevel! neq 0 (
-    echo [NOT FOUND - %~2] %~1 >>"%LOG_FILE%" 2>&1
+    echo [NOT FOUND]: %~1 >>"%LOG_FILE%" 2>&1
     goto :eof
 )
 
@@ -2249,28 +2247,28 @@ if /i "%~2"=="stop" (
     :: Check if the service is already stopped
     sc query "%~1" | find /i "STOPPED" >nul
     if !errorlevel! equ 0 (
-        echo [ALREADY STOPPED] %~1 >>"%LOG_FILE%" 2>&1
+        echo [ALREADY STOPPED]: %~1 >>"%LOG_FILE%" 2>&1
     ) else (
         :: Try to stop the service
         net stop "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [SUCCESS - stop] %~1 >>"%LOG_FILE%" 2>&1
+            echo [SUCCESS]: %~1 _ %~2  >>"%LOG_FILE%" 2>&1
         ) else (
-            echo [FAILED  - stop] %~1 >>"%LOG_FILE%" 2>&1
+            echo [FAILED]: %~1 _ %~2  >>"%LOG_FILE%" 2>&1
         )
     )
 ) else if /i "%~2"=="start" (
     :: Check if the service is already running
     sc query "%~1" | find /i "RUNNING" >nul
     if !errorlevel! equ 0 (
-        echo [ALREADY RUNNING] %~1 >>"%LOG_FILE%" 2>&1
+        echo [ALREADY RUNNING]: %~1 >>"%LOG_FILE%" 2>&1
     ) else (
         :: Try to start the service
         net start "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [SUCCESS - start] %~1 >>"%LOG_FILE%" 2>&1
+            echo [SUCCESS]: %~1 _ %~2  >>"%LOG_FILE%" 2>&1
         ) else (
-            echo [FAILED  - start] %~1 >>"%LOG_FILE%" 2>&1
+            echo [FAILED]: %~1 _ %~2  >>"%LOG_FILE%" 2>&1
         )
     )
 )
@@ -2283,12 +2281,12 @@ sc query %~1 >nul 2>&1
 if !errorlevel! equ 0 (
     sc config %~1 start= %~2 >nul 2>&1
     if !errorlevel! equ 0 (
-        echo [SUCCESS - %~2] %~1 >>"%LOG_FILE%" 2>&1
+        echo [SUCCESS]: %~1 _ %~2 >>"%LOG_FILE%" 2>&1
     ) else (
-        echo [FAILED - %~2] %~1 >>"%LOG_FILE%" 2>&1
+        echo [FAILED]: %~1 _ %~2 >>"%LOG_FILE%" 2>&1
     )
 ) else (
-    echo [NOT FOUND - %~2] %~1 >>"%LOG_FILE%" 2>&1
+    echo [NOT FOUND]: %~1 >>"%LOG_FILE%" 2>&1
 )
 goto :eof
 
