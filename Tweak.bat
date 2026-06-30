@@ -232,18 +232,7 @@ call :GO PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
-:: List of browser processes to check
-set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
-set "BROWSERS_OPEN=0"
-
-:: Check if any browser is currently running
-for %%A in (%BROWSERS%) do (
-    tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
-    if not errorlevel 1 (
-	    echo %%A are currently running
-        set "BROWSERS_OPEN=1"
-    )
-)
+call :RUNNING_BROWSERS
 
 if "!BROWSERS_OPEN!"=="1" (
     choice /C YN /N /M "Close browsers to clean them? (Y/N): "
@@ -493,14 +482,7 @@ choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 echo.
-set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
-set "BROWSERS_OPEN=0"
-for %%B in (%BROWSERS%) do (
-    tasklist /FI "IMAGENAME eq %%B" 2>nul | find /I "%%B" >nul
-    if not errorlevel 1 (
-        set "BROWSERS_OPEN=1"
-    )
-)
+call :RUNNING_BROWSERS
 
 if "!BROWSERS_OPEN!"=="1" (
     echo Closing open browsers
@@ -2206,6 +2188,21 @@ for /f "usebackq delims=" %%i in ("%~2") do (
 
     :: Log the result for every single task
     echo !TASK_RESULT!: !TASK_NAME! >>"%LOG_FILE%"
+)
+goto :eof
+
+:RUNNING_BROWSERS
+:: List of browser processes to check
+set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
+set "BROWSERS_OPEN=0"
+
+:: Check if any browser is currently running
+for %%A in (%BROWSERS%) do (
+    tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
+    if not errorlevel 1 (
+	    echo %%A are currently running
+        set "BROWSERS_OPEN=1"
+    )
 )
 goto :eof
 
