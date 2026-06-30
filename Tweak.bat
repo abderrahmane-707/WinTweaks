@@ -399,9 +399,9 @@ echo                          [1] Telemetry                                     
 echo.
 echo                          [3] Windows Updates                                 [4] Windows Defender
 echo.
-echo                          [5] Enhance Security                                [6] Security Info
+echo                          [5] Enhance Security                                [6] Remove all policies
 echo.
-echo                                                         [0] Back
+echo                          [7] Security Info                                   [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
@@ -425,7 +425,8 @@ if "%choice%"=="5" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="6" goto SECURITY_INFO
+if "%choice%"=="6" goto REMOVE_POLICIES
+if "%choice%"=="7" goto SECURITY_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID (0-6) PRIVACY_SECURITY_MENU
@@ -792,6 +793,81 @@ call :PATH "Security" "DefaultSecurity"
 
 echo. & echo Default Windows security registry value
 reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
+
+call :LOG PRIVACY_SECURITY_MENU
+
+:REMOVE_POLICIES
+echo. & echo WARNING: This script will RESET all Group Policy settings to system defaults!
+choice /C YN /N /M "Continue anyway? (Y/N): "
+if errorlevel 2 goto PRIVACY_SECURITY_MENU
+
+call :PATH "Security" "RemoveAllPolicies"
+call :CREATE_FOLDER "Security" "GroupPolicyBackup"
+
+if %errorlevel% neq 0 call :GO PRIVACY_SECURITY_MENU
+
+set "GP_DIR=%WinDir%\System32\GroupPolicy"
+set "GPU_DIR=%WinDir%\System32\GroupPolicyUsers"
+
+echo. & echo Phase 1: Backing up all configurations
+
+if exist "%GP_DIR%" (
+    echo Backing up GroupPolicy folder
+    robocopy "%GP_DIR%" "%BACKUP_DIR%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to backup GroupPolicy. Operation aborted
+        call :GO PRIVACY_SECURITY_MENU
+    )
+)
+
+if exist "%GPU_DIR%" (
+    echo Backing up GroupPolicyUsers folder
+    robocopy "%GPU_DIR%" "%BACKUP_DIR%\GroupPolicyUsers" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to backup GroupPolicyUsers. Operation aborted
+        call :GO PRIVACY_SECURITY_MENU
+    )
+)
+
+reg query "HKLM\Software\Policies" >nul 2>&1
+if !errorlevel! equ 0 (
+    echo Backing up HKLM Policies registry key
+    reg export "HKLM\Software\Policies" "%BACKUP_DIR%\HKLM_Policies_Backup.reg" /y >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        echo [ERROR] Failed to backup HKLM Policies. Operation aborted
+        call :GO PRIVACY_SECURITY_MENU
+    )
+)
+
+reg query "HKCU\Software\Policies" >nul 2>&1
+if !errorlevel! equ 0 (
+    echo Backing up HKCU Policies registry key
+    reg export "HKCU\Software\Policies" "%BACKUP_DIR%\HKCU_Policies_Backup.reg" /y >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        echo [ERROR] Failed to backup HKCU Policies. Operation aborted
+        call :GO PRIVACY_SECURITY_MENU
+    )
+)
+
+echo. & echo Phase 2: Deleting policies
+if exist "%GP_DIR%" (
+    echo Deleting GroupPolicy folder
+    rd /s /q "%GP_DIR%" >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%GPU_DIR%" (
+    echo Deleting GroupPolicyUsers folder
+    rd /s /q "%GPU_DIR%" >> "%LOG_FILE%" 2>&1
+)
+
+echo Deleting HKLM Policies registry key
+reg delete "HKLM\Software\Policies" /f >> "%LOG_FILE%" 2>&1
+
+echo Deleting HKCU Policies registry key
+reg delete "HKCU\Software\Policies" /f >> "%LOG_FILE%" 2>&1
+
+echo. & echo Applying Group Policy Update
+gpupdate /force >nul 2>&1
 
 call :LOG PRIVACY_SECURITY_MENU
 
