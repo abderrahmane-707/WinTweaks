@@ -702,23 +702,18 @@ echo. & echo WARNING: This will permanently disable Windows Defender real-time p
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
-call :PATH "Security" "DisableDefender"
-
 echo. & echo Disabling Windows defender via registry
-reg import "Files\Security\DisableDefender.reg" >> "%LOG_FILE%" 2>&1
+reg import "Files\Security\DisableDefender.reg"
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
-
-if errorlevel 2 call :LOG WINDOWS_DEFENDER_MENU
+if errorlevel 2 call :GO WINDOWS_DEFENDER_MENU
 
 call :RESTART
 
 :ENABLE_DEFENDER
-call :PATH "Security" "DefaultDefender"
-
 echo. & echo Restoring default Windows Defender registry settings
-reg import "Files\Security\DefaultDefender.reg" >> "%LOG_FILE%" 2>&1
-call :LOG WINDOWS_DEFENDER_MENU
+reg import "Files\Security\DefaultDefender.reg"
+call :GO WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
 echo. & echo WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system!
