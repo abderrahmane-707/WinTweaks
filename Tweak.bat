@@ -1904,15 +1904,14 @@ for %%A in (
 )
 
 if exist "%BACKUP_DIR%\*.hive" (
-    echo. & choice /C YN /N /M "Compress files? (Y/N): "
-    if errorlevel 2 (
-        echo. & echo Backup files saved in: %BACKUP_DIR%
-    ) else (
-        :: Call PowerShell to zip the hives files
+    echo. & echo Backup completed successfully. Hive files saved to: %BACKUP_DIR%
+	choice /C YN /N /M "Compress folder? (Y/N): "
+	if not errorlevel 2 if errorlevel 1 (
+        echo Compressing hive files
         powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%" >>"%LOG_FILE%" 2>&1
     )
 ) else (
-    echo No hive files found
+    echo No hive files were created. Backup failed
 )
 call :LOG SYSTEM_MENU
 
