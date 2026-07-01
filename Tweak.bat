@@ -2276,7 +2276,7 @@ echo Clearing PowerShell command history
 del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
 
 choice /C YN /N /M "Run Disk Cleanup to complete the cleaning? (Y/N): "
-if %errorlevel% equ 1 (
+if not errorlevel 2 if errorlevel 1 (
     echo Running Disk Cleanup
 	cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
 )
