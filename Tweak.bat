@@ -191,8 +191,13 @@ echo. & echo Import Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg"
 
 echo Deleting startup shortcuts
-del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
-del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
+if exist "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" (
+    del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
+)
+
+if exist "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" (
+    del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
+)
 
 call :GO PERFORMANCE_MENU
 
