@@ -1047,7 +1047,7 @@ choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto NETWORK_MENU
 
 call :PATH "Network" "NetworkReset"
-echo Stopping Network Services
+echo. & echo Stopping Network Services
 
 :: Dhcp:      Obtains and renews IP configuration from DHCP servers
 :: dnscache:  Temporarily store DNS results to speed up queries
@@ -1216,7 +1216,7 @@ echo.
 echo. & echo Selected:
 call :SHOW_SELECTED
 
-echo. & set "choice=" & set /p "choice=--> Select an option and press [S] to Start: "
+echo. & set "choice=" & set /p "choice=--> Select an option(s) and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 if /i "%choice%"=="S" goto INSTALL_PROGRAMS
@@ -1366,7 +1366,7 @@ call :GO PROGRAMS_MANAGER_MENU
 
 :DOWNLOAD_MO
 start "" cmd /c "Files\Programs\office.bat"
-call :GO PROGRAMS_MANAGER_MENU
+goto PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
 cls & echo WARNING: This will remove ALL Microsoft Store apps!
