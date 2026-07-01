@@ -1613,7 +1613,7 @@ call :GO CUSTOMIZATION_MENU
 
 :: Remove the small arrow icon that appears on desktop shortcuts
 :HIDE_SHORTCUT_ARROW
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /d "C:\Windows\System32\imageres.dll,197" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /t REG_EXPAND_SZ /d "%SystemRoot%\System32\imageres.dll,197" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /t REG_BINARY /d 00000000 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
