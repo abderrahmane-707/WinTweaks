@@ -166,13 +166,11 @@ call :LOG SERVICES_MENU
 
 :: Create a snapshot of all current Service startup types
 :EXPORT_SERVICES
-call :TIME_STAMP_FILE "Performance" "ServiceStartupStatus"
+call :PATH "Performance" "ServiceStartupStatus"
 
 echo. & echo Exporting service startup status
-powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%REPORT_FILE%" 2>&1
-
-echo. & echo Report file saved in: %REPORT_FILE%
-call :GO SERVICES_MENU
+powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%LOG_FILE%" 2>&1
+call :LOG PERFORMANCE_MENU
 
 :DISABLE_TASKS
 call :PATH "Performance" "DisableScheduledTasks"
@@ -2384,25 +2382,6 @@ if %errorlevel% equ 0 goto :eof
 
 echo Choco not found
 call :GO PROGRAMS_MANAGER_MENU
-
-:TIME_STAMP_FILE
-:: Retrieve current system time in a format that won't break file paths
-for /f "tokens=*" %%a in ('powershell -Command "Get-Date -Format 'yyyyMMddHHmmss'"') do set datetime=%%a
-set "REPORT_DIR=%ProgramData%\WinTweaks\%~1"
-
-:: Create the folder if it does not exist
-if not exist "%REPORT_DIR%" (
-    mkdir "%REPORT_DIR%" >nul 2>&1
-    if errorlevel 1 (
-        echo Failed to create directory: %REPORT_DIR%
-        pause
-        exit
-    )
-)
-
-:: Construct the filename with a clean YYYY-MM-DD_HH-MM-SS format
-set "REPORT_FILE=%REPORT_DIR%\%~2_%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%-%datetime:~12,2%.log"
-goto :eof
 
 :CREATE_FOLDER
 set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2"
