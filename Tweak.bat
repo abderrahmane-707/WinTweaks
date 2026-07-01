@@ -187,24 +187,20 @@ call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 call :LOG PERFORMANCE_MENU
 
 :BOOT_TWEAKS
-call :PATH "Performance" "BootTweaks"
-
 echo. & echo Import Boot up tweaks registry settings
-reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
+reg import "Files\Performance\BootTweaks.reg"
 
 echo Deleting startup shortcuts
-del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
-del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
+del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
+del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
 
-call :LOG PERFORMANCE_MENU
+call :GO PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
-call :PATH "Performance" "DefaultBootSettings"
-
 echo. & echo Import default Boot up registry settings
-reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
+reg import "Files\Performance\DefaultBootSettings.reg"
 
-call :LOG PERFORMANCE_MENU
+call :GO PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
