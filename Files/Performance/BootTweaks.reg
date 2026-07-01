@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+; Display debugging information during system crashes
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CrashControl]
+"DisplayParameters"=dword:00000001
+
+; Set 1.5 s time to kill services befor shut down
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
+"WaitToKillServiceTimeout"="1500"
+
+; AutoEndTasks=1: Forces applications to close automatically during shutdown/logoff without prompting
+; WaitToKillAppTimeout=1500: Reduces application closure timeout from default 20000ms to 1500ms
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"AutoEndTasks"="1"
+"WaitToKillAppTimeout"="1500"

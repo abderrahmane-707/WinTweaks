@@ -187,44 +187,24 @@ call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 call :LOG PERFORMANCE_MENU
 
 :BOOT_TWEAKS
-echo. & echo Applying optimized boot settings
-:: Display debugging information during system crashes
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\CrashControl" /v "DisplayParameters" /t REG_DWORD /d 1 /f >nul
+call :PATH "Performance" "BootTweaks"
 
-:: Set 1.5 s time to kill services befor shut down
-reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v "WaitToKillServiceTimeout" /t REG_SZ /d "1500" /f >nul
-
-:: Forces applications to close automatically during shutdown/logoff without prompting
-reg add "HKCU\Control Panel\Desktop" /v "AutoEndTasks" /t REG_SZ /d "1" /f >nul
-
-:: Reduces application closure timeout from default 20000ms to 1500ms
-reg add "HKCU\Control Panel\Desktop" /v "WaitToKillAppTimeout" /t REG_SZ /d "1500" /f >nul
+echo. & echo Import Boot up tweaks registry settings
+reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
 echo Deleting startup shortcuts
-if exist "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" (
-    del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
-)
-if exist "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" (
-    del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
-)
+del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
+del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >> "%LOG_FILE%" 2>&1
 
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
-echo. & echo Restoring default boot settings
-:: Hides debugging information during system crashes
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\CrashControl" /v "DisplayParameters" /t REG_DWORD /d 0 /f >nul
+call :PATH "Performance" "DefaultBootSettings"
 
-:: Set 5 s time to kill services befor shut down (Default)
-reg add "HKLM\SYSTEM\CurrentControlSet\Control" /v "WaitToKillServiceTimeout" /t REG_SZ /d "5000" /f >nul
+echo. & echo Import default Boot up registry settings
+reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
 
-:: Allows applications to prompt users before closing during shutdown/logoff
-reg add "HKCU\Control Panel\Desktop" /v "AutoEndTasks" /t REG_SZ /d "0" /f >nul
-
-:: Restores default application closure timeout to 20 seconds
-reg add "HKCU\Control Panel\Desktop" /v "WaitToKillAppTimeout" /t REG_SZ /d "20000" /f >nul
-
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
