@@ -762,12 +762,10 @@ net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
 call :LOG PRIVACY_SECURITY_MENU
 
 :REV_ENHANCE_SECURITY
-call :PATH "Security" "DefaultSecurity"
-
 echo. & echo Restoring default Windows security registry settings
-reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
+reg import "Files\Security\DefaultSecurity.reg"
 
-call :LOG PRIVACY_SECURITY_MENU
+call :GO PRIVACY_SECURITY_MENU
 
 :REMOVE_POLICIES
 cls & echo WARNING: This script will RESET all Group Policy settings to system defaults!
