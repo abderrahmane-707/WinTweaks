@@ -1799,19 +1799,19 @@ if "%choice%"=="0" goto MAIN_MENU
 call :INVALID (0-4) SYSTEM_MENU
 
 :RESTORE_POINT
-call :PATH "System" "RestorePoint"
-
-:: Execute a PowerShell script to create restore point
+:: RestorePointType: MODIFY_SETTINGS indicates settings were changed
 cls & echo Creating a System Restore Point
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
-if %errorlevel% equ 0 (
-    echo System Restore Point created successfully
-	call :LOG SYSTEM_MENU
-)
+powershell -Command "Checkpoint-Computer -Description 'Hello world' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop"
+if %errorlevel% equ 0 call :GO SYSTEM_MENU
+
+call :PATH "System" "RestorePoint"
 
 :: If Creating failed (errorlevel>0)
 echo Creating a restore point failed. Attempting to fix system dependencies
-    
+
+echo Enable System Restore on the C: drive
+powershell -Command "Enable-ComputerRestore -Drive 'C:\'" >> "%LOG_FILE%" 2>&1
+
 :: Enable System Restore via registry if they were disabled by policy
 echo. & echo Enabling System Restore via registry
 reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
@@ -1853,9 +1853,9 @@ echo Checking VSS Writers status
 vssadmin list writers >> "%LOG_FILE%" 2>&1
 
 echo Attempting to create System Restore Point again
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
+powershell -Command "Checkpoint-Computer -Description 'Hello world' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
 if %errorlevel% equ 0 (
-    echo System Restore Point created successfully.
+    echo System Restore Point created successfully
 ) else (
     echo Creating system restore point has failed after troubleshooting 
 )
