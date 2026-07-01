@@ -177,7 +177,6 @@ call :PATH "Performance" "DisableScheduledTasks"
 
 echo. & echo Disabling unnecessary scheduled tasks
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
-
 call :LOG PERFORMANCE_MENU
     
 :ENABLE_TASKS
@@ -185,7 +184,6 @@ call :PATH "Performance" "EnableScheduledTasks"
 
 echo. & echo Re-enable previously disabled scheduled tasks
 call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
-
 call :LOG PERFORMANCE_MENU
 
 :BOOT_TWEAKS
@@ -416,7 +414,7 @@ if "%choice%"=="6" goto REMOVE_POLICIES
 if "%choice%"=="7" goto SECURITY_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID (0-6) PRIVACY_SECURITY_MENU
+call :INVALID (0-7) PRIVACY_SECURITY_MENU
 
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
@@ -657,7 +655,7 @@ for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
 
-echo Reset Winsock
+echo Reset Winsock catalog
 netsh winsock reset >> "%LOG_FILE%" 2>&1
 
 echo Reset WinHTTP proxy
@@ -733,7 +731,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHea
 echo Removing Windows Defender entries from the registry
 for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
 
-echo Deleting Windows Defender system files
+echo Deleting Windows Defender files
 "Files\Security\PowerRun.exe" /TI /SW:0 "Files\Security\DefenderFileRemover.bat"
 
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
@@ -777,7 +775,7 @@ reg import "Files\Security\DefaultSecurity.reg" >> "%LOG_FILE%" 2>&1
 call :LOG PRIVACY_SECURITY_MENU
 
 :REMOVE_POLICIES
-echo. & echo WARNING: This script will RESET all Group Policy settings to system defaults!
+cls & echo WARNING: This script will RESET all Group Policy settings to system defaults!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
@@ -893,7 +891,7 @@ call :PATH "Network" "NetworkTweaks"
 echo. & echo Improve network settings via registry
 reg import "Files\Network\NetworkTweaks.reg" >> "%LOG_FILE%" 2>&1
 
-echo Optimizing TCP Global Parameters
+echo Configuring TCP global parameters
 
 :: fastopen=enabled :          Speeds up successive TCP connections
 :: fastopenfallback=enabled :  Allows fallback to standard TCP if Fast Open fails
@@ -904,7 +902,7 @@ for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotun
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
 
-echo Set Cloudflare DNS on all connected interfaces
+echo Setting Cloudflare DNS on all connected interfaces
 set DNS_IPv4_1=1.1.1.1
 set DNS_IPv4_2=1.0.0.1
 set DNS_IPv6_1=2606:4700:4700::1111
@@ -919,10 +917,10 @@ call :LOG NETWORK_MENU
 :REV_NETWORK_TWEAKS
 call :PATH "Network" "DefaultNetworkSettings"
 
-echo. & echo Set default registry network settings
+echo. & echo Restoring default network registry settings
 reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
 
-echo Reset TCP settings to default
+echo Resetting TCP global parameters to default
 for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotuninglevel=normal") do (
     echo  - %%~P
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
@@ -1032,7 +1030,7 @@ call :INVALID (0-10) DNS_MENU
 :SET_DNS
 call :PATH "Network" "DNS"
 
-echo. & echo Set %DNS_NAME% server on all connected interfaces
+echo. & echo Setting %DNS_NAME% server on all connected interfaces
 call :INTERFACE
 
 echo Flushing DNS cache
@@ -1065,7 +1063,7 @@ choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto NETWORK_MENU
 
 call :PATH "Network" "NetworkReset"
-echo Stop Network Services
+echo Stopping Network Services
 
 :: Dhcp:      Obtains and renews IP configuration from DHCP servers
 :: dnscache:  Temporarily store DNS results to speed up queries
@@ -1077,11 +1075,11 @@ echo Stop Network Services
 :: WwanSvc:   Manages mobile broadband
 for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "stop"
 
-echo Set Network services to default startup
+echo Resetting Network services to default startup
 for %%S in (Dhcp dnscache nlasvc WlanSvc) do call :SC_CONFIGURE "%%S" "auto"
 for %%S in (dot3svc netman netprofm WwanSvc) do call :SC_CONFIGURE "%%S" "demand"
 
-echo Start Network Services
+echo Starting Network Services
 for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "start"
 
 :: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
@@ -1089,7 +1087,7 @@ echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
 
 :: Repair the Winsock Catalog (useful if internet is blocked by malware or bad drivers)
-echo Reset Winsock
+echo Reset Winsock catalog
 netsh winsock reset >> "%LOG_FILE%" 2>&1
 
 :: Clear any system-wide HTTP proxy settings that might redirect traffic
@@ -1455,16 +1453,16 @@ if "%choice%"=="5" (
 if "%choice%"=="6" (
     set ROUTINE=UTC
     set REV_ROUTINE=LOCAL_TIME
-    set APPLY=Set Time to UTC recommended for Dual Boot with Linux Systems
-    set REVERT=Set Time to Local Time
+    set APPLY=Setting hardware clock to UTC
+    set REVERT=Setting hardware clock to Local Time
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
 if "%choice%"=="7" (
     set ROUTINE=POWER_SETTINGS
     set REV_ROUTINE=REMOVE_POWER_SETTINGS
-    set APPLY=Activate power settings
-    set REVERT=Remove power settings
+    set APPLY=Creating 'Powerful settings' folder on your Desktop
+    set REVERT=Removing 'Powerful settings' folder from your Desktop
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1801,7 +1799,7 @@ echo                        --------------------------------- System -----------
 echo.
 echo                          [1] Restore Point                                   [2] Registry Backup
 echo.
-echo                          [3] Activate Windows                                [4] System Info
+echo                          [3] Activation                                      [4] System Info
 echo.
 echo                                                         [0] Back
 echo.  
@@ -1820,15 +1818,18 @@ call :INVALID (0-4) SYSTEM_MENU
 call :PATH "System" "RestorePoint"
 
 :: Execute a PowerShell script to create restore point
-cls & echo Creating System Restore Point
+cls & echo Creating a System Restore Point
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
-if %errorlevel% equ 0 call :LOG SYSTEM_MENU
+if %errorlevel% equ 0 (
+    echo System Restore Point created successfully
+	call :LOG SYSTEM_MENU
+)
 
 :: If Creating failed (errorlevel>0)
 echo Creating a restore point failed. Attempting to fix system dependencies
     
 :: Enable System Restore via registry if they were disabled by policy
-echo. & echo Enabling restore point from registry
+echo. & echo Enabling System Restore via registry
 reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stopping restore point services
@@ -1837,6 +1838,7 @@ echo Stopping restore point services
 :: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
 for %%S in (VSS swprv) do call :NET_CONTROL "%%S" "stop"
 
+echo Re-registering VSS-related system libraries
 for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
     regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
@@ -1863,13 +1865,15 @@ for %%S in (RpcSs CryptSvc EventLog EventSystem Schedule) do (
     call :NET_CONTROL "%%S" "start"
 )
 
+echo Checking VSS Writers status
 vssadmin list writers >> "%LOG_FILE%" 2>&1
 
-echo Creating system restore point
+echo Attempting to create System Restore Point again
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CreateRestorePoint.ps1" >> "%LOG_FILE%" 2>&1
-
-if %errorlevel% neq 0 (
-    echo. & echo Creating system restore point has failed after troubleshooting   
+if %errorlevel% equ 0 (
+    echo System Restore Point created successfully.
+) else (
+    echo Creating system restore point has failed after troubleshooting 
 )
 call :LOG SYSTEM_MENU
 
@@ -1877,6 +1881,7 @@ call :LOG SYSTEM_MENU
 call :PATH "System" "FullRegistryBackup"
 cls
 call :CREATE_FOLDER "System" "FullRegistryBackup"
+if %errorlevel% equ 1 call :GO SYSTEM_MENU
 
 :: Define the main system Hives for binary export
 echo Creating Full Registry Backup
@@ -1890,7 +1895,7 @@ for %%A in (
     "HKCU\Software\Classes,UsrClass"
 ) do (
 	for /f "tokens=1,2 delims=," %%B in ("%%~A") do (
-        echo  Export: %%B
+        echo  Exporting: %%B
         reg save "%%B" "%BACKUP_DIR%\%%C.hive" /y >>"%LOG_FILE%" 2>&1
     )
 )
@@ -1927,7 +1932,8 @@ call :INVALID (0-2) ACTIVATION_MENU
 
 :: Activating Windows and Microsoft Office using MAS script
 :RUN_ACTIVATION
-cls & echo Activating Windows and Microsoft Office
+cls & echo. & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
+echo The script will open in a new window. Follow the on-screen instructions.
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
 call :GO ACTIVATION_MENU
 
@@ -1997,13 +2003,13 @@ call :INVALID (0-4) DISM_MENU
 
 :: Perform a quick check to see if the OS has already flagged any corruption
 :DISM_CHECK_HEALTH
-cls & echo Checking Windows component health
+cls & echo Performing quick health check of Windows image
 dism /Online /Cleanup-Image /CheckHealth
 call :GO DISM_MENU
 
 :: This does not fix errors, it only reports them
 :DISM_SCAN_HEALTH
-cls & echo Scanning Windows component health
+cls & echo Performing deep scan of Windows image
 dism /Online /Cleanup-Image /ScanHealth
 call :GO DISM_MENU
 
@@ -2043,11 +2049,7 @@ set "drive=" & set /p "drive= "
 if "%drive%"=="0" goto TOOLS_MENU
 
 :: Handle empty input
-if not defined drive (
-    echo. & echo [ERROR] Invalid selection. Please enter a drive letter
-    pause
-    goto CHKDSK
-)
+if not defined drive goto CHKDSK
 
 :: Remove quotes if present
 set "drive=%drive:"=%"
@@ -2057,7 +2059,7 @@ set "drive=%drive:~0,1%"
 
 :: Validate that the drive exists
 if not exist "%drive%:\" (
-    echo. & echo Invalid drive letter: %drive%    
+    echo. & echo Invalid drive letter: %drive%
     pause
     goto CHKDSK
 )
@@ -2069,7 +2071,7 @@ for %%c in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do if /i "%driv
 cls & echo. & echo.
 echo                        --------------------------------- CHKDSK ----------------------------------
 echo.
-echo                          [1] Drive Status                                    [2] Fix File System
+echo                          [1] Check Status                                    [2] Fix File System
 echo.
 echo                          [3] Fix Bad Sectors                                 [0] Back
 echo.
@@ -2085,13 +2087,13 @@ call :INVALID (0-3) CHKDSK_MENU
 
 :: Scans for errors but does not fix anything
 :DISK_STATUS
-cls & echo Displays status of drive: %drive%\:
+cls & echo Running read-only CHKDSK on drive %drive%:\ to check for errors
 timeout /t 2 >nul
 chkdsk %drive%:
 call :GO CHKDSK_MENU
 
 :FIX_FILE
-cls & echo Fix file system errors in drive: %drive%
+cls & echo Running CHKDSK with /f option on drive %drive%:\ to fix file system errors
 timeout /t 2 >nul
 
 :: /f: Fixes errors on the disk
@@ -2099,7 +2101,7 @@ chkdsk %drive%: /f
 call :GO CHKDSK_MENU
 
 :FIX_SECTORS
-cls & echo Fix file system and recover files from bad sectors in drive: %drive%
+cls & echo Running CHKDSK with /r option on drive %drive%:\ to find bad sectors and recover data
 timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
@@ -2256,11 +2258,11 @@ for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
 )
 
 :: Clear the "Recent Items" list shown in File Explorer
-echo Cleaning Recent Files
+echo Clearing Recent Files
 del /f /q "%APPDATA%\Microsoft\Windows\Recent\*.lnk" >nul 2>&1
 
 :: Rebuild icon and thumbnail cache
-echo Cleaning Thumbnail and Icon cache
+echo Rebuilding Thumbnail and Icon cache
 taskkill /F /IM explorer.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
 del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
@@ -2268,7 +2270,7 @@ del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
 start explorer.exe >nul 2>&1
 
 :: Delete PowerShell command history
-echo Cleaning PowerShell command history
+echo Clearing PowerShell command history
 del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
 
 choice /C YN /N /M "Run Disk Cleanup to complete the cleaning? (Y/N): "
@@ -2283,7 +2285,7 @@ powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
 goto :eof
 
 :DHCP
-echo Set DHCP on all connected interfaces
+echo Setting DHCP on all connected interfaces
 
 :: Find all active network adapters
 for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
@@ -2385,19 +2387,18 @@ call :GO PROGRAMS_MANAGER_MENU
 
 :CREATE_FOLDER
 set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2"
-echo.
 
 if exist "%BACKUP_DIR%" (
-    echo Backup directory: %BACKUP_DIR% already exists
+    echo.
+    echo Backup directory already exists: %BACKUP_DIR% 
     
     choice /C YN /N /M "Do you want to delete the existing backup and start fresh? (Y/N): "
     if errorlevel 2 exit /b 1
-    
-    echo Deleting old backup folder
     rd /s /q "%BACKUP_DIR%" >nul 2>&1
 )
 
 if exist "%BACKUP_DIR%" (
+    echo.
     echo Failed to delete old backup folder
     exit /b 1
 ) else (
@@ -2436,7 +2437,7 @@ set "LOG_FILE=%TARGET_DIR%\%~2.log"
 goto :eof
 
 :RESTART
-echo. & echo Restart your computer in 5 seconds
+echo. & echo Your computer will restart after 5 seconds
 shutdown /r /t 5
 timeout /t 3 >nul
 exit
