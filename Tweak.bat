@@ -774,14 +774,18 @@ if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :PATH "Security" "RemoveAllPolicies"
 call :CREATE_FOLDER "Security" "GroupPolicyBackup"
-
-if %errorlevel% neq 0 call :GO PRIVACY_SECURITY_MENU
+if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
 
 set "GP_DIR=%WinDir%\System32\GroupPolicy"
 set "GPU_DIR=%WinDir%\System32\GroupPolicyUsers"
 
-echo. & echo Phase 1: Backing up all configurations
+set "GP_KEY=HKLM\Software\Policies"
+set "GPU_KEY=HKCU\Software\Policies"
 
+set "HKLM_POLICIES="
+set "HKCU_POLICIES="
+
+echo.
 if exist "%GP_DIR%" (
     echo Backing up GroupPolicy folder
     robocopy "%GP_DIR%" "%BACKUP_DIR%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
@@ -800,27 +804,29 @@ if exist "%GPU_DIR%" (
     )
 )
 
-reg query "HKLM\Software\Policies" >nul 2>&1
+reg query "%GP_KEY%" >nul 2>&1
 if !errorlevel! equ 0 (
+    set "HKLM_POLICIES=0"
     echo Backing up HKLM Policies registry key
-    reg export "HKLM\Software\Policies" "%BACKUP_DIR%\HKLM_Policies_Backup.reg" /y >> "%LOG_FILE%" 2>&1
+    reg export "%GP_KEY%" "%BACKUP_DIR%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup HKLM Policies. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
 
-reg query "HKCU\Software\Policies" >nul 2>&1
+reg query "%GPU_KEY%" >nul 2>&1
 if !errorlevel! equ 0 (
+    set "HKCU_POLICIES=0"
     echo Backing up HKCU Policies registry key
-    reg export "HKCU\Software\Policies" "%BACKUP_DIR%\HKCU_Policies_Backup.reg" /y >> "%LOG_FILE%" 2>&1
+    reg export "%GPU_KEY%" "%BACKUP_DIR%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup HKCU Policies. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
 
-echo. & echo Phase 2: Deleting policies
+echo.
 if exist "%GP_DIR%" (
     echo Deleting GroupPolicy folder
     rd /s /q "%GP_DIR%" >> "%LOG_FILE%" 2>&1
@@ -831,11 +837,15 @@ if exist "%GPU_DIR%" (
     rd /s /q "%GPU_DIR%" >> "%LOG_FILE%" 2>&1
 )
 
-echo Deleting HKLM Policies registry key
-reg delete "HKLM\Software\Policies" /f >> "%LOG_FILE%" 2>&1
+if "!HKLM_POLICIES!"=="0" (
+    echo Deleting HKLM Policies registry key
+    reg delete "%GP_KEY%" /f >> "%LOG_FILE%" 2>&1
+)
 
-echo Deleting HKCU Policies registry key
-reg delete "HKCU\Software\Policies" /f >> "%LOG_FILE%" 2>&1
+if "!HKCU_POLICIES!"=="0" (
+    echo Deleting HKCU Policies registry key
+    reg delete "%GPU_KEY%" /f >> "%LOG_FILE%" 2>&1
+)
 
 echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
