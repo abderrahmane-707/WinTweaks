@@ -454,8 +454,7 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
-cls & echo WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information!"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 echo.
@@ -570,8 +569,7 @@ for %%S in (BITS wuauserv) do call :SC_CONFIGURE "%%S" "demand"
 call :LOG WINDOWS_UPDATES_MENU
 
 :RESET_UPDATES
-echo. & echo WARNING: This will purge all Windows Update data and reset security policies!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This will purge all Windows Update data and reset security policies!"
 if errorlevel 2 goto WINDOWS_UPDATES_MENU
 
 call :PATH "Security" "ResetUpdates"
@@ -679,8 +677,7 @@ if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 call :INVALID (0-3) WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
-echo. & echo WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection!"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Disabling Windows defender via registry
@@ -697,8 +694,7 @@ reg import "Files\Security\DefaultDefender.reg"
 call :GO WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
-echo. & echo WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system!"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Removing Windows Defender Security Health UI component
@@ -749,8 +745,7 @@ reg import "Files\Security\DefaultSecurity.reg"
 call :GO PRIVACY_SECURITY_MENU
 
 :REMOVE_POLICIES
-cls & echo WARNING: This script will RESET all Group Policy settings to system defaults!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults!"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :PATH "Security" "RemoveAllPolicies"
@@ -1042,8 +1037,7 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPas
 call :LOG NETWORK_MENU
 
 :NETWORK_RESET
-cls & echo WARNING: This script will RESET ALL network configurations!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This script will RESET ALL network configurations!"
 if errorlevel 2 goto NETWORK_MENU
 
 call :PATH "Network" "NetworkReset"
@@ -1369,8 +1363,7 @@ start "" cmd /c "Files\Programs\office.bat"
 goto PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
-cls & echo WARNING: This will remove ALL Microsoft Store apps!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This will remove ALL Microsoft Store apps!"
 if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
@@ -2004,8 +1997,7 @@ call :GO DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
-cls & echo WARNING: This will permanently remove rollback capability for Windows Updates!
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CONFIRM "WARNING: This will permanently remove rollback capability for Windows Updates!"
 if errorlevel 2 goto DISM_MENU
 
 echo Cleaning Windows components
@@ -2440,6 +2432,12 @@ if "%choice%"=="2" goto %REV_ROUTINE%
 if "%choice%"=="0" goto %MENU%
 
 call :INVALID (0-2) SUB_MENU
+
+:CONFIRM
+:: %1=WarningText  %2=NoDestination
+cls & echo %~1
+choice /C YN /N /M "Continue anyway? (Y/N): "
+goto :eof
 
 :INVALID
 echo. & echo [ERROR] Invalid selection. Please choose a valid option between %1
