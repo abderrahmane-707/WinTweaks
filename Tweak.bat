@@ -652,7 +652,8 @@ ipconfig /renew >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-call :RESTART "call :LOG WINDOWS_UPDATES_MENU"
+call :RESTART
+call :LOG WINDOWS_UPDATES_MENU
 
 :WINDOWS_DEFENDER_MENU
 cls & echo. & echo.
@@ -679,7 +680,8 @@ if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 echo. & echo Disabling Windows defender via registry
 reg import "Files\Security\DisableDefender.reg"
 
-call :RESTART "call :GO WINDOWS_DEFENDER_MENU"
+call :RESTART
+call :GO WINDOWS_DEFENDER_MENU
 
 :ENABLE_DEFENDER
 echo. & echo Restoring default Windows Defender registry settings
@@ -699,7 +701,8 @@ for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\Powe
 echo Deleting Windows Defender files
 "Files\Security\PowerRun.exe" /TI /SW:0 "Files\Security\DefenderFileRemover.bat"
 
-call :RESTART "call :GO WINDOWS_DEFENDER_MENU"
+call :RESTART
+call :GO WINDOWS_DEFENDER_MENU
 
 :ENHANCE_SECURITY
 call :PATH "Security" "EnhanceSecurity"
@@ -1121,7 +1124,8 @@ ipconfig /renew6  >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-call :RESTART "call :LOG NETWORK_MENU"
+call :RESTART
+call :LOG NETWORK_MENU
 
 :NETWORK_INFO
 call :PATH "Network" "NetworkInfo"
@@ -2398,12 +2402,13 @@ goto :eof
 
 :RESTART
 echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
-if errorlevel 2 %~1
-
-echo Your computer will restart after 5 seconds
-shutdown /r /t 5
-timeout /t 3 >nul
-exit
+if not errorlevel 2 if errorlevel 1 (
+    echo Your computer will restart after 5 seconds
+    shutdown /r /t 5
+    timeout /t 3 >nul
+    exit
+)
+goto :eof
 
 :: This section dynamically builds a menu based on variables set before calling it
 :SUB_MENU
