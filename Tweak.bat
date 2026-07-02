@@ -212,7 +212,7 @@ cls
 call :RUNNING_BROWSERS
 
 if "!BROWSERS_OPEN!"=="1" (
-    choice /C YN /N /M "Close browsers to clean them? (Y/N): "
+    call :CHOICE "Close browsers to clean them?"
     echo.
     if errorlevel 2 (
         echo Skipping cleaning browsers
@@ -1868,7 +1868,7 @@ for %%A in (
 
 if exist "%BACKUP_DIR%\*.hive" (
     echo. & echo Backup completed successfully. Hive files saved to: %BACKUP_DIR%
-	choice /C YN /N /M "Compress folder? (Y/N): "
+	call :CHOICE "Compress folder?"
 	if not errorlevel 2 if errorlevel 1 (
         echo Compressing hive files
         powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%" >>"%LOG_FILE%" 2>&1
@@ -2237,7 +2237,7 @@ start explorer.exe >nul 2>&1
 echo Clearing PowerShell command history
 del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
 
-choice /C YN /N /M "Run Disk Cleanup to complete the cleaning? (Y/N): "
+call :CHOICE "Run Disk Cleanup to complete the cleaning?"
 if not errorlevel 2 if errorlevel 1 (
     echo Running Disk Cleanup
 	cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
@@ -2356,7 +2356,7 @@ if exist "%BACKUP_DIR%" (
     echo.
     echo Backup directory already exists: %BACKUP_DIR% 
     
-    choice /C YN /N /M "Do you want to delete the existing backup and start fresh? (Y/N): "
+    call :CHOICE "Do you want to delete the existing backup and start fresh?"
     if errorlevel 2 exit /b 1
     rd /s /q "%BACKUP_DIR%" >nul 2>&1
 )
@@ -2400,16 +2400,6 @@ set "LOG_FILE=%TARGET_DIR%\%~2.log"
 (echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
 goto :eof
 
-:RESTART
-echo. & choice /C YN /N /M "Do you want to restart your computer? (Y/N): "
-if not errorlevel 2 if errorlevel 1 (
-    echo Your computer will restart after 5 seconds
-    shutdown /r /t 5
-    timeout /t 3 >nul
-    exit
-)
-goto :eof
-
 :: This section dynamically builds a menu based on variables set before calling it
 :SUB_MENU
 cls & echo. & echo.
@@ -2426,9 +2416,23 @@ if "%choice%"=="0" goto %MENU%
 
 call :INVALID (0-2) SUB_MENU
 
+:RESTART
+echo. & call :CHOICE "Do you want to restart your computer?"
+if not errorlevel 2 if errorlevel 1 (
+    echo Your computer will restart after 5 seconds
+    shutdown /r /t 5
+    timeout /t 3 >nul
+    exit
+)
+goto :eof
+
+:CHOICE
+choice /C YN /N /M "%~1 (Y/N): "
+goto :eof
+
 :CONFIRM
 cls & echo %~1
-choice /C YN /N /M "Continue anyway? (Y/N): "
+call :CHOICE "Continue anyway?"
 goto :eof
 
 :INVALID
