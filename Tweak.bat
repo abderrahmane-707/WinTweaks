@@ -1844,10 +1844,12 @@ if %errorlevel% equ 0 (
 call :LOG SYSTEM_MENU
 
 :REG_BACK
-call :PATH "System" "FullRegistryBackup"
 cls
+call :PATH "System" "FullRegistryBackup"
 call :CREATE_FOLDER "System" "FullRegistryBackup"
 if %errorlevel% equ 1 call :GO SYSTEM_MENU
+
+set "SUCCESS_COUNT=0"
 
 :: Define the main system Hives for binary export
 echo Creating Full Registry Backup
@@ -1860,18 +1862,32 @@ for %%A in (
     "HKCU,NTUSER"
     "HKCU\Software\Classes,UsrClass"
 ) do (
-	for /f "tokens=1,2 delims=," %%B in ("%%~A") do (
+    for /f "tokens=1,2 delims=," %%B in ("%%~A") do (
         echo  Exporting: %%B
-        reg save "%%B" "%BACKUP_DIR%\%%C.hive" /y >>"%LOG_FILE%" 2>&1
+        reg save "%%B" "%BACKUP_DIR%\%%C.hive" /y >>"%LOG_FILE%" 2>&1      
+        if !errorlevel! equ 0 set /a SUCCESS_COUNT+=1
     )
 )
 
 if exist "%BACKUP_DIR%\*.hive" (
-    echo. & echo Backup completed successfully. Hive files saved to: %BACKUP_DIR%
-	call :CHOICE "Compress folder?"
-	if not errorlevel 2 if errorlevel 1 (
-        echo Compressing hive files
-        powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%" >>"%LOG_FILE%" 2>&1
+    echo. & echo Backup Process Finished. Total Success: !SUCCESS_COUNT!/7 
+    call :CHOICE "Compress folder?"
+	echo.
+    if errorlevel 2 (
+        echo Backup saved in: %BACKUP_DIR%
+    ) else (
+        set "PROCEED_COMPRESSION=1"
+        if exist "%BACKUP_DIR%.zip" (
+            call :CHOICE "FullRegistryBackup.zip already exists. Do you want to delete it?"
+            if errorlevel 2 (
+                echo Keeping the existing archive. Compression cancelled.
+                set "PROCEED_COMPRESSION=0"
+            )
+        )
+        
+        if !PROCEED_COMPRESSION! equ 1 (
+            powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
+        )
     )
 ) else (
     echo No hive files were created. Backup failed
