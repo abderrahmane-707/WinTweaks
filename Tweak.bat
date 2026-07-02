@@ -74,8 +74,8 @@ if "%choice%"=="2" (
 if "%choice%"=="3" (
     set ROUTINE=BOOT_TWEAKS
     set REV_ROUTINE=REV_BOOT_TWEAKS
-    set APPLY=Enhance boot up settings
-    set REVERT=Set boot up settings to default
+	set APPLY=Enhance boot-up settings
+    set REVERT=Set boot-up settings to default
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
 )
@@ -295,7 +295,7 @@ cls & echo. & echo.
 echo                        --------------------------------- HW Info ---------------------------------
 echo.
 echo                           [1] CPU                                                    [2] GPU
-echo. 
+echo.
 echo                           [3] Hard Disk                                              [4] RAM
 echo. 
 echo                           [5] Motherboard                                            [6] Battery
@@ -405,9 +405,9 @@ reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows telemetry services
 
-:: DiagTrack :      Connected User Experiences and Telemetry
-:: dmwappushsvc :   WAP Push Message Routing Service
-:: WerSvc :         Windows Error Reporting Service
+:: DiagTrack:      Connected User Experiences and Telemetry
+:: dmwappushsvc:   WAP Push Message Routing Service
+:: WerSvc:         Windows Error Reporting Service
 for %%S in (DiagTrack dmwappushsvc WerSvc) do call :SC_CONFIGURE "%%S" "disabled"
 
 echo Blocking windows telemetry and trash domains
@@ -454,7 +454,7 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
-cls & echo WARNING: This will permanently delete browser data, logs, and privacy-related information!
+cls & echo WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
@@ -546,13 +546,13 @@ reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 echo Disabling Windows Update services
 for %%S in (BITS UsoSvc wuauserv) do call :SC_CONFIGURE "%%S" "disabled"
 
-echo Stopping Windows update services
+echo Stopping Windows Update services
 for %%S in (BITS UsoSvc wuauserv) do call :NET_CONTROL "%%S" "stop"
 
-echo Deleting SoftwareDistribution folders
+echo echo Deleting SoftwareDistribution folder
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
-echo Deleting Windows update log
+echo Deleting Windows Update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 call :LOG WINDOWS_UPDATES_MENU
@@ -579,10 +579,10 @@ call :PATH "Security" "ResetUpdates"
 echo. & echo Resetting Windows Update registry keys to default
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
-echo Stopping Windows update services
+echo Stopping Windows Update services
 
 :: BITS:                  Background Intelligent Transfer Service
-:: CryptSvc:              System files signatures
+:: CryptSvc:              Verifies system file signatures
 :: DoSvc:                 Delivery Optimization
 :: UsoSvc:                Update Orchestrator Service
 :: WaaSMedicSvc:          Windows Update Medic Service
@@ -590,19 +590,19 @@ echo Stopping Windows update services
 :: WinHttpAutoProxySvc:   Automatically discover proxy settings using WPAD
 for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "stop"
 
-:: Remove pending updates and update history
-echo Deleting SoftwareDistribution folders
+:: Remove pending Updates and update history
+echo echo Deleting SoftwareDistribution folder
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
 :: Force Windows to rebuild the update database and signatures
-echo Deleting Catroot2 folders
+echo Deleting Catroot2 folder
 rd /s /q "%SYSTEMROOT%\System32\catroot2" >> "%LOG_FILE%" 2>&1
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
 echo Clearing BITS queue manager data files
 del /f /q "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" >> "%LOG_FILE%" 2>&1
 
-echo Deleting Windows update log
+echo Deleting Windows Update log
 del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
 
 :: Restore default Security Descriptors (Permissions) for BITS and Windows Update services
@@ -679,7 +679,7 @@ if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 call :INVALID (0-3) WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
-echo. & echo WARNING: This will permanently disable Windows Defender real-time protection!
+echo. & echo WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
@@ -728,7 +728,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\DisableUnsaf
 echo Disabling unsafe Windows services
 
 :: mrxsmb10:        SMB 1.0/CIFS File Server Driver (High security risk)
-:: RemoteRegistry : Allows remote users to modify Windows Registry settings
+:: RemoteRegistry:  Allows remote users to modify Windows Registry settings
 :: SNMP:            Simple Network Management Protocol (Often used for network reconnaissance)
 :: SNMPTRAP:        Receives trap messages generated by local or remote SNMP agents
 for %%S in (mrxsmb10 RemoteRegistry SNMP SNMPTRAP) do (
@@ -1042,7 +1042,7 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPas
 call :LOG NETWORK_MENU
 
 :NETWORK_RESET
-cls & echo WARNING: This script will reset all network configurations!
+cls & echo WARNING: This script will RESET ALL network configurations!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto NETWORK_MENU
 
@@ -1050,12 +1050,12 @@ call :PATH "Network" "NetworkReset"
 echo. & echo Stopping Network Services
 
 :: Dhcp:      Obtains and renews IP configuration from DHCP servers
-:: dnscache:  Temporarily store DNS results to speed up queries
+:: dnscache:  Temporarily stores DNS results to speed up queries
 :: dot3svc:   Handles authentication for wired (Ethernet) network connections
-:: netman:    Manages objects in the Network
+:: netman:    Manages objects in the network
 :: netprofm:  Identifies the networks the computer has connected to
 :: nlasvc:    Collects and stores configuration information
-:: WlanSvc:   Connect to Wi-Fi
+:: WlanSvc:   Connects to Wi-Fi
 :: WwanSvc:   Manages mobile broadband
 for %%S in (dot3svc netman WlanSvc WwanSvc) do call :NET_CONTROL "%%S" "stop"
 
@@ -1675,7 +1675,7 @@ if "%choice%"=="1" (
     set ROUTINE=CMD_CONTEXT
     set REV_ROUTINE=REV_CMD_CONTEXT
     set APPLY=Add "Open CMD Here" options to context menu
-    set REVERT=Remove options
+    set REVERT=Remove option
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
@@ -1683,7 +1683,7 @@ if "%choice%"=="2" (
     set ROUTINE=CMD_CONTEXT_ADMIN
     set REV_ROUTINE=REV_CMD_CONTEXT_ADMIN
     set APPLY=Add "Open CMD Here (Admin)" options to context menu
-    set REVERT=Remove options
+    set REVERT=Remove option
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
@@ -1818,8 +1818,8 @@ reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stopping restore point services
 
-:: VSS :    Volume Shadow Copy Service (Manages data backup/snapshots)
-:: swprv :  Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
+:: VSS:      Volume Shadow Copy Service (Manages data backup/snapshots)
+:: swprv:    Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
 for %%S in (VSS swprv) do call :NET_CONTROL "%%S" "stop"
 
 echo Re-registering VSS-related system libraries
@@ -1840,10 +1840,10 @@ for %%S in (VSS swprv) do (
     call :NET_CONTROL "%%S" "start"
 )
 
-:: RpcSs :      Remote Procedure Call (RPC) Service (Manages inter-process communication)
-:: EventLog :   Windows Event Log Service (Records system, security, and application events)
-:: EventSystem : COM+ Event System (Distributes system events to subscribed components)
-:: Schedule :   Task Scheduler Service (Manages scheduled tasks, including automatic restore point creation)
+:: RpcSs:         Remote Procedure Call (RPC) Service (Manages inter-process communication)
+:: EventLog:      Windows Event Log Service (Records system, security, and application events)
+:: EventSystem:   COM+ Event System (Distributes system events to subscribed components)
+:: Schedule:      Task Scheduler Service (Manages scheduled tasks, including automatic restore point creation)
 for %%S in (RpcSs CryptSvc EventLog EventSystem Schedule) do (
     call :SC_CONFIGURE "%%S" "auto"
     call :NET_CONTROL "%%S" "start"
@@ -2004,7 +2004,7 @@ call :GO DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
-cls & echo WARNING: This will permanently removes rollback capability for Windows Updates!
+cls & echo WARNING: This will permanently remove rollback capability for Windows Updates!
 choice /C YN /N /M "Continue anyway? (Y/N): "
 if errorlevel 2 goto DISM_MENU
 
