@@ -1167,6 +1167,7 @@ if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\c
 
 call :CHECK_CHOCO
 
+
 :PROGRAMS_MENU_VAR
 set "ON=(YES)"
 set "OFF=(NO)"
@@ -1178,7 +1179,7 @@ for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "OPT%%A=%OFF%"
 cls & echo. & echo.
 echo                        ----------------------------------- Programs -----------------------------------
 echo.
-echo                           [1] Google Chrome            [7] XnViewMP               [13] All VC++
+echo                           [1] Google Chrome            [7] XnViewMP               [13] VC++ (2015-2022)
 echo.
 echo                           [2] Brave                    [8] Sumatra PDF            [14] DirectX
 echo.
@@ -1223,82 +1224,44 @@ goto PROGRAMS_MENU
 for /L %%i in (1,1,18) do set "OPT%%i=%OFF%"
 goto PROGRAMS_MENU
 
-:: Checks each option; if ON, runs the 'choco install' command with the -y (auto-confirm)
 :INSTALL_PROGRAMS
 cls
-call :IS_ON OPT1 && (
-    echo Installing Google Chrome
-    choco install googlechrome -y
-)
-call :IS_ON OPT2 && (
-    echo Installing Brave
-    choco install brave -y 
-)
-call :IS_ON OPT3 && (
-    echo Installing WinRAR
-    choco install winrar -y 
-)
-call :IS_ON OPT4 && (
-    echo Installing 7-Zip
-    choco install 7zip.install -y
-)
-call :IS_ON OPT5 && (
-    echo Installing K-Lite Codec Pack Standard
-    choco install k-litecodecpack-standard -y
-)
-call :IS_ON OPT6 && (
-    echo Installing IrfanView
-    choco install irfanview -y
-)
-call :IS_ON OPT7 && (
-    echo Installing XnView MP
-    choco install xnviewmp.install -y
-)
-call :IS_ON OPT8 && (
-    echo Installing Sumatra PDF
-    choco install sumatrapdf.install -y
-)
-call :IS_ON OPT9 && (
-    echo Installing Notepad++
-    choco install notepadplusplus.install -y
-)
-call :IS_ON OPT10 && (
-    echo Installing Visual Studio Code
-    choco install vscode.install -y
-)
-call :IS_ON OPT11 && (
-    echo Installing Git
-    choco install git -y
-)
-call :IS_ON OPT12 && (
-    echo Installing qbittorrent
-    choco install qbittorrent -y
-)
-call :IS_ON OPT13 && (
-    echo Installing All VC++ Redistributables
-    choco install vcredist140 -y
-)
-call :IS_ON OPT14 && (
-    echo Installing DirectX
-    choco install directx -y
-)
-call :IS_ON OPT15 && (
-    echo Installing Virtual Box
-    choco install virtualbox -y
-)
-call :IS_ON OPT16 && (
-    echo Installing IObit Unlocker
-    choco install io-unlocker -y
-)
-call :IS_ON OPT17 && (
-    echo Installing AutoHotkey
-    choco install autohotkey -y
-)
-call :IS_ON OPT18 && (
-    echo Installing MEGA
-    choco install megasync -y
-)
+call :IS_ON OPT1  && call :TRY_INSTALL googlechrome "Google Chrome"
+call :IS_ON OPT2  && call :TRY_INSTALL brave "Brave"
+call :IS_ON OPT3  && call :TRY_INSTALL winrar "WinRAR"
+call :IS_ON OPT4  && call :TRY_INSTALL 7zip.install "7-Zip"
+call :IS_ON OPT5  && call :TRY_INSTALL k-litecodecpack-standard "K-Lite Codec"
+call :IS_ON OPT6  && call :TRY_INSTALL irfanview "IrfanView"
+call :IS_ON OPT7  && call :TRY_INSTALL xnviewmp.install "XnView MP"
+call :IS_ON OPT8  && call :TRY_INSTALL sumatrapdf.install "Sumatra PDF"
+call :IS_ON OPT9  && call :TRY_INSTALL notepadplusplus.install "Notepad++"
+call :IS_ON OPT10 && call :TRY_INSTALL vscode.install "Visual Studio Code"
+call :IS_ON OPT11 && call :TRY_INSTALL git "Git"
+call :IS_ON OPT12 && call :TRY_INSTALL qbittorrent "qbittorrent"
+call :IS_ON OPT13 && call :TRY_INSTALL vcredist140 "VC++ Redistributables (2015-2022)"
+call :IS_ON OPT14 && call :TRY_INSTALL directx "DirectX"
+call :IS_ON OPT15 && call :TRY_INSTALL virtualbox "Virtual Box"
+call :IS_ON OPT16 && call :TRY_INSTALL io-unlocker "IObit Unlocker"
+call :IS_ON OPT17 && call :TRY_INSTALL autohotkey "AutoHotkey"
+call :IS_ON OPT18 && call :TRY_INSTALL megasync "MEGA"
+
 call :GO PROGRAMS_MANAGER_MENU
+
+:TRY_INSTALL
+echo. & echo Installing: %~2
+choco install %~1 -y
+
+if %errorlevel% neq 0 (
+    echo. & echo Failed to install: %~2  
+    call :CHOICE "Do you want to ignore checksum and retry?"
+    if errorlevel 2 (
+	    exit /b 1  
+    ) else (
+        echo. & echo Retrying with --ignore-checksums
+        choco install %~1 --ignore-checksums -y
+    )
+)
+goto :eof
 
 :: Check if a flag is set to (YES)
 :IS_ON
@@ -1913,7 +1876,7 @@ call :INVALID (0-2) ACTIVATION_MENU
 
 :: Activating Windows and Microsoft Office using MAS script
 :RUN_ACTIVATION
-cls & echo. & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
+cls & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
 echo The script will open in a new window. Follow the on-screen instructions.
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
 call :GO ACTIVATION_MENU
