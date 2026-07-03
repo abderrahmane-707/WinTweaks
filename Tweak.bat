@@ -1527,13 +1527,21 @@ call :GO CUSTOMIZATION_MENU
 
 :: Disable notifications
 :DIS_NOTIFICATION
-reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
+echo. & echo Disabling notification services
+for %%S in (WpnService WpnUserService) do call :SC_CONFIGURE "%%S" "disabled" >nul 2>&1
+
+echo Disabling notification via registry
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
 :: Re-enable notification
 :ENA_NOTIFICATION
-reg delete "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
+echo. & echo Enabling notification services
+for %%S in (WpnService WpnUserService) do call :SC_CONFIGURE "%%S" "disabled" >nul 2>&1
+
+echo Enabling notification via registry
+reg delete "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 1 /f >nul 2>&1
 call :GO CUSTOMIZATION_MENU
 
