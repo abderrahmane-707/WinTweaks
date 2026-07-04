@@ -2325,19 +2325,18 @@ call :GO PROGRAMS_MANAGER_MENU
 call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
 
 set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
-if exist "%FILE%" (
-    echo. & echo %FILE%: Already exists
+if exist "%TARGET_FILE%" (
+    echo. & echo %TARGET_FILE%: Already exists
     call :CHOICE "Do you want to delete the existing file and start fresh?"
     if errorlevel 2 exit /b 1
 
-    del /f /q "%FILE%" >nul 2>&1
+    del /f /q "%TARGET_FILE%" >nul 2>&1
 )
 
-if exist "%FILE%" (
+if exist "%TARGET_FILE%" (
     echo. & echo Failed to delete old file
     exit /b 1
 )
-
 goto :eof
 
 :CREATE_FOLDER
