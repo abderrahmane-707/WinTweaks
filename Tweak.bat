@@ -756,7 +756,9 @@ set "GPU_KEY=HKCU\Software\Policies"
 set "HKLM_POLICIES="
 set "HKCU_POLICIES="
 
-echo.
+echo. & echo Applying default security policy baseline
+secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
+
 if exist "%GP_DIR%" (
     echo Backing up GroupPolicy folder
     robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
