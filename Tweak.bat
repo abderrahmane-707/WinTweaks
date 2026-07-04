@@ -418,7 +418,6 @@ echo Backing up original Hosts file
 copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
 
 echo Blocking windows telemetry and trash domains
-set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
     if errorlevel 1 (
@@ -555,7 +554,7 @@ for %%S in (BITS UsoSvc wuauserv) do call :SC_CONFIGURE "%%S" "disabled" >> "%LO
 echo Stopping Windows Update services
 for %%S in (BITS UsoSvc wuauserv) do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
-echo echo Deleting SoftwareDistribution folder
+echo Deleting SoftwareDistribution folder
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
 echo Deleting Windows Update log
@@ -623,7 +622,7 @@ for %%D in (atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll v
 )
 
 :: Revert system security policies to the Windows default baseline
-echo Apply default security settings
+echo Applying default security policy baseline
 secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
 
 :: Forcefully clear all BITS download jobs for all users on the system
@@ -2077,7 +2076,7 @@ goto TOOLS_MENU
 cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
 goto TOOLS_MENU
 
-:: Delete "%ProgramData%\WinTweaks" folder
+:: Delete "%PROGRAMDATA%\WinTweaks" folder
 :DELETE_SCRIPT_DATA
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1"
 call :GO TOOLS_MENU
