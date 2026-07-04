@@ -1538,7 +1538,7 @@ call :GO CUSTOMIZATION_MENU
 :: Re-enable notification
 :ENA_NOTIFICATION
 echo. & echo Enabling notification services
-for %%S in (WpnService WpnUserService) do call :SC_CONFIGURE "%%S" "disabled" >nul 2>&1
+for %%S in (WpnService WpnUserService) do call :SC_CONFIGURE "%%S" "auto" >nul 2>&1
 
 echo Enabling notification via registry
 reg delete "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
