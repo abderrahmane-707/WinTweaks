@@ -248,7 +248,7 @@ workfolderssvc,Manual
 WpcMonSvc,Manual
 WPDBusEnum,Manual
 WpnService,Automatic
-WpnUserService,Manual
+WpnUserService,Automatic
 wscsvc,AutomaticDelayedStart
 WSearch,AutomaticDelayedStart
 wuauserv,Manual
