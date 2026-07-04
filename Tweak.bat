@@ -42,7 +42,7 @@ if "%choice%"=="5" goto CUSTOMIZATION_MENU
 if "%choice%"=="6" goto SYSTEM_MENU
 if "%choice%"=="7" goto TOOLS_MENU
 if "%choice%"=="8" goto OTHER_MENU
-if "%choice%"=="0" exit /b
+if "%choice%"=="0" exit
 
 call :INVALID "(0-8)" "MAIN_MENU"
 
