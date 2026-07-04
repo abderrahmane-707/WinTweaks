@@ -2109,7 +2109,7 @@ for /f "usebackq delims=" %%i in ("%~2") do (
 
     :: Verify the task if exists
     schtasks /query /tn "%%i" >nul 2>&1
-    if errorlevel 1 (
+	if !errorlevel! neq 0 (
         set "TASK_RESULT=[NOT_FOUND]"
     ) else (
         :: Apply the change (Disable or Enable)
@@ -2120,7 +2120,7 @@ for /f "usebackq delims=" %%i in ("%~2") do (
         )
 
         :: Check if the command is failed
-        if errorlevel 1 (
+        if !errorlevel! neq 0 (
             set "TASK_RESULT=[FAILED]"
         )
     )
