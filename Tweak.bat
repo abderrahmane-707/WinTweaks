@@ -2139,7 +2139,7 @@ set "BROWSERS_OPEN=0"
 for %%A in (%BROWSERS%) do (
     tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
     if not errorlevel 1 (
-	    echo %%A are currently running
+		echo %%A is currently running
         set "BROWSERS_OPEN=1"
     )
 )
