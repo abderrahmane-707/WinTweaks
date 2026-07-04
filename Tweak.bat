@@ -2391,7 +2391,7 @@ goto :eof
 call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
 
 :: Set the full path for the current log file
-set "LOG_FILE=%TARGET_DIR%\%~2.log"
+set "LOG_FILE=%MKDIR_DIR%\%~2.log"
 
 :: Initialize the log file with a fresh timestamp header for every session
 (echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
