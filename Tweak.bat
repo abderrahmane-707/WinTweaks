@@ -466,30 +466,13 @@ if "!BROWSERS_OPEN!"=="1" (
 )
 
 :: Remove all Chromium-based browsers personal data
-if exist "%LOCALAPPDATA%\Google\Chrome\User Data" (
-    echo Cleaning Google Chrome data
-    rd /s /q "%LOCALAPPDATA%\Google\Chrome\User Data" >nul 2>&1
-)
-
-if exist "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data" (
-    echo Cleaning Brave data
-    rd /s /q "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data" >nul 2>&1
-)
-
-if exist "%LOCALAPPDATA%\Microsoft\Edge\User Data" (
-    echo Cleaning Microsoft Edge data
-    rd /s /q "%LOCALAPPDATA%\Microsoft\Edge\User Data" >nul 2>&1
-)
+call :DELETE_FOLDERS "Cleaning Google Chrome data" "%LOCALAPPDATA%\Google\Chrome\User Data"
+call :DELETE_FOLDERS "Cleaning Brave data" "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data"
+call :DELETE_FOLDERS "Cleaning Microsoft Edge data" "%LOCALAPPDATA%\Microsoft\Edge\User Data"
 
 :: Remove all Mozilla Firefox personal data
-echo Cleaning Mozilla Firefox data
-if exist "%APPDATA%\Mozilla\Firefox" (
-    rd /s /q "%APPDATA%\Mozilla\Firefox" >nul 2>&1
-)
-
-if exist "%LOCALAPPDATA%\Mozilla\Firefox" (
-    rd /s /q "%LOCALAPPDATA%\Mozilla\Firefox" >nul 2>&1
-)
+call :DELETE_FOLDERS "Cleaning Firefox roaming user data" "%APPDATA%\Mozilla\Firefox"
+call :DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\Firefox"
 
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
@@ -500,7 +483,7 @@ del /f /s /q "%SYSTEMROOT%\Prefetch\*" >nul 2>&1
 
 :: Clean System Log files
 echo Cleaning system log files
-for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /s /q %%L\*" >nul 2>&1
+for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q /s %%L\*" >nul 2>&1
 
 :: Clear Windows Event Viewer logs
 echo Cleaning Windows Event Logs
@@ -545,8 +528,7 @@ for %%S in (BITS UsoSvc wuauserv) do call :SC_CONFIGURE "%%S" "disabled" >> "%LO
 echo Stopping Windows Update services
 for %%S in (BITS UsoSvc wuauserv) do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
-echo Deleting SoftwareDistribution folder
-rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
+call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
 
 call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
 
@@ -585,12 +567,10 @@ echo Stopping Windows Update services
 for %%S in (BITS CryptSvc DoSvc UsoSvc WaaSMedicSvc wuauserv WinHttpAutoProxySvc) do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
 :: Remove pending Updates and update history
-echo echo Deleting SoftwareDistribution folder
-rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
+call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
 
 :: Force Windows to rebuild the update database and signatures
-echo Deleting Catroot2 folder
-rd /s /q "%SYSTEMROOT%\System32\catroot2" >> "%LOG_FILE%" 2>&1
+call :DELETE_FOLDERS "Deleting Catroot2 folder" "%SYSTEMROOT%\System32\catroot2" "%LOG_FILE%"
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
 call :DELETE_FILES "Clearing BITS queue manager data files" "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" "%LOG_FILE%"
@@ -791,15 +771,8 @@ if !errorlevel! equ 0 (
 )
 
 echo.
-if exist "%GP_DIR%" (
-    echo Deleting GroupPolicy folder
-    rd /s /q "%GP_DIR%" >> "%LOG_FILE%" 2>&1
-)
-
-if exist "%GPU_DIR%" (
-    echo Deleting GroupPolicyUsers folder
-    rd /s /q "%GPU_DIR%" >> "%LOG_FILE%" 2>&1
-)
+call :DELETE_FOLDERS "Deleting GroupPolicy folder" "%GP_DIR%" "%LOG_FILE%"
+call :DELETE_FOLDERS "Deleting GroupPolicyUsers folder" "%GPU_DIR%" "%LOG_FILE%"
 
 if "!HKLM_POLICIES!"=="0" (
     echo Deleting HKLM Policies registry key
@@ -2389,6 +2362,17 @@ if exist "%~2" (
         del /f /q "%~2" >nul 2>&1
     ) else (
         del /f /q "%~2" >> "%~3" 2>&1
+    )
+)
+goto :eof
+
+:DELETE_FOLDERS
+if exist "%~2" (
+    echo %~1
+    if "%~3"=="" (
+        rd /s /q "%~2" >nul 2>&1
+    ) else (
+        rd /s /q "%~2" >> "%~3" 2>&1
     )
 )
 goto :eof
