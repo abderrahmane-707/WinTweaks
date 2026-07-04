@@ -1581,7 +1581,7 @@ call :GO CUSTOMIZATION_MENU
 
 :: Create the "God Mode" folder on the desktop (access to all Windows settings in one list)
 :POWER_SETTINGS
-mkdir "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
+call :MKDIR_PROMPT "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}"
 call :GO CUSTOMIZATION_MENU
 
 :: Delete the "God Mode" folder from the desktop
@@ -2353,12 +2353,7 @@ if exist "%BACKUP_DIR%" (
     echo Failed to delete old backup folder
     exit /b 1
 ) else (
-    mkdir "%BACKUP_DIR%" >nul 2>&1
-    if !errorlevel! neq 0 (
-        echo [ERROR] Failed to create directory: %BACKUP_DIR%
-        pause
-        exit /b 1
-    )
+    call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
 )
 goto :eof
 
@@ -2366,25 +2361,26 @@ goto :eof
 :: %~1 = Subfolder name
 :: %~2 = Log filename
 
-:: Define the base directory within ProgramData for organizational consistency
-set "TARGET_DIR=%ProgramData%\WinTweaks\%~1"
-
-:: Create the folder if it not exist
-:: Prompt to exit if creation is failed
-if not exist "%TARGET_DIR%" (
-    mkdir "%TARGET_DIR%" >nul 2>&1
-    if errorlevel 1 (
-        echo Failed to create directory: %TARGET_DIR%
-        pause
-        exit
-    )
-)
+:: Define the base directory within PROGRAMDATA for organizational consistency
+call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
 
 :: Set the full path for the current log file
 set "LOG_FILE=%TARGET_DIR%\%~2.log"
 
 :: Initialize the log file with a fresh timestamp header for every session
 (echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
+goto :eof
+
+:MKDIR_PROMPT
+:: Create the folder if it not exist
+if not exist "%~1" (
+    mkdir "%~1" >nul 2>&1
+    if errorlevel 1 (
+        echo Failed to create: %~1
+        pause
+        exit
+    )
+)
 goto :eof
 
 :: This section dynamically builds a menu based on variables set before calling it
