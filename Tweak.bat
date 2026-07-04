@@ -166,11 +166,11 @@ call :LOG SERVICES_MENU
 
 :: Create a snapshot of all current Service startup types
 :EXPORT_SERVICES
-call :PATH "Performance" "ServiceStartupStatus"
-
+call :CREATE_FILE "Performance" "ServiceStartupStatus.log"
 echo. & echo Exporting service startup status
-powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%LOG_FILE%" 2>&1
-call :LOG PERFORMANCE_MENU
+powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
+echo. & echo Service Startup Status file saved in: %TARGET_FILE%
+call :GO PERFORMANCE_MENU
 
 :DISABLE_TASKS
 call :PATH "Performance" "DisableScheduledTasks"
@@ -399,6 +399,9 @@ call :INVALID "(0-7)" "PRIVACY_SECURITY_MENU"
 
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
+call :CREATE_FILE "Security" "HostsOriginal"
+
+set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 
 echo. & echo Disabling Windows telemetry via registry
 reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
@@ -409,6 +412,9 @@ echo Disabling Windows telemetry services
 :: dmwappushsvc:   WAP Push Message Routing Service
 :: WerSvc:         Windows Error Reporting Service
 for %%S in (DiagTrack dmwappushsvc WerSvc) do call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
+
+echo Backing up original Hosts file
+copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
 
 echo Blocking windows telemetry and trash domains
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
@@ -1024,9 +1030,10 @@ cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSStat
 call :GO DNS_MENU
 
 :WIFI_PASSWORDS
-call :PATH "Network" "WifiPassword"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%LOG_FILE%"
-call :LOG NETWORK_MENU
+call :CREATE_FILE "Network" "WifiPassword.log"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
+echo. & echo Wifi Password file saved in: %TARGET_FILE%
+call :GO NETWORK_MENU
 
 :NETWORK_RESET
 call :CONFIRM "WARNING: This script will RESET ALL network configurations!"
@@ -2335,6 +2342,25 @@ if %errorlevel% equ 0 goto :eof
 
 echo Choco not found
 call :GO PROGRAMS_MANAGER_MENU
+
+:CREATE_FILE
+call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
+
+set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
+if exist "%FILE%" (
+    echo. & echo %FILE%: Already exists
+    call :CHOICE "Do you want to delete the existing file and start fresh?"
+    if errorlevel 2 exit /b 1
+
+    del /f /q "%FILE%" >nul 2>&1
+)
+
+if exist "%FILE%" (
+    echo. & echo Failed to delete old file
+    exit /b 1
+)
+
+goto :eof
 
 :CREATE_FOLDER
 set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2"
