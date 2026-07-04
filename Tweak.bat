@@ -190,14 +190,8 @@ call :LOG PERFORMANCE_MENU
 echo. & echo Import Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg"
 
-echo Deleting startup shortcuts
-if exist "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" (
-    del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
-)
-
-if exist "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" (
-    del /f /q "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk" >nul
-)
+call :DELETE_FILES "Removing shortcuts from the current user's Startup folder" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk"
+call :DELETE_FILES "Removing shortcuts from the all users Startup folder" "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk"
 
 call :GO PERFORMANCE_MENU
 
@@ -554,8 +548,7 @@ for %%S in (BITS UsoSvc wuauserv) do call :NET_CONTROL "%%S" "stop" >> "%LOG_FIL
 echo Deleting SoftwareDistribution folder
 rd /s /q "%SYSTEMROOT%\SoftwareDistribution" >> "%LOG_FILE%" 2>&1
 
-echo Deleting Windows Update log
-del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
+call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
 
 call :LOG WINDOWS_UPDATES_MENU
 
@@ -600,11 +593,9 @@ echo Deleting Catroot2 folder
 rd /s /q "%SYSTEMROOT%\System32\catroot2" >> "%LOG_FILE%" 2>&1
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
-echo Clearing BITS queue manager data files
-del /f /q "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" >> "%LOG_FILE%" 2>&1
+call :DELETE_FILES "Clearing BITS queue manager data files" "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" "%LOG_FILE%"
 
-echo Deleting Windows Update log
-del /f /q "%SYSTEMROOT%\WindowsUpdate.log" >> "%LOG_FILE%" 2>&1
+call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
 
 :: Restore default Security Descriptors (Permissions) for BITS and Windows Update services
 :: This fixes "Access Denied" errors that prevent services from starting
@@ -2215,8 +2206,7 @@ for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
 )
 
 :: Clear the "Recent Items" list shown in File Explorer
-echo Clearing Recent Files
-del /f /q "%APPDATA%\Microsoft\Windows\Recent\*.lnk" >nul 2>&1
+call :DELETE_FILES "Clearing Recent Files" "%APPDATA%\Microsoft\Windows\Recent\*.lnk"
 
 :: Rebuild icon and thumbnail cache
 echo Rebuilding Thumbnail and Icon cache
@@ -2227,8 +2217,7 @@ del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
 start explorer.exe >nul 2>&1
 
 :: Delete PowerShell command history
-echo Clearing PowerShell command history
-del /f /q "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
+call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 
 call :CHOICE "Run Disk Cleanup to complete the cleaning?"
 if not errorlevel 2 if errorlevel 1 (
@@ -2391,6 +2380,17 @@ set "LOG_FILE=%MKDIR_DIR%\%~2.log"
 
 :: Initialize the log file with a fresh timestamp header for every session
 (echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
+goto :eof
+
+:DELETE_FILES
+if exist "%~2" (
+    echo %~1
+    if "%~3"=="" (
+        del /f /q "%~2" >nul 2>&1
+    ) else (
+        del /f /q "%~2" >> "%~3" 2>&1
+    )
+)
 goto :eof
 
 :MKDIR_PROMPT
