@@ -347,13 +347,14 @@ call :LOG HW_INFO_MENU
 
 :: Generate an advanced HTML report regarding battery health and cycle count
 :BATTERY_INFO
-cls & echo Creating battery report
-set "REPORT_FILE=%TEMP%\BatteryReport.html"
+call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Performance"
+set "BATTERY_REPORT=%MKDIR_DIR%\BatteryReport.html"
 
-powercfg /batteryreport /output "%REPORT_FILE%"
+cls & echo Creating battery report
+powercfg /batteryreport /output "%BATTERY_REPORT%"
 
 :: Opening battery report
-start "" "%REPORT_FILE%"
+start "" "%BATTERY_REPORT%"
 call :GO HW_INFO_MENU
 
 
