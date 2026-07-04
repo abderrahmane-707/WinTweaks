@@ -444,9 +444,6 @@ echo Setting telemetry services to manual startup
 for %%S in (DiagTrack dmwappushsvc WerSvc) do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 echo Removing telemetry and trash domain entries from the Hosts file
-:: Backing up the Hosts file
-copy /y "%HOSTS_PATH%" "%ProgramData%\WinTweaks\Security\HostsOriginal" >> "%LOG_FILE%" 2>&1
-
 :: Filter out blocked domains listed in TrackingDomains.txt from the HOSTS file
 findstr /V /L /G:"Files\Security\TrackingDomains.txt" "%HOSTS_PATH%" > "%TEMP_FILE%"
 
