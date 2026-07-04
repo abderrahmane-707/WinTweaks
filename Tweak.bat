@@ -763,7 +763,7 @@ set "HKCU_POLICIES="
 echo.
 if exist "%GP_DIR%" (
     echo Backing up GroupPolicy folder
-    robocopy "%GP_DIR%" "%BACKUP_DIR%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to backup GroupPolicy. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
@@ -772,7 +772,7 @@ if exist "%GP_DIR%" (
 
 if exist "%GPU_DIR%" (
     echo Backing up GroupPolicyUsers folder
-    robocopy "%GPU_DIR%" "%BACKUP_DIR%\GroupPolicyUsers" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to backup GroupPolicyUsers. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
@@ -783,7 +783,7 @@ reg query "%GP_KEY%" >nul 2>&1
 if !errorlevel! equ 0 (
     set "HKLM_POLICIES=0"
     echo Backing up HKLM Policies registry key
-    reg export "%GP_KEY%" "%BACKUP_DIR%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
+    reg export "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup HKLM Policies. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
@@ -794,7 +794,7 @@ reg query "%GPU_KEY%" >nul 2>&1
 if !errorlevel! equ 0 (
     set "HKCU_POLICIES=0"
     echo Backing up HKCU Policies registry key
-    reg export "%GPU_KEY%" "%BACKUP_DIR%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
+    reg export "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup HKCU Policies. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
@@ -825,7 +825,7 @@ if "!HKCU_POLICIES!"=="0" (
 echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
-echo. & echo Backup files saved in: %BACKUP_DIR%
+echo. & echo Backup files saved in: %TARGET_FOLDER%
 call :LOG PRIVACY_SECURITY_MENU
 
 :SECURITY_INFO
@@ -1843,20 +1843,20 @@ for %%A in (
 ) do (
     for /f "tokens=1,2 delims=," %%B in ("%%~A") do (
         echo  Exporting: %%B
-        reg save "%%B" "%BACKUP_DIR%\%%C.hive" /y >>"%LOG_FILE%" 2>&1      
+        reg save "%%B" "%TARGET_FOLDER%\%%C.hive" /y >>"%LOG_FILE%" 2>&1      
         if !errorlevel! equ 0 set /a SUCCESS_COUNT+=1
     )
 )
 
-if exist "%BACKUP_DIR%\*.hive" (
+if exist "%TARGET_FOLDER%\*.hive" (
     echo. & echo Backup Process Finished. Total Success: !SUCCESS_COUNT!/7 
     call :CHOICE "Compress folder?"
 	echo.
     if errorlevel 2 (
-        echo Backup saved in: %BACKUP_DIR%
+        echo Backup saved in: %TARGET_FOLDER%
     ) else (
         set "PROCEED_COMPRESSION=1"
-        if exist "%BACKUP_DIR%.zip" (
+        if exist "%TARGET_FOLDER%.zip" (
             call :CHOICE "FullRegistryBackup.zip already exists. Do you want to delete it?"
             if errorlevel 2 (
                 echo Keeping the existing archive. Compression cancelled.
@@ -1865,7 +1865,7 @@ if exist "%BACKUP_DIR%\*.hive" (
         )
         
         if !PROCEED_COMPRESSION! equ 1 (
-            powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%BACKUP_DIR%"
+            powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%TARGET_FOLDER%"
         )
     )
 ) else (
@@ -2364,20 +2364,17 @@ if exist "%FILE%" (
 goto :eof
 
 :CREATE_FOLDER
-set "BACKUP_DIR=%ProgramData%\WinTweaks\%~1\%~2"
+set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
 
-if exist "%BACKUP_DIR%" (
-    echo.
-    echo Backup directory already exists: %BACKUP_DIR% 
-    
-    call :CHOICE "Do you want to delete the existing backup and start fresh?"
+if exist "%TARGET_FOLDER%" (
+    echo. & echo %TARGET_FOLDER%: Already exists
+    call :CHOICE "Do you want to delete the existing folder and start fresh?"
     if errorlevel 2 exit /b 1
-    rd /s /q "%BACKUP_DIR%" >nul 2>&1
+    rd /s /q "%TARGET_FOLDER%" >nul 2>&1
 )
 
-if exist "%BACKUP_DIR%" (
-    echo.
-    echo Failed to delete old backup folder
+if exist "%TARGET_FOLDER%" (
+    echo. & echo Failed to delete old folder
     exit /b 1
 ) else (
     call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
