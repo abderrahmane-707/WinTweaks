@@ -724,17 +724,20 @@ set "GPU_DIR=%WinDir%\System32\GroupPolicyUsers"
 set "GP_KEY=HKLM\Software\Policies"
 set "GPU_KEY=HKCU\Software\Policies"
 
+set "INF_FILE=%SYSTEMROOT%\inf\defltbase.inf"
+set "SEC_BACKUP=%TARGET_FOLDER%\SecurityBackup.inf"
+
 set "HKLM_POLICIES="
 set "HKCU_POLICIES="
 
-echo. & echo Applying default security policy baseline
-secedit /configure /cfg "%SYSTEMROOT%\inf\defltbase.inf" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
+set "DEFLTBASE_INF="
 
+echo.
 if exist "%GP_DIR%" (
     echo Backing up GroupPolicy folder
     robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
-        echo [ERROR] Failed to backup GroupPolicy. Operation aborted
+        echo [ERROR] Failed to backup: %GP_DIR%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
@@ -743,7 +746,7 @@ if exist "%GPU_DIR%" (
     echo Backing up GroupPolicyUsers folder
     robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
-        echo [ERROR] Failed to backup GroupPolicyUsers. Operation aborted
+        echo [ERROR] Failed to backup: %GPU_DIR%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
@@ -754,7 +757,7 @@ if !errorlevel! equ 0 (
     echo Backing up HKLM Policies registry key
     reg export "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
-        echo [ERROR] Failed to backup HKLM Policies. Operation aborted
+        echo [ERROR] Failed to backup: %GP_KEY%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
@@ -762,15 +765,24 @@ if !errorlevel! equ 0 (
 reg query "%GPU_KEY%" >nul 2>&1
 if !errorlevel! equ 0 (
     set "HKCU_POLICIES=0"
-    echo Backing up HKCU Policies registry key
+	echo Backing up HKCU Policies registry key
     reg export "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
-        echo [ERROR] Failed to backup HKCU Policies. Operation aborted
+        echo [ERROR] Failed to backup: %GPU_KEY%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
 
-echo.
+if exist "%INF_FILE%" (
+    set "DEFLTBASE_INF=0"
+	echo Backing up current security policies
+	secedit /export /cfg "%SEC_BACKUP%" >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        echo [ERROR] Failed to backup: %INF_FILE%. Operation aborted
+        call :GO PRIVACY_SECURITY_MENU
+    )
+)
+
 call :DELETE_FOLDERS "Deleting GroupPolicy folder" "%GP_DIR%" "%LOG_FILE%"
 call :DELETE_FOLDERS "Deleting GroupPolicyUsers folder" "%GPU_DIR%" "%LOG_FILE%"
 
@@ -782,6 +794,11 @@ if "!HKLM_POLICIES!"=="0" (
 if "!HKCU_POLICIES!"=="0" (
     echo Deleting HKCU Policies registry key
     reg delete "%GPU_KEY%" /f >> "%LOG_FILE%" 2>&1
+)
+
+if "!DEFLTBASE_INF!"=="0" (
+    echo Applying default security policy baseline
+    secedit /configure /cfg "%INF_FILE%" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
 )
 
 echo. & echo Applying Group Policy Update
