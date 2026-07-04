@@ -2398,11 +2398,13 @@ set "LOG_FILE=%TARGET_DIR%\%~2.log"
 goto :eof
 
 :MKDIR_PROMPT
+set "MKDIR_DIR=%~1"
+
 :: Create the folder if it not exist
-if not exist "%~1" (
+if not exist "%MKDIR_DIR%" (
     mkdir "%~1" >nul 2>&1
     if errorlevel 1 (
-        echo Failed to create: %~1
+        echo Failed to create: %MKDIR_DIR%
         pause
         exit
     )
