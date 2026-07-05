@@ -189,17 +189,73 @@ call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
 call :LOG PERFORMANCE_MENU
 
 :BOOT_TWEAKS
+call :CREATE_FOLDER "Performance" "StartupBackup"
+if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+
+call :PATH "Performance" "BootTweaks"
+
+set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+
+set "BACKUP_USER=%TARGET_FOLDER%\CurrentUser"
+set "BACKUP_ALL=%TARGET_FOLDER%\AllUsers"
+
 echo. & echo Import Boot up tweaks registry settings
-reg import "Files\Performance\BootTweaks.reg"
+reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
-call :DELETE_FILES "Removing shortcuts from the current user's Startup folder" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk"
-call :DELETE_FILES "Removing shortcuts from the all users Startup folder" "%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup\*.lnk"
+if exist "%START_MENU_DIR%\*.lnk" (
+    echo Moving and Backing up current user's Startup shortcuts
+    robocopy "%START_MENU_DIR%" "%BACKUP_USER%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to backup current user startup. Operation aborted.
+        call :GO PERFORMANCE_MENU
+    )
+)
 
+if exist "%ALL_START_MENU_DIR%\*.lnk" (
+    echo Moving and Backing up all users Startup shortcuts
+    robocopy "%ALL_START_MENU_DIR%" "%BACKUP_ALL%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to backup all users startup. Operation aborted.
+        call :GO PERFORMANCE_MENU
+    )
+)
+
+echo. & echo Backup files saved in: %TARGET_FOLDER%
 call :GO PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
+call :CREATE_FOLDER "Performance" "StartupBackup"
+if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+
+set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+
+set "BACKUP_USER=%TARGET_FOLDER%\CurrentUser"
+set "BACKUP_ALL=%TARGET_FOLDER%\AllUsers"
+
 echo. & echo Import default Boot up registry settings
-reg import "Files\Performance\DefaultBootSettings.reg"
+reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
+
+if exist "%BACKUP_USER%\*.lnk" (
+    echo Restoring current user's Startup folder
+    robocopy "%BACKUP_USER%" "%START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to restore current user startup. Operation aborted.
+        call :GO PERFORMANCE_MENU
+    )
+)
+
+if exist "%BACKUP_ALL%\*.lnk" (
+    echo Restoring all users Startup folder
+    robocopy "%BACKUP_ALL%" "%ALL_START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to restore all users startup. Operation aborted.
+        call :GO PERFORMANCE_MENU
+    )
+)
+
+rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 
 call :GO PERFORMANCE_MENU
 
