@@ -222,11 +222,12 @@ if exist "%ALL_START_MENU_DIR%\*.lnk" (
 )
 
 echo. & echo Backup files saved in: %TARGET_FOLDER%
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
-call :CREATE_FOLDER "Performance" "StartupBackup"
-if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+call :PATH "Performance" "DefaultBootSettings"
+
+set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\Performance\StartupBackup"
 
 set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
@@ -257,7 +258,7 @@ if exist "%BACKUP_ALL%\*.lnk" (
 
 rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 
-call :GO PERFORMANCE_MENU
+call :LOG PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
@@ -2403,14 +2404,14 @@ set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
 
 if exist "%TARGET_FOLDER%" (
     echo. & echo %TARGET_FOLDER%: Already exists
-    call :CHOICE "Do you want to delete the existing folder and start fresh?"
+    call :CHOICE "Do you want to delete the existing backup folder and start fresh?"
     if errorlevel 2 exit /b 1
 	
     rd /s /q "%TARGET_FOLDER%" >nul 2>&1
 )
 
 if exist "%TARGET_FOLDER%" (
-    echo. & echo Failed to delete old folder
+    echo. & echo Failed to delete old backup folder
     exit /b 1
 ) else (
     call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
