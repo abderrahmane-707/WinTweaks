@@ -132,22 +132,18 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     set "SERVICE_STATUS=%%B"
     set "SC_PARAM="
     
-    :: Check if service exists in the system
     sc query "!SERVICE_NAME!" >nul 2>&1
     if !errorlevel! equ 0 (
         set "SC_PARAM="
         
-        :: Map configuration status to SC command parameters
         if /i "!SERVICE_STATUS!"=="Disabled"  set "SC_PARAM=disabled"
         if /i "!SERVICE_STATUS!"=="Manual"  set "SC_PARAM=demand"
         if /i "!SERVICE_STATUS!"=="Automatic"  set "SC_PARAM=auto"
         if /i "!SERVICE_STATUS!"=="AutomaticDelayedStart"  set "SC_PARAM=delayed-auto"
         
-        :: Execute configuration if status is valid
         if defined SC_PARAM (
             sc config "!SERVICE_NAME!" start= !SC_PARAM! >nul 2>&1
             
-            :: Evaluate command result
             if !errorlevel! equ 0 (
                 set "RESULT_TAG=[SUCCESS]"
             ) else (
@@ -157,7 +153,6 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
         )
         
     ) else (
-        :: Log if service is not found
         echo [NOT FOUND]: !SERVICE_NAME! >> "%LOG_FILE%" 2>&1
     )
 )
@@ -529,7 +524,6 @@ echo Blocking windows telemetry and trash domains
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
 	if !errorlevel! neq 0 (
-        :: Add domain if not exist
         echo %%L >> "%HOSTS_PATH%"
     )
 )
@@ -2216,29 +2210,26 @@ call :GO OTHER_MENU
 :SET_TASKS
 :: %~1 = Action (Enable/Disable)
 :: %~2 = Path to text file containing task names
+
 for /f "usebackq delims=" %%i in ("%~2") do (
     set "TASK_NAME=%%i"
     set "TASK_RESULT=[SUCCESS]"
 
-    :: Verify the task if exists
     schtasks /query /tn "%%i" >nul 2>&1
 	if !errorlevel! neq 0 (
         set "TASK_RESULT=[NOT_FOUND]"
     ) else (
-        :: Apply the change (Disable or Enable)
         if /i "%~1"=="Disable" (
             schtasks /change /tn "%%i" /disable >nul 2>&1
         ) else (
             schtasks /change /tn "%%i" /enable >nul 2>&1
         )
 
-        :: Check if the command is failed
         if !errorlevel! neq 0 (
             set "TASK_RESULT=[FAILED]"
         )
     )
 
-    :: Log the result for every single task
     echo !TASK_RESULT!: !TASK_NAME! >>"%LOG_FILE%"
 )
 goto :eof
@@ -2340,13 +2331,8 @@ echo Setting DHCP on all connected interfaces
 for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
     echo  - Resetting: %%~b
     
-    :: Revert IPv4 to obtain an IP address automatically from the router
-    netsh interface ipv4 set address name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
-    
-    :: Revert IPv4 to obtain DNS servers automatically
+    netsh interface ipv4 set address name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1 
     netsh interface ipv4 set dnsservers name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
-
-    :: Revert IPv6 to obtain DNS servers automatically
     netsh interface ipv6 set dnsservers name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
 )
 
@@ -2358,11 +2344,9 @@ goto :eof
 for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
     echo  - Configure: %%~b
     
-    :: Set the Primary and Secondary IPv4 DNS server
     netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
     netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
     
-    :: Set the Primary and Secondary IPv6 DNS server
     netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
     netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
 )
