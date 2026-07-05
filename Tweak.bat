@@ -190,7 +190,7 @@ call :LOG PERFORMANCE_MENU
 
 :BOOT_TWEAKS
 call :CREATE_FOLDER "Performance" "StartupBackup"
-if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+if %errorlevel% equ 1 call :GO PERFORMANCE_MENU
 
 call :PATH "Performance" "BootTweaks"
 
@@ -200,9 +200,13 @@ set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Star
 set "BACKUP_USER=%TARGET_FOLDER%\CurrentUser"
 set "BACKUP_ALL=%TARGET_FOLDER%\AllUsers"
 
-echo. & echo Import Boot up tweaks registry settings
-reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
+set "REG_HKCU_RUN=HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
+set "REG_HKLM_RUN=HKLM\Software\Microsoft\Windows\CurrentVersion\Run"
 
+set "HKCU_STARTUP=1"
+set "HKLM_STARTUP=1"
+
+echo.
 if exist "%START_MENU_DIR%\*.lnk" (
     echo Moving and Backing up current user's Startup shortcuts
     robocopy "%START_MENU_DIR%" "%BACKUP_USER%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
@@ -221,6 +225,43 @@ if exist "%ALL_START_MENU_DIR%\*.lnk" (
     )
 )
 
+reg query "%REG_HKCU_RUN%" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "HKCU_STARTUP=0"
+    echo Backing up HKCU Startup registry key
+    reg export "%REG_HKCU_RUN%" "%TARGET_FOLDER%\HKCURunBackup.reg" /y >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        echo [ERROR] Failed to backup: %REG_HKCU_RUN%. Operation aborted
+        call :GO PERFORMANCE_MENU
+    )
+)
+
+reg query "%REG_HKLM_RUN%" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "HKLM_STARTUP=0"
+    echo Backing up HKLM Startup registry key
+    reg export "%REG_HKLM_RUN%" "%TARGET_FOLDER%\HKLMRunBackup.reg" /y >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        echo [ERROR] Failed to backup: %REG_HKLM_RUN%. Operation aborted
+        call :GO PERFORMANCE_MENU
+    )
+)
+
+if "!HKCU_STARTUP!"=="0" (
+    echo Clearing HKCU Startup registry key
+    reg delete "%REG_HKCU_RUN%" /f >> "%LOG_FILE%" 2>&1
+    reg add "%REG_HKCU_RUN%" /f >> "%LOG_FILE%" 2>&1
+)
+
+if "!HKLM_STARTUP!"=="0" (
+    echo Clearing HKLM Startup registry key
+    reg delete "%REG_HKLM_RUN%" /f >> "%LOG_FILE%" 2>&1
+    reg add "%REG_HKLM_RUN%" /f >> "%LOG_FILE%" 2>&1
+)
+
+echo Importing Boot up tweaks registry settings
+reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
+
 echo. & echo Backup files saved in: %TARGET_FOLDER%
 call :LOG PERFORMANCE_MENU
 
@@ -238,6 +279,9 @@ set "BACKUP_ALL=%TARGET_FOLDER%\AllUsers"
 echo. & echo Import default Boot up registry settings
 reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
 
+echo. & call :CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
+if errorlevel 2 goto PERFORMANCE_MENU
+
 if exist "%BACKUP_USER%\*.lnk" (
     echo Restoring current user's Startup folder
     robocopy "%BACKUP_USER%" "%START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
@@ -254,6 +298,16 @@ if exist "%BACKUP_ALL%\*.lnk" (
         echo [ERROR] Failed to restore all users startup. Operation aborted.
         call :GO PERFORMANCE_MENU
     )
+)
+
+if exist "%TARGET_FOLDER%\HKCURunBackup.reg" (
+    echo Restoring HKCU Startup registry keys
+    reg import "%TARGET_FOLDER%\HKCURunBackup.reg" >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%TARGET_FOLDER%\HKLMRunBackup.reg" (
+    echo Restoring HKLM Startup registry keys
+    reg import "%TARGET_FOLDER%\HKLMRunBackup.reg" >> "%LOG_FILE%" 2>&1
 )
 
 rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
