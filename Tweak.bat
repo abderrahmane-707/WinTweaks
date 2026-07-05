@@ -417,7 +417,7 @@ copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
 echo Blocking windows telemetry and trash domains
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
-    if errorlevel 1 (
+	if !errorlevel! neq 0 (
         :: Add domain if not exist
         echo %%L >> "%HOSTS_PATH%"
     )
@@ -1238,7 +1238,7 @@ call :GO PROGRAMS_MANAGER_MENU
 echo. & echo Installing: %~2
 choco install %~1 -y
 
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo. & echo Failed to install: %~2  
     call :CHOICE "Do you want to ignore checksum and retry?"
     if errorlevel 2 (
@@ -1804,9 +1804,10 @@ call :LOG SYSTEM_MENU
 
 :REG_BACK
 cls
-call :PATH "System" "FullRegistryBackup"
 call :CREATE_FOLDER "System" "FullRegistryBackup"
 if %errorlevel% equ 1 call :GO SYSTEM_MENU
+
+call :PATH "System" "FullRegistryBackup"
 
 set "SUCCESS_COUNT=0"
 
@@ -2211,7 +2212,7 @@ start explorer.exe >nul 2>&1
 call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 
 call :CHOICE "Run Disk Cleanup to complete the cleaning?"
-if not errorlevel 2 if errorlevel 1 (
+if !errorlevel! equ 1 (
     echo Running Disk Cleanup
 	cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
 )
@@ -2241,6 +2242,27 @@ for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "F
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 goto :eof
+
+:INTERFACE
+for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
+    echo  - Configure: %%~b
+    
+    :: Set the Primary and Secondary IPv4 DNS server
+    netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
+    
+    :: Set the Primary and Secondary IPv6 DNS server
+    netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
+    netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
+)
+goto :eof
+
+:CHECK_CHOCO
+where choco >nul 2>&1
+if !errorlevel! equ 0 goto :eof
+
+echo Choco not found
+call :GO PROGRAMS_MANAGER_MENU
 
 :NET_CONTROL
 :: %~1 = Service Name
@@ -2293,19 +2315,7 @@ if !errorlevel! neq 0 (
     echo [NOT FOUND]: %~1
     goto :eof
 )
-goto :eof
 
-:INTERFACE
-for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
-    echo  - Configure: %%~b
-    
-    :: Set the Primary and Secondary IPv4 DNS server
-    netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
-    
-    :: Set the Primary and Secondary IPv6 DNS server
-    netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
 sc config %~1 start= %~2 >nul 2>&1
 if !errorlevel! equ 0 (
     echo [SUCCESS]: %~1 _ %~2
@@ -2313,13 +2323,6 @@ if !errorlevel! equ 0 (
     echo [FAILED]: %~1 _ %~2
 )
 goto :eof
-
-:CHECK_CHOCO
-where choco >nul 2>&1
-if %errorlevel% equ 0 goto :eof
-
-echo Choco not found
-call :GO PROGRAMS_MANAGER_MENU
 
 :CREATE_FILE
 call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
@@ -2346,6 +2349,7 @@ if exist "%TARGET_FOLDER%" (
     echo. & echo %TARGET_FOLDER%: Already exists
     call :CHOICE "Do you want to delete the existing folder and start fresh?"
     if errorlevel 2 exit /b 1
+	
     rd /s /q "%TARGET_FOLDER%" >nul 2>&1
 )
 
@@ -2425,7 +2429,7 @@ call :INVALID "(0-2)" "SUB_MENU"
 
 :RESTART
 echo. & call :CHOICE "Do you want to restart your computer?"
-if not errorlevel 2 if errorlevel 1 (
+if !errorlevel! equ 1 (
     echo Your computer will restart after 5 seconds
     shutdown /r /t 5
     timeout /t 3 >nul
@@ -2449,7 +2453,9 @@ goto %~2
 
 :LOG
 echo. & echo More details in: %LOG_FILE%
-call :GO %1
+echo. & echo The operation is done.
+pause
+goto %1
 
 :GO
 :: %1 = The label of the menu to return to
