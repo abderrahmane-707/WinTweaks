@@ -1853,7 +1853,7 @@ call :INVALID "(0-4)" "SYSTEM_MENU"
 :RESTORE_POINT
 :: RestorePointType: MODIFY_SETTINGS indicates settings were changed
 cls & echo Creating a System Restore Point
-powershell -Command "Checkpoint-Computer -Description 'Hello world' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop"
+powershell -Command "Checkpoint-Computer -Description 'WinTweaks Restore Point' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop"
 if %errorlevel% equ 0 call :GO SYSTEM_MENU
 
 call :PATH "System" "RestorePoint"
@@ -1905,7 +1905,7 @@ echo Checking VSS Writers status
 vssadmin list writers >> "%LOG_FILE%" 2>&1
 
 echo Attempting to create System Restore Point again
-powershell -Command "Checkpoint-Computer -Description 'Hello world' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
+powershell -Command "Checkpoint-Computer -Description 'WinTweaks Restore Point' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop" >> "%LOG_FILE%" 2>&1
 if %errorlevel% equ 0 (
     echo System Restore Point created successfully
 ) else (
