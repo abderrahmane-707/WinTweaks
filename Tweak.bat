@@ -167,6 +167,8 @@ call :LOG SERVICES_MENU
 :: Create a snapshot of all current Service startup types
 :EXPORT_SERVICES
 call :CREATE_FILE "Performance" "ServiceStartupStatus.log"
+if %errorlevel% equ 1 call :GO PERFORMANCE_MENU
+
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
 echo. & echo Service Startup Status file saved in: %TARGET_FILE%
@@ -395,6 +397,7 @@ call :INVALID "(0-7)" "PRIVACY_SECURITY_MENU"
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
 call :CREATE_FILE "Security" "HostsOriginal"
+if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 
@@ -1011,6 +1014,8 @@ call :GO DNS_MENU
 
 :WIFI_PASSWORDS
 call :CREATE_FILE "Network" "WifiPassword.log"
+if %errorlevel% equ 1 call :GO NETWORK_MENU
+
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
 echo. & echo Wifi Password file saved in: %TARGET_FILE%
 call :GO NETWORK_MENU
@@ -1242,6 +1247,7 @@ if %errorlevel% neq 0 (
     echo. & echo Failed to install: %~2  
     call :CHOICE "Do you want to ignore checksum and retry?"
     if errorlevel 2 (
+	    echo The program download was ignored
 	    exit /b 1  
     ) else (
         echo. & echo Retrying with --ignore-checksums
@@ -1977,7 +1983,7 @@ cls & echo Available drives on your system:
 
 :: List all existing drive letters
 for %%d in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
-    if exist %%d:\ echo %%d\:
+    if exist %%d:\ echo %%d:\
 )
 
 echo. & echo Enter drive letter to check
