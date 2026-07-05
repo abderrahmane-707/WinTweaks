@@ -714,9 +714,10 @@ call :GO PRIVACY_SECURITY_MENU
 call :CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults!"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
-call :PATH "Security" "RemoveAllPolicies"
 call :CREATE_FOLDER "Security" "GroupPolicyBackup"
 if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+
+call :PATH "Security" "RemoveAllPolicies"
 
 set "GP_DIR=%WinDir%\System32\GroupPolicy"
 set "GPU_DIR=%WinDir%\System32\GroupPolicyUsers"
@@ -727,26 +728,26 @@ set "GPU_KEY=HKCU\Software\Policies"
 set "INF_FILE=%SYSTEMROOT%\inf\defltbase.inf"
 set "SEC_BACKUP=%TARGET_FOLDER%\SecurityBackup.inf"
 
-set "HKLM_POLICIES="
-set "HKCU_POLICIES="
+set "HKLM_POLICIES=1"
+set "HKCU_POLICIES=1"
 
-set "DEFLTBASE_INF="
+set "DEFLTBASE_INF=1"
 
 echo.
 if exist "%GP_DIR%" (
-    echo Backing up GroupPolicy folder
-    robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    echo Moving and Backing up GroupPolicy folder
+    robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
-        echo [ERROR] Failed to backup: %GP_DIR%. Operation aborted
+        echo [ERROR] Failed to move: %GP_DIR%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
 
 if exist "%GPU_DIR%" (
-    echo Backing up GroupPolicyUsers folder
-    robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    echo Moving and Backing up GroupPolicyUsers folder
+    robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
-        echo [ERROR] Failed to backup: %GPU_DIR%. Operation aborted
+        echo [ERROR] Failed to move: %GPU_DIR%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
@@ -775,16 +776,13 @@ if !errorlevel! equ 0 (
 
 if exist "%INF_FILE%" (
     set "DEFLTBASE_INF=0"
-	echo Backing up current security policies
-	secedit /export /cfg "%SEC_BACKUP%" >> "%LOG_FILE%" 2>&1
+    echo Backing up current security policies
+    secedit /export /cfg "%SEC_BACKUP%" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup: %INF_FILE%. Operation aborted
         call :GO PRIVACY_SECURITY_MENU
     )
 )
-
-call :DELETE_FOLDERS "Deleting GroupPolicy folder" "%GP_DIR%" "%LOG_FILE%"
-call :DELETE_FOLDERS "Deleting GroupPolicyUsers folder" "%GPU_DIR%" "%LOG_FILE%"
 
 if "!HKLM_POLICIES!"=="0" (
     echo Deleting HKLM Policies registry key
