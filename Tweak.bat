@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal enabledelayedexpansion
 title WinTweaks
 
@@ -157,35 +157,35 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     )
 )
 
-call :LOG SERVICES_MENU
+call :LOG & goto SERVICES_MENU
 
 :: Create a snapshot of all current Service startup types
 :EXPORT_SERVICES
 call :CREATE_FILE "Performance" "ServiceStartupStatus.log"
-if %errorlevel% equ 1 call :GO PERFORMANCE_MENU
+if %errorlevel% equ 1 (call :GO & goto PERFORMANCE_MENU)
 
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
 echo. & echo Service Startup Status file saved in: %TARGET_FILE%
-call :GO PERFORMANCE_MENU
+call :GO & goto PERFORMANCE_MENU
 
 :DISABLE_TASKS
 call :PATH "Performance" "DisableScheduledTasks"
 
 echo. & echo Disabling unnecessary scheduled tasks
 call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
-call :LOG PERFORMANCE_MENU
+call :LOG & goto PERFORMANCE_MENU
     
 :ENABLE_TASKS
 call :PATH "Performance" "EnableScheduledTasks"
 
 echo. & echo Re-enable previously disabled scheduled tasks
 call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
-call :LOG PERFORMANCE_MENU
+call :LOG & goto PERFORMANCE_MENU
 
 :BOOT_TWEAKS
 call :CREATE_FOLDER "Performance" "StartupBackup"
-if %errorlevel% equ 1 call :GO PERFORMANCE_MENU
+if %errorlevel% equ 1 (call :GO & goto PERFORMANCE_MENU)
 
 call :PATH "Performance" "BootTweaks"
 
@@ -207,7 +207,7 @@ if exist "%START_MENU_DIR%\*.lnk" (
     robocopy "%START_MENU_DIR%" "%BACKUP_USER%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to backup current user startup. Operation aborted.
-        call :GO PERFORMANCE_MENU
+        call :GO & goto PERFORMANCE_MENU
     )
 )
 
@@ -216,7 +216,7 @@ if exist "%ALL_START_MENU_DIR%\*.lnk" (
     robocopy "%ALL_START_MENU_DIR%" "%BACKUP_ALL%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to backup all users startup. Operation aborted.
-        call :GO PERFORMANCE_MENU
+        call :GO & goto PERFORMANCE_MENU
     )
 )
 
@@ -227,7 +227,7 @@ if !errorlevel! equ 0 (
     reg export "%REG_HKCU_RUN%" "%TARGET_FOLDER%\HKCURunBackup.reg" /y >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup: %REG_HKCU_RUN%. Operation aborted
-        call :GO PERFORMANCE_MENU
+        call :GO & goto PERFORMANCE_MENU
     )
 )
 
@@ -238,7 +238,7 @@ if !errorlevel! equ 0 (
     reg export "%REG_HKLM_RUN%" "%TARGET_FOLDER%\HKLMRunBackup.reg" /y >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup: %REG_HKLM_RUN%. Operation aborted
-        call :GO PERFORMANCE_MENU
+        call :GO & goto PERFORMANCE_MENU
     )
 )
 
@@ -258,7 +258,7 @@ echo Importing Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
 echo. & echo Backup files saved in: %TARGET_FOLDER%
-call :LOG PERFORMANCE_MENU
+call :LOG & goto PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
 call :PATH "Performance" "DefaultBootSettings"
@@ -282,7 +282,7 @@ if exist "%BACKUP_USER%\*.lnk" (
     robocopy "%BACKUP_USER%" "%START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to restore current user startup. Operation aborted.
-        call :GO PERFORMANCE_MENU
+        call :GO & goto PERFORMANCE_MENU
     )
 )
 
@@ -291,7 +291,7 @@ if exist "%BACKUP_ALL%\*.lnk" (
     robocopy "%BACKUP_ALL%" "%ALL_START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to restore all users startup. Operation aborted.
-        call :GO PERFORMANCE_MENU
+        call :GO & goto PERFORMANCE_MENU
     )
 )
 
@@ -307,7 +307,7 @@ if exist "%TARGET_FOLDER%\HKLMRunBackup.reg" (
 
 rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 
-call :LOG PERFORMANCE_MENU
+call :LOG & goto PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
@@ -329,7 +329,7 @@ if "!BROWSERS_OPEN!"=="1" (
 )
 
 call :CLEANING_FUNCTION
-call :GO PERFORMANCE_MENU
+call :GO & goto PERFORMANCE_MENU
 
 :POWER_PLAN_MENU
 cls & echo. & echo.
@@ -363,34 +363,34 @@ call :INVALID "(0-5)" "POWER_PLAN_MENU"
 :: Unlock and add the "Ultimate Performance" plan
 :ADD_ULTIMATE_PLAN
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\AddUltimatePerformance.ps1"
-call :GO POWER_PLAN_MENU
+call :GO & goto POWER_PLAN_MENU
 
 :: Remove the "Ultimate Performance" plan
 :REMOVE_ULTIMATE_PLAN
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\RemoveUltimatePerformance.ps1"
-call :GO POWER_PLAN_MENU
+call :GO & goto POWER_PLAN_MENU
 
 :PLAN_HIGH
 echo. & echo Activate high performance power plan
 :: This is the standard Windows GUID for High Performance
 powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c >nul
-call :GO POWER_PLAN_MENU
+call :GO & goto POWER_PLAN_MENU
 
 :PLAN_BALANCED
 echo. & echo Activate balanced power plan
 :: This is the standard Windows GUID for Balanced (Windows default)
 powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e >nul
-call :GO POWER_PLAN_MENU
+call :GO & goto POWER_PLAN_MENU
 
 :PLAN_SAVER
 echo. & echo Activate power saver plan
 :: This is the standard Windows GUID for Power Saver
 powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a >nul
-call :GO POWER_PLAN_MENU
+call :GO & goto POWER_PLAN_MENU
 
 :ACTIVE_PLAN
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\ActivePlan.ps1"
-call :GO POWER_PLAN_MENU
+call :GO & goto POWER_PLAN_MENU
 
 :HW_INFO_MENU
 cls & echo. & echo.
@@ -421,31 +421,31 @@ call :INVALID "(0-6)" "HW_INFO_MENU"
 :CPU_INFO
 call :PATH "Performance" "CPUInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\CPUInfo.ps1" "%LOG_FILE%"
-call :LOG HW_INFO_MENU
+call :LOG & goto HW_INFO_MENU
 
 :: Display Graphics Card details
 :GPU_INFO
 call :PATH "Performance" "GPUInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\GPUInfo.ps1" "%LOG_FILE%"
-call :LOG HW_INFO_MENU
+call :LOG & goto HW_INFO_MENU
 
 :: Display Storage stats
 :HARD_DISK_INFO
 call :PATH "Performance" "HardDiskInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\HardDiskInfo.ps1" "%LOG_FILE%"
-call :LOG HW_INFO_MENU
+call :LOG & goto HW_INFO_MENU
 
 :: Display RAM information
 :RAM_INFO
 call :PATH "Performance" "MemoryInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MemoryInfo.ps1" "%LOG_FILE%"
-call :LOG HW_INFO_MENU
+call :LOG & goto HW_INFO_MENU
 
 :: Display Motherboard information
 :MOTHERBOARD_INFO
 call :PATH "Performance" "MotherboardInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MotherboardInfo.ps1" "%LOG_FILE%"
-call :LOG HW_INFO_MENU
+call :LOG & goto HW_INFO_MENU
 
 :: Generate an advanced HTML report regarding battery health and cycle count
 :BATTERY_INFO
@@ -457,7 +457,7 @@ powercfg /batteryreport /output "%BATTERY_REPORT%"
 
 :: Opening battery report
 start "" "%BATTERY_REPORT%"
-call :GO HW_INFO_MENU
+call :GO & goto HW_INFO_MENU
 
 
 :PRIVACY_SECURITY_MENU
@@ -503,7 +503,7 @@ call :INVALID "(0-7)" "PRIVACY_SECURITY_MENU"
 :DISABLE_TELEMETRY
 call :PATH "Security" "DisableTelemetry"
 call :CREATE_FILE "Security" "HostsOriginal"
-if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+if %errorlevel% equ 1 (call :GO & goto PRIVACY_SECURITY_MENU)
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 
@@ -524,14 +524,14 @@ echo Blocking windows telemetry and trash domains
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
 	if !errorlevel! neq 0 (
-        echo %%L >> "%HOSTS_PATH%"
+        echo %%L>>"%HOSTS_PATH%"
     )
 )
 
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG & goto PRIVACY_SECURITY_MENU
 
 :REV_DISABLE_TELEMETRY
 call :PATH "Security" "DefaultTelemetry"
@@ -556,7 +556,7 @@ del "%TEMP_FILE%" >nul 2>&1
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG & goto PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
 call :CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information!"
@@ -604,7 +604,7 @@ echo Flushing DNS cache
 ipconfig /flushdns >nul 2>&1
 
 call :CLEANING_FUNCTION
-call :GO PRIVACY_SECURITY_MENU
+call :GO & goto PRIVACY_SECURITY_MENU
 
 :WINDOWS_UPDATES_MENU
 cls & echo. & echo.
@@ -640,7 +640,7 @@ call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\Softwa
 
 call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
 
-call :LOG WINDOWS_UPDATES_MENU
+call :LOG & goto WINDOWS_UPDATES_MENU
 
 :ENABLE_UPDATES
 call :PATH "Security" "DefaultUpdates"
@@ -652,7 +652,7 @@ echo Setting Windows Update services to default startup
 call :SC_CONFIGURE "UsoSvc" "delayed-auto"
 for %%S in ("BITS" "wuauserv") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
-call :LOG WINDOWS_UPDATES_MENU
+call :LOG & goto WINDOWS_UPDATES_MENU
 
 :RESET_UPDATES
 call :CONFIRM "WARNING: This will purge all Windows Update data and reset security policies!"
@@ -732,7 +732,7 @@ echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
 call :RESTART
-call :LOG WINDOWS_UPDATES_MENU
+call :LOG & goto WINDOWS_UPDATES_MENU
 
 :WINDOWS_DEFENDER_MENU
 cls & echo. & echo.
@@ -760,12 +760,12 @@ echo. & echo Disabling Windows defender via registry
 reg import "Files\Security\DisableDefender.reg"
 
 call :RESTART
-call :GO WINDOWS_DEFENDER_MENU
+call :GO & goto WINDOWS_DEFENDER_MENU
 
 :ENABLE_DEFENDER
 echo. & echo Restoring default Windows Defender registry settings
 reg import "Files\Security\DefaultDefender.reg"
-call :GO WINDOWS_DEFENDER_MENU
+call :GO & goto WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
 call :CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system!"
@@ -781,7 +781,7 @@ echo Deleting Windows Defender files
 "Files\Security\PowerRun.exe" /TI /SW:0 "Files\Security\DefenderFileRemover.bat"
 
 call :RESTART
-call :GO WINDOWS_DEFENDER_MENU
+call :GO & goto WINDOWS_DEFENDER_MENU
 
 :ENHANCE_SECURITY
 call :PATH "Security" "EnhanceSecurity"
@@ -807,20 +807,20 @@ for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP") do (
 echo Removing temporary default user account
 net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
 
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG & goto PRIVACY_SECURITY_MENU
 
 :REV_ENHANCE_SECURITY
 echo. & echo Restoring default Windows security registry settings
 reg import "Files\Security\DefaultSecurity.reg"
 
-call :GO PRIVACY_SECURITY_MENU
+call :GO & goto PRIVACY_SECURITY_MENU
 
 :REMOVE_POLICIES
 call :CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults!"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :CREATE_FOLDER "Security" "GroupPolicyBackup"
-if %errorlevel% equ 1 call :GO PRIVACY_SECURITY_MENU
+if %errorlevel% equ 1 (call :GO & goto PRIVACY_SECURITY_MENU)
 
 call :PATH "Security" "RemoveAllPolicies"
 
@@ -844,7 +844,7 @@ if exist "%GP_DIR%" (
     robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to move: %GP_DIR%. Operation aborted
-        call :GO PRIVACY_SECURITY_MENU
+        call :GO & goto PRIVACY_SECURITY_MENU
     )
 )
 
@@ -853,7 +853,7 @@ if exist "%GPU_DIR%" (
     robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
         echo [ERROR] Failed to move: %GPU_DIR%. Operation aborted
-        call :GO PRIVACY_SECURITY_MENU
+        call :GO & goto PRIVACY_SECURITY_MENU
     )
 )
 
@@ -864,7 +864,7 @@ if !errorlevel! equ 0 (
     reg export "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup: %GP_KEY%. Operation aborted
-        call :GO PRIVACY_SECURITY_MENU
+        call :GO & goto PRIVACY_SECURITY_MENU
     )
 )
 
@@ -875,7 +875,7 @@ if !errorlevel! equ 0 (
     reg export "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup: %GPU_KEY%. Operation aborted
-        call :GO PRIVACY_SECURITY_MENU
+        call :GO & goto PRIVACY_SECURITY_MENU
     )
 )
 
@@ -885,7 +885,7 @@ if exist "%INF_FILE%" (
     secedit /export /cfg "%SEC_BACKUP%" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
         echo [ERROR] Failed to backup: %INF_FILE%. Operation aborted
-        call :GO PRIVACY_SECURITY_MENU
+        call :GO & goto PRIVACY_SECURITY_MENU
     )
 )
 
@@ -908,12 +908,12 @@ echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
 echo. & echo Backup files saved in: %TARGET_FOLDER%
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG & goto PRIVACY_SECURITY_MENU
 
 :SECURITY_INFO
 call :PATH "Security" "SecurityInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\SecurityInfo.ps1" "%LOG_FILE%"
-call :LOG PRIVACY_SECURITY_MENU
+call :LOG & goto PRIVACY_SECURITY_MENU
 
 
 :NETWORK_MENU
@@ -972,7 +972,7 @@ call :INTERFACE
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-call :LOG NETWORK_MENU
+call :LOG & goto NETWORK_MENU
 
 :REV_NETWORK_TWEAKS
 call :PATH "Network" "DefaultNetworkSettings"
@@ -988,7 +988,7 @@ for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotun
 
 call :DHCP
 
-call :LOG NETWORK_MENU
+call :LOG & goto NETWORK_MENU
 
 :DNS_MENU
 cls & echo. & echo.
@@ -1096,29 +1096,29 @@ call :INTERFACE
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-call :LOG DNS_MENU
+call :LOG & goto DNS_MENU
 
 :SET_DHCP
 call :PATH "Network" "DHCP"
 cls
 call :DHCP
-call :LOG DNS_MENU
+call :LOG & goto DNS_MENU
 
 :DNS_SERVER_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSTest.ps1"
-call :GO DNS_MENU
+call :GO & goto DNS_MENU
 
 :DNS_STATUS
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSStatus.ps1"
-call :GO DNS_MENU
+call :GO & goto DNS_MENU
 
 :WIFI_PASSWORDS
 call :CREATE_FILE "Network" "WifiPassword.log"
-if %errorlevel% equ 1 call :GO NETWORK_MENU
+if %errorlevel% equ 1 (call :GO & goto NETWORK_MENU)
 
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
 echo. & echo Wifi Password file saved in: %TARGET_FILE%
-call :GO NETWORK_MENU
+call :GO & goto NETWORK_MENU
 
 :NETWORK_RESET
 call :CONFIRM "WARNING: This script will RESET ALL network configurations!"
@@ -1217,12 +1217,12 @@ echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
 call :RESTART
-call :LOG NETWORK_MENU
+call :LOG & goto NETWORK_MENU
 
 :NETWORK_INFO
 call :PATH "Network" "NetworkInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\NetworkInfo.ps1" "%LOG_FILE%"
-call :LOG NETWORK_MENU
+call :LOG & goto NETWORK_MENU
 
 :PROGRAMS_MANAGER_MENU
 cls & echo. & echo.
@@ -1335,7 +1335,7 @@ call :IS_ON OPT16 && call :TRY_INSTALL io-unlocker "IObit Unlocker"
 call :IS_ON OPT17 && call :TRY_INSTALL autohotkey "AutoHotkey"
 call :IS_ON OPT18 && call :TRY_INSTALL megasync "MEGA"
 
-call :GO PROGRAMS_MANAGER_MENU
+call :GO & goto PROGRAMS_MANAGER_MENU
 
 :: Chocolatey must be available to upgrade the programs
 :UPDATE_PROGRAMS
@@ -1344,7 +1344,7 @@ call :CHECK_CHOCO
 
 :: Execute the upgrade command for every package managed by Chocolatey
 choco upgrade all -y
-call :GO PROGRAMS_MANAGER_MENU
+call :GO & goto PROGRAMS_MANAGER_MENU
 
 :DOWNLOAD_MO
 start "" cmd /c "Files\Programs\office.bat"
@@ -1355,13 +1355,13 @@ call :CONFIRM "WARNING: This will remove ALL Microsoft Store apps!"
 if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
-call :GO PROGRAMS_MANAGER_MENU
+call :GO & goto PROGRAMS_MANAGER_MENU
 
 :: Get information about all installed and startup programs
 :PROGRAMS_INFO
 call :PATH "Programs" "ProgramsInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1" "%LOG_FILE%"
-call :LOG PROGRAMS_MANAGER_MENU
+call :LOG & goto PROGRAMS_MANAGER_MENU
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
@@ -1504,24 +1504,24 @@ call :INVALID "(0-4)" "FILE_EXPLORER_MENU"
 :: Enable the visibility of file extensions
 :SHOW_EXTENSIONS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO FILE_EXPLORER_MENU
+call :GO & goto FILE_EXPLORER_MENU
 
 :: Hide file extensions
 :HIDE_EXTENSIONS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO FILE_EXPLORER_MENU
+call :GO & goto FILE_EXPLORER_MENU
 
 :: Show both hidden files and protected operating system files
 :SHOW_HIDDEN
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO FILE_EXPLORER_MENU
+call :GO & goto FILE_EXPLORER_MENU
 
 :: Hide hidden files and protected system files
 :DIS_HIDDEN
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO FILE_EXPLORER_MENU
+call :GO & goto FILE_EXPLORER_MENU
 
 :: Disable "Recent Files" and "Frequent Folders" in Quick Access and the Start Menu
 :HIDE_RECENT
@@ -1542,24 +1542,24 @@ goto ON_QUICK_ACCESS
 :: Configure File Explorer to open to "This PC" by default
 :ON_THIS_PC
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO FILE_EXPLORER_MENU
+call :GO & goto FILE_EXPLORER_MENU
 
 :: Configure File Explorer to open to "Quick Access" by default
 :ON_QUICK_ACCESS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 2 /f >nul 2>&1
-call :GO FILE_EXPLORER_MENU
+call :GO & goto FILE_EXPLORER_MENU
 
 :: Enable System-wide Dark Mode for both Apps and the Windows Taskbar/Start Menu
 :DARK_MODE
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Enable Light Mode for Apps while keeping System components (Taskbar) Dark
 :LIGHT_MODE
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Disable notifications
 :DIS_NOTIFICATION
@@ -1569,7 +1569,7 @@ for %%S in ("WpnService" "WpnUserService") do call :SC_CONFIGURE "%%S" "disabled
 echo Disabling notification via registry
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Re-enable notification
 :ENA_NOTIFICATION
@@ -1579,73 +1579,73 @@ for %%S in ("WpnService" "WpnUserService") do call :SC_CONFIGURE "%%S" "auto" >n
 echo Enabling notification via registry
 reg delete "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Remove the small arrow icon that appears on desktop shortcuts
 :HIDE_SHORTCUT_ARROW
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /t REG_EXPAND_SZ /d "%SystemRoot%\System32\imageres.dll,197" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /t REG_BINARY /d 00000000 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Restore the default Windows shortcut arrow icon
 :SHOW_SHORTCUT_ARROW
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Ensure NumLock is OFF at the login screen and for the current user
 :NUM_LOCK_OFF
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483648 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Ensure NumLock is ON at the login screen and for the current user
 :NUM_LOCK_ON
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483650 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to UTC (recommended for Dual-Boot with Linux)
 :UTC
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to Local Time
 :LOCAL_TIME
 reg delete "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /f >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Create the "God Mode" folder on the desktop (access to all Windows settings in one list)
 :POWER_SETTINGS
 call :MKDIR_PROMPT "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}"
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Delete the "God Mode" folder from the desktop
 :REMOVE_POWER_SETTINGS
 rd /s /q "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Disable Trash feature
 :TRASH
 reg import "Files\Customization\DisableTrash.reg" >nul 2>&1
 reg import "Files\Security\DisableTelemetry.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Restore default Windows Trash
 :DEF_TRASH
 reg import "Files\Customization\DefaultTrash.reg" >nul 2>&1
 reg import "Files\Security\DefaultTelemetry.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Restore the classic Windows Photo Viewer
 :PHOTO_VIEWER
 reg import "Files\Customization\RestoreClassicPhotoViewer.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :: Remove the classic Windows Photo Viewer registry entries
 :REMOVE_PHOTO_VIEWER
 reg import "Files\Customization\RemoveClassicPhotoViewer.reg" >nul 2>&1
-call :GO CUSTOMIZATION_MENU
+call :GO & goto CUSTOMIZATION_MENU
 
 :CONTEXT_MENU
 cls & echo. & echo.
@@ -1707,13 +1707,13 @@ reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHere\command" /ve /d "cmd.
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /ve /d "Open CMD Here" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere\command" /ve /d "cmd.exe /k pushd \"%%V\"" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Remove "Open Command Prompt Here"
 :REV_CMD_CONTEXT
 reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Add "Open Command Prompt Here (Admin)" to folder and background context menus
 :CMD_CONTEXT_ADMIN
@@ -1730,13 +1730,13 @@ reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /ve 
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Remove the "Open Command Prompt Here (Admin)"
 :REV_CMD_CONTEXT_ADMIN
 reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Add "Restart Explorer" to the Desktop right-click menu
 :RESTART_EXPLORER
@@ -1745,12 +1745,12 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /v "Icon
 
 :: The command kills the explorer.exe process and immediately restarts it
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" /ve /d "cmd.exe /c taskkill /F /IM explorer.exe >nul 2>&1 & start explorer.exe" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Remove the "Restart Explorer" right-click menu
 :REV_RESTART_EXPLORER
 reg delete "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Add "Kill frozen process" to the Desktop right-click menu
 :KILL_FROZEN
@@ -1759,12 +1759,12 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /v "Ic
 
 :: Targets only processes with the window status "NOT RESPONDING"
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding\Command" /ve /d "cmd.exe /C taskkill.exe /F /FI \"status eq NOT RESPONDING\"" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :: Remove the "Kill frozen process" right-click menu
 :REV_KILL_FROZEN
 reg delete "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /f >nul 2>&1
-call :GO CONTEXT_MENU
+call :GO & goto CONTEXT_MENU
 
 :SYSTEM_MENU
 cls & echo. & echo.
@@ -1791,7 +1791,7 @@ call :INVALID "(0-4)" "SYSTEM_MENU"
 :: RestorePointType: MODIFY_SETTINGS indicates settings were changed
 cls & echo Creating a System Restore Point
 powershell -Command "Checkpoint-Computer -Description 'WinTweaks Restore Point' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop"
-if %errorlevel% equ 0 call :GO SYSTEM_MENU
+if %errorlevel% equ 0 (call :GO & goto SYSTEM_MENU)
 
 call :PATH "System" "RestorePoint"
 
@@ -1848,12 +1848,12 @@ if %errorlevel% equ 0 (
 ) else (
     echo Creating system restore point has failed after troubleshooting 
 )
-call :LOG SYSTEM_MENU
+call :LOG & goto SYSTEM_MENU
 
 :REG_BACK
 cls
 call :CREATE_FOLDER "System" "FullRegistryBackup"
-if %errorlevel% equ 1 call :GO SYSTEM_MENU
+if %errorlevel% equ 1 (call :GO & goto SYSTEM_MENU)
 
 call :PATH "System" "FullRegistryBackup"
 
@@ -1900,7 +1900,7 @@ if exist "%TARGET_FOLDER%\*.hive" (
 ) else (
     echo No hive files were created. Backup failed
 )
-call :LOG SYSTEM_MENU
+call :LOG & goto SYSTEM_MENU
 
 :ACTIVATION_MENU
 cls & echo. & echo.
@@ -1924,18 +1924,18 @@ call :INVALID "(0-2)" "ACTIVATION_MENU"
 cls & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
 echo The script will open in a new window. Follow the on-screen instructions
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
-call :GO ACTIVATION_MENU
+call :GO & goto ACTIVATION_MENU
 
 :: Check if the Machine is Activated or not
 :CHECK_ACTIVATION
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivationStatus.ps1"
-call :GO ACTIVATION_MENU
+call :GO & goto ACTIVATION_MENU
 
 :: Display basic system information 
 :SYSTEM_INFO
 call :PATH "System" "SystemInfo"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\SystemInfo.ps1" "%LOG_FILE%"
-call :LOG SYSTEM_MENU
+call :LOG & goto SYSTEM_MENU
 
 :TOOLS_MENU
 cls & echo. & echo.
@@ -1967,7 +1967,7 @@ call :INVALID "(0-7)" "TOOLS_MENU"
 :SFC_SCAN
 cls & echo Running sfc scan
 sfc /scannow
-call :GO TOOLS_MENU
+call :GO & goto TOOLS_MENU
 
 :DISM_MENU
 cls & echo. & echo.
@@ -1994,19 +1994,19 @@ call :INVALID "(0-4)" "DISM_MENU"
 :DISM_CHECK_HEALTH
 cls & echo Performing quick health check of Windows image
 dism /Online /Cleanup-Image /CheckHealth
-call :GO DISM_MENU
+call :GO & goto DISM_MENU
 
 :: This does not fix errors, it only reports them
 :DISM_SCAN_HEALTH
 cls & echo Performing deep scan of Windows image
 dism /Online /Cleanup-Image /ScanHealth
-call :GO DISM_MENU
+call :GO & goto DISM_MENU
 
 :: Repair the Windows Image by downloading healthy files from Windows Update
 :DISM_RESTORE_HEALTH
 cls & echo Fix Windows component
 dism /Online /Cleanup-Image /RestoreHealth
-call :GO DISM_MENU
+call :GO & goto DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
@@ -2015,7 +2015,7 @@ if errorlevel 2 goto DISM_MENU
 
 echo Cleaning Windows components
 dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
-call :GO DISM_MENU
+call :GO & goto DISM_MENU
 
 :: Launch Windows Defragment
 :DEFRAG
@@ -2078,7 +2078,7 @@ call :INVALID "(0-3)" "CHKDSK_MENU"
 cls & echo Running read-only CHKDSK on drive %drive%:\ to check for errors
 timeout /t 2 >nul
 chkdsk %drive%:
-call :GO CHKDSK_MENU
+call :GO & goto CHKDSK_MENU
 
 :FIX_FILE
 cls & echo Running CHKDSK with /f option on drive %drive%:\ to fix file system errors
@@ -2086,7 +2086,7 @@ timeout /t 2 >nul
 
 :: /f: Fixes errors on the disk
 chkdsk %drive%: /f
-call :GO CHKDSK_MENU
+call :GO & goto CHKDSK_MENU
 
 :FIX_SECTORS
 cls & echo Running CHKDSK with /r option on drive %drive%:\ to find bad sectors and recover data
@@ -2094,7 +2094,7 @@ timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
 chkdsk %drive%: /r
-call :GO CHKDSK_MENU
+call :GO & goto CHKDSK_MENU
 
 :: Launch Memory Diagnostic
 :MEMORY_DIAG
@@ -2109,7 +2109,7 @@ goto TOOLS_MENU
 :: Delete "%PROGRAMDATA%\WinTweaks" folder
 :DELETE_SCRIPT_DATA
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1"
-call :GO TOOLS_MENU
+call :GO & goto TOOLS_MENU
 
 
 :OTHER_MENU
@@ -2136,17 +2136,17 @@ call :INVALID "(0-3)" "OTHER_MENU"
 :CTT
 cls & echo Running Chris Titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
-call :GO OTHER_MENU
+call :GO & goto OTHER_MENU
 
 :: Download and launch O&O Shutup 10 ++
 :OO_SHUTUP
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1"
-call :GO OTHER_MENU
+call :GO & goto OTHER_MENU
 
 :: Download and launch Speedtest CLI 
 :NET_SPEED_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1"
-call :GO OTHER_MENU
+call :GO & goto OTHER_MENU
 
 
 :: ----------------------------------------------------------------< FUNCTIONS >----------------------------------------------------------------
@@ -2300,7 +2300,7 @@ where choco >nul 2>&1
 if !errorlevel! equ 0 goto :eof
 
 echo Choco not found
-call :GO PROGRAMS_MANAGER_MENU
+call :GO & goto PROGRAMS_MANAGER_MENU
 
 :MULTI_INPUT
 :: Process numerical input to toggle selections (supports: 1,2,3  or  1 2 3  or  1-5  or mixed like 1-3,7,10-12)
@@ -2595,10 +2595,10 @@ goto %~2
 echo. & echo More details in: %LOG_FILE%
 echo. & echo The operation is done.
 pause
-goto %1
+goto :eof
 
 :GO
 :: %1 = The label of the menu to return to
 echo. & echo The operation is done.
 pause
-goto %1
+goto :eof
