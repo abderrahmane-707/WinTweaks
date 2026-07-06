@@ -1305,7 +1305,6 @@ if /i "%choice%"=="D" goto DESELECT_ALL
 set "invalid="
 set "tokens=%choice:,= %"
 for %%G in (%tokens%) do (
-for %%G in (%tokens%) do (
     set "tok=%%G"
     set "matched=0"
 
