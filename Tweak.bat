@@ -1288,11 +1288,11 @@ echo.
 echo                           [A] Select All              [D] Deselect All           [0] Back
 echo.
 
-echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
-
 :: Display a real-time list of what the user has selected
-echo. & echo Selected:
+echo. & echo Selected programs:
 call :SHOW_SELECTED
+
+echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
 echo. & set "choice=" & set /p "choice=--> Select an option(s) and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
@@ -1301,50 +1301,7 @@ if /i "%choice%"=="S" goto INSTALL_PROGRAMS
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
 
-:: Process numerical input to toggle selections (supports: 1,2,3  or  1 2 3  or  1-5  or mixed like 1-3,7,10-12)
-set "invalid="
-set "tokens=%choice:,= %"
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-
-    :: Detect a hyphen by comparing the string before/after removing "-"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        :: Looks like a range e.g. 1-5
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq 18 if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE OPT%%N
-                set "matched=1"
-            )
-        )
-    ) else (
-        :: Single number
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq 18 (
-                call :TOGGLE_SINGLE OPT!tok!
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input ignored:!invalid!
-    pause
-)
-
+call :MULTI_INPUT
 goto PROGRAMS_MENU
 
 :: Set "ON" for all programs
@@ -1379,61 +1336,6 @@ call :IS_ON OPT17 && call :TRY_INSTALL autohotkey "AutoHotkey"
 call :IS_ON OPT18 && call :TRY_INSTALL megasync "MEGA"
 
 call :GO PROGRAMS_MANAGER_MENU
-
-:TRY_INSTALL
-echo. & echo Installing: %~2
-choco install %~1 -y
-
-if !errorlevel! neq 0 (
-    echo. & echo Failed to install: %~2  
-    call :CHOICE "Do you want to ignore checksum and retry?"
-    if errorlevel 2 (
-	    echo The program download was ignored
-	    exit /b 1  
-    ) else (
-        echo. & echo Retrying with --ignore-checksums
-        choco install %~1 --ignore-checksums -y
-    )
-)
-goto :eof
-
-:: Check if a flag is set to (YES)
-:IS_ON
-if "!%1!"=="%ON%" exit /b 0
-exit /b 1
-
-:: Switch (YES) to (NO) and vice-versa
-:TOGGLE_SINGLE
-if "!%1!"=="%ON%" (
-    set "%1=%OFF%"
-) else (
-    set "%1=%ON%"
-)
-goto :eof
-
-:: List of current selections to the screen
-:SHOW_SELECTED
-set "ANY=0"
-if "!OPT1!"=="%ON%" echo  - Google Chrome & set "ANY=1"
-if "!OPT2!"=="%ON%" echo  - Brave & set "ANY=1"
-if "!OPT3!"=="%ON%" echo  - WinRAR & set "ANY=1"
-if "!OPT4!"=="%ON%" echo  - 7-Zip & set "ANY=1"
-if "!OPT5!"=="%ON%" echo  - K-Lite Codec & set "ANY=1"
-if "!OPT6!"=="%ON%" echo  - IrfanView & set "ANY=1"
-if "!OPT7!"=="%ON%" echo  - XnView MP & set "ANY=1"
-if "!OPT8!"=="%ON%" echo  - Sumatra PDF & set "ANY=1"
-if "!OPT9!"=="%ON%" echo  - Notepad++ & set "ANY=1"
-if "!OPT10!"=="%ON%" echo  - Visual Studio Code & set "ANY=1"
-if "!OPT11!"=="%ON%" echo  - Git & set "ANY=1"
-if "!OPT12!"=="%ON%" echo  - qbittorrent & set "ANY=1"
-if "!OPT13!"=="%ON%" echo  - VC++ Redistributables & set "ANY=1"
-if "!OPT14!"=="%ON%" echo  - DirectX & set "ANY=1"
-if "!OPT15!"=="%ON%" echo  - Virtual Box & set "ANY=1"
-if "!OPT16!"=="%ON%" echo  - IObit Unlocker & set "ANY=1"
-if "!OPT17!"=="%ON%" echo  - AutoHotkey & set "ANY=1"
-if "!OPT18!"=="%ON%" echo  - MEGA & set "ANY=1"
-if "!ANY!"=="0" echo  - No programs selected
-goto :eof
 
 :: Chocolatey must be available to upgrade the programs
 :UPDATE_PROGRAMS
@@ -2020,7 +1922,7 @@ call :INVALID "(0-2)" "ACTIVATION_MENU"
 :: Activating Windows and Microsoft Office using MAS script
 :RUN_ACTIVATION
 cls & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
-echo The script will open in a new window. Follow the on-screen instructions.
+echo The script will open in a new window. Follow the on-screen instructions
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
 call :GO ACTIVATION_MENU
 
@@ -2400,6 +2302,108 @@ if !errorlevel! equ 0 goto :eof
 echo Choco not found
 call :GO PROGRAMS_MANAGER_MENU
 
+:MULTI_INPUT
+:: Process numerical input to toggle selections (supports: 1,2,3  or  1 2 3  or  1-5  or mixed like 1-3,7,10-12)
+set "invalid="
+set "tokens=%choice:,= %"
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+
+    :: Detect a hyphen by comparing the string before/after removing "-"
+    set "noHyphen=!tok:-=!"
+
+    if not "!tok!"=="!noHyphen!" (
+        :: Looks like a range e.g. 1-5
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq 18 if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE OPT%%N
+                set "matched=1"
+            )
+        )
+    ) else (
+        :: Single number
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq 18 (
+                call :TOGGLE_SINGLE OPT!tok!
+                set "matched=1"
+            )
+        )
+    )
+
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
+)
+
+if defined invalid (
+    echo. & echo Invalid or out-of-range input ignored:!invalid!
+    pause
+)
+
+goto :eof
+
+:TRY_INSTALL
+echo. & echo Installing: %~2
+choco install %~1 -y
+
+if !errorlevel! neq 0 (
+    echo. & echo Failed to install: %~2  
+    call :CHOICE "Do you want to ignore checksum and retry?"
+    if errorlevel 2 (
+	    echo The program download was ignored
+	    exit /b 1  
+    ) else (
+        echo. & echo Retrying with --ignore-checksums
+        choco install %~1 --ignore-checksums -y
+    )
+)
+goto :eof
+
+:: Check if a flag is set to (YES)
+:IS_ON
+if "!%1!"=="%ON%" exit /b 0
+exit /b 1
+
+:: Switch (YES) to (NO) and vice-versa
+:TOGGLE_SINGLE
+if "!%1!"=="%ON%" (
+    set "%1=%OFF%"
+) else (
+    set "%1=%ON%"
+)
+goto :eof
+
+:: List of current selections to the screen
+:SHOW_SELECTED
+set "ANY=0"
+if "!OPT1!"=="%ON%" echo  - Google Chrome & set "ANY=1"
+if "!OPT2!"=="%ON%" echo  - Brave & set "ANY=1"
+if "!OPT3!"=="%ON%" echo  - WinRAR & set "ANY=1"
+if "!OPT4!"=="%ON%" echo  - 7-Zip & set "ANY=1"
+if "!OPT5!"=="%ON%" echo  - K-Lite Codec & set "ANY=1"
+if "!OPT6!"=="%ON%" echo  - IrfanView & set "ANY=1"
+if "!OPT7!"=="%ON%" echo  - XnView MP & set "ANY=1"
+if "!OPT8!"=="%ON%" echo  - Sumatra PDF & set "ANY=1"
+if "!OPT9!"=="%ON%" echo  - Notepad++ & set "ANY=1"
+if "!OPT10!"=="%ON%" echo  - Visual Studio Code & set "ANY=1"
+if "!OPT11!"=="%ON%" echo  - Git & set "ANY=1"
+if "!OPT12!"=="%ON%" echo  - qbittorrent & set "ANY=1"
+if "!OPT13!"=="%ON%" echo  - VC++ Redistributables & set "ANY=1"
+if "!OPT14!"=="%ON%" echo  - DirectX & set "ANY=1"
+if "!OPT15!"=="%ON%" echo  - Virtual Box & set "ANY=1"
+if "!OPT16!"=="%ON%" echo  - IObit Unlocker & set "ANY=1"
+if "!OPT17!"=="%ON%" echo  - AutoHotkey & set "ANY=1"
+if "!OPT18!"=="%ON%" echo  - MEGA & set "ANY=1"
+if "!ANY!"=="0" echo  - No program selected
+goto :eof
+
 :NET_CONTROL
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)
@@ -2598,5 +2602,3 @@ goto %1
 echo. & echo The operation is done.
 pause
 goto %1
-
-:: ----------------------------------------------------------------< END >----------------------------------------------------------------
