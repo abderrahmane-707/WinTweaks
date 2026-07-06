@@ -8,11 +8,6 @@ function Write-Log {
         [string]$Message
     )
     Write-Host $Message
-    
-    $logDir = Split-Path $LogPath
-    if ($logDir -and -not (Test-Path $logDir)) {
-        New-Item -ItemType Directory -Path $logDir -Force | Out-Null
-    }
     Add-Content -Path $LogPath -Value $Message -Encoding utf8
 }
 

@@ -15,7 +15,7 @@ function Write-Log {
 # Convert raw bytes to human‑readable units (Bytes/KB/MB/GB/TB)
 function Format-Size {
     param([double]$SizeInBytes)
-    if ($SizeInBytes -le 0 -or $SizeInBytes -eq $null) { return "N/A" }
+    if ($null -eq $SizeInBytes -or $SizeInBytes -le 0) { return "N/A" }
     $sizes = @("Bytes", "KB", "MB", "GB", "TB")
     $order = 0
     while ($SizeInBytes -ge 1024 -and $order -lt $sizes.Length - 1) {

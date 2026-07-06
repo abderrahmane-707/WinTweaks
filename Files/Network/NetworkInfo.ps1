@@ -44,9 +44,11 @@ Get-Process | ForEach-Object { $ProcessMap[$_.Id] = $_.ProcessName }
 Write-Log "Username: $env:USERNAME"
 Write-Log "Domain: $env:USERDOMAIN"
 
-# Basic internet connectivity test
+# Basic internet connectivity test via the default gateway (avoids false negatives in firewalled environments)
 Write-Log "`nConnection tests:"
-if (Test-Connection -ComputerName "8.8.8.8" -Count 3 -Quiet -ErrorAction SilentlyContinue) {
+$defaultGateway = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1).NextHop
+$pingTarget = if ($defaultGateway) { $defaultGateway } else { "8.8.8.8" }
+if (Test-Connection -ComputerName $pingTarget -Count 3 -Quiet -ErrorAction SilentlyContinue) {
     Write-Log " Connected"
 } else {
     Write-Log " Disconnected"
