@@ -1288,6 +1288,8 @@ echo.
 echo                           [A] Select All              [D] Deselect All           [0] Back
 echo.
 
+echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
+
 :: Display a real-time list of what the user has selected
 echo. & echo Selected:
 call :SHOW_SELECTED
@@ -1299,11 +1301,51 @@ if /i "%choice%"=="S" goto INSTALL_PROGRAMS
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
 
-:: Process numerical input to toggle selections (0-18)
+:: Process numerical input to toggle selections (supports: 1,2,3  or  1 2 3  or  1-5  or mixed like 1-3,7,10-12)
+set "invalid="
 set "tokens=%choice:,= %"
 for %%G in (%tokens%) do (
-    for %%N in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do if "%%G"=="%%N" call :TOGGLE_SINGLE OPT%%N
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+
+    :: Detect a hyphen by comparing the string before/after removing "-"
+    set "noHyphen=!tok:-=!"
+
+    if not "!tok!"=="!noHyphen!" (
+        :: Looks like a range e.g. 1-5
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq 18 if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE OPT%%N
+                set "matched=1"
+            )
+        )
+    ) else (
+        :: Single number
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq 18 (
+                call :TOGGLE_SINGLE OPT!tok!
+                set "matched=1"
+            )
+        )
+    )
+
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
 )
+
+if defined invalid (
+    echo. & echo Invalid or out-of-range input ignored:!invalid!
+    pause
+)
+
 goto PROGRAMS_MENU
 
 :: Set "ON" for all programs
