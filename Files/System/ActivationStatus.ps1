@@ -4,7 +4,10 @@ Write-Host "Windows Activation Status:"
 $license = Get-CimInstance -ClassName SoftwareLicensingProduct -Filter "PartialProductKey IS NOT NULL" | 
            Select-Object -First 1 LicenseStatus, RemainingGracePeriod, Description
 
-if ($license.LicenseStatus -eq 1) {
+if ($null -eq $license) {
+    Write-Host " Unable to retrieve activation status (No licensing info found)"
+}
+elseif ($license.LicenseStatus -eq 1) {
     Write-Host " The machine is permanently activated" -ForegroundColor Green
 } 
 elseif ($license.LicenseStatus -eq 0) {

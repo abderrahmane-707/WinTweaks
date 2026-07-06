@@ -15,9 +15,14 @@ try {
     # Extract the GUID of the target plan
     $targetGUID = ([regex]::Match($targetPlan.Line, "[0-9a-fA-F-]{36}")).Value
 
-    # Switch to Balanced plan (cannot delete the active plan)
-    Write-Host "Switching to Balanced power plan"
-    powercfg /setactive $balancedGUID
+    # Check if the target plan is currently active (marked with * in powercfg /list)
+    $isActive = $targetPlan.Line.Contains("*")
+
+    if ($isActive) {
+        # Switch to Balanced plan (cannot delete the active plan)
+        Write-Host "Switching to Balanced power plan"
+        powercfg /setactive $balancedGUID
+    }
 
     # Delete the target plan
     Write-Host "Deleting $planName"

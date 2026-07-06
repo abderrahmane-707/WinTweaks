@@ -59,7 +59,12 @@ function Show-SystemPrograms {
             @{ Name = 'Publisher'; Expression = { if ($_.Publisher) { $_.Publisher } else { "N/A" } } },
             @{ Name = 'InstallDate'; Expression = {
                     if ($_.InstallDate -match '^\d{8}$') {
-                        [datetime]::ParseExact($_.InstallDate, 'yyyyMMdd', $null).ToString('dd/MM/yyyy')
+                        $parsedDate = [datetime]::MinValue
+                        if ([datetime]::TryParseExact($_.InstallDate, 'yyyyMMdd', $null, [System.Globalization.DateTimeStyles]::None, [ref]$parsedDate)) {
+                            $parsedDate.ToString('dd/MM/yyyy')
+                        } else {
+                            $_.InstallDate
+                        }
                     } else {
                         if ($_.InstallDate) { $_.InstallDate } else { "N/A" }
                     }

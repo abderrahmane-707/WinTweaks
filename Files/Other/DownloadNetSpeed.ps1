@@ -3,8 +3,24 @@ $TempZip   = Join-Path $env:TEMP "speedtest_cli.zip"
 $ExtractDir = Join-Path $env:TEMP "speedtest_cli"
 $ExePath   = Join-Path $ExtractDir "speedtest.exe"
 
-# Download source
-$DownloadUrl = "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip"
+# Detect architecture and set download URL
+$arch = $env:PROCESSOR_ARCHITECTURE
+if ($env:PROCESSOR_ARCHITEW6432 -eq "AMD64") { $arch = "AMD64" }
+
+if ($arch -eq "AMD64") {
+    $DownloadUrl = "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip"
+    $ArchName    = "64-bit"
+} 
+# Check if the system is Windows on ARM
+elseif ($arch -eq "ARM64" -or $env:PROCESSOR_ARCHITECTURE -eq "ARM64" -or $env:PROCESSOR_ARCHITEW6432 -eq "ARM64") {
+    # Speedtest doesn't have native Win-ARM64 binary, so we use Win64 via Windows Emulation
+    $DownloadUrl = "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip"
+    $ArchName    = "Windows on ARM (ARM64 - via x64 Emulation)"
+} 
+else {
+    $DownloadUrl = "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win32.zip"
+    $ArchName    = "32-bit"
+}
 
 # Ensure extract directory exists
 if (-not (Test-Path $ExtractDir)) {
@@ -13,7 +29,7 @@ if (-not (Test-Path $ExtractDir)) {
 
 # Download + extract if missing
 if (-not (Test-Path $ExePath)) {
-    Write-Host "Downloading Speedtest CLI"
+    Write-Host "Downloading Speedtest CLI: $ArchName"
 
     try {
         # Optimize download
@@ -45,6 +61,7 @@ if (-not (Test-Path $ExePath)) {
 }
 
 # Run speed test
+cls
 Write-Host "Running Internet Speed Test"
 
 try {

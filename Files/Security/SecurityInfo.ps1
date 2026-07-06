@@ -257,7 +257,9 @@ function Get-WindowsUpdateStatus {
         $lastUpdate = Get-HotFix -ErrorAction Stop | Sort-Object InstalledOn -Descending | Select-Object -First 1
         if ($lastUpdate) {
             Write-Result -Label 'Last update' -Value "$($lastUpdate.HotFixID) - $($lastUpdate.Description)" -Level Info
-            Write-Result -Label 'Installed on' -Value $lastUpdate.InstalledOn.ToString('dd/MM/yyyy HH:mm') -Level Info
+            $installedOn = $lastUpdate.InstalledOn
+            $formattedDate = if ($installedOn -is [System.DateTime]) { $installedOn.ToString('dd/MM/yyyy HH:mm') } else { $installedOn }
+            Write-Result -Label 'Installed on' -Value $formattedDate -Level Info
         } else {
             Write-Result -Label 'Last update' -Value 'No updates found' -Level Warn
         }

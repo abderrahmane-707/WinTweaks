@@ -80,7 +80,7 @@ $hosts = @(
 )
 
 foreach ($h in $hosts) {
-    $result = Resolve-DnsName -Name $h -Server "8.8.8.8" -ErrorAction SilentlyContinue
+    $result = Resolve-DnsName -Name $h -ErrorAction SilentlyContinue
 
     if ($result) {
         Write-Host "  $h : Working"

@@ -34,8 +34,8 @@ Write-Log "Saved networks and their passwords"
 
 # Enumerate saved Wi-Fi profiles
 $profiles = netsh wlan show profiles |
-    Select-String "All User Profile" |
-    ForEach-Object { $_.Line.Split(":", 2)[1].Trim() }
+    Where-Object { $_ -match '^\s+[^:]+:\s+(.*)$' } |
+    ForEach-Object { $matches[1].Trim() }
 
 if (-not $profiles) {
     Write-Log "No Wi-Fi profiles found"
