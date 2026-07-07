@@ -74,7 +74,7 @@ if "%choice%"=="2" (
 if "%choice%"=="3" (
     set ROUTINE=BOOT_TWEAKS
     set REV_ROUTINE=REV_BOOT_TWEAKS
-	set APPLY=Enhance boot-up settings
+    set APPLY=Enhance boot-up settings
     set REVERT=Set boot-up settings to default
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
@@ -523,7 +523,7 @@ copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
 echo Blocking windows telemetry and trash domains
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
     findstr /C:"%%L" "%HOSTS_PATH%" >nul
-	if !errorlevel! neq 0 (
+    if !errorlevel! neq 0 (
         echo %%L>>"%HOSTS_PATH%"
     )
 )
@@ -1888,7 +1888,7 @@ if exist "%TARGET_FOLDER%\*.hive" (
         if exist "%TARGET_FOLDER%.zip" (
             call :CHOICE "FullRegistryBackup.zip already exists. Do you want to delete it?"
             if errorlevel 2 (
-                echo Keeping the existing archive. Compression cancelled.
+                echo Keeping the existing archive. Compression cancelled
                 set "PROCEED_COMPRESSION=0"
             )
         )
@@ -2159,7 +2159,7 @@ for /f "usebackq delims=" %%i in ("%~2") do (
     set "TASK_RESULT=[SUCCESS]"
 
     schtasks /query /tn "%%i" >nul 2>&1
-	if !errorlevel! neq 0 (
+    if !errorlevel! neq 0 (
         set "TASK_RESULT=[NOT_FOUND]"
     ) else (
         if /i "%~1"=="Disable" (
@@ -2186,7 +2186,7 @@ set "BROWSERS_OPEN=0"
 for %%A in (%BROWSERS%) do (
     tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
     if not errorlevel 1 (
-		echo %%A is currently running
+        echo %%A is currently running
         set "BROWSERS_OPEN=1"
     )
 )
@@ -2259,7 +2259,7 @@ call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Wi
 call :CHOICE "Run Disk Cleanup to complete the cleaning?"
 if !errorlevel! equ 1 (
     echo Running Disk Cleanup
-	cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
+    cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
 )
 
 :: Force empty the Recycle Bin for all drives
@@ -2358,7 +2358,7 @@ if !errorlevel! neq 0 (
     call :CHOICE "Do you want to ignore checksum and retry?"
     if errorlevel 2 (
 	    echo The program download was ignored
-	    exit /b 1  
+	    goto :eof
     ) else (
         echo. & echo Retrying with --ignore-checksums
         choco install %~1 --ignore-checksums -y
@@ -2540,7 +2540,7 @@ goto :eof
 :MKDIR_PROMPT
 set "MKDIR_DIR=%~1"
 
-:: Create the folder if it not exist
+:: Create the folder if it does not exist
 if not exist "%MKDIR_DIR%" (
     mkdir "%~1" >nul 2>&1
     if errorlevel 1 (
