@@ -611,7 +611,14 @@ reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
 :: Clean System Log files
 echo Cleaning system log files
-for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q /s %%L\*" >nul 2>&1
+for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
+    if exist "%%~F" (
+        "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q "%%~F\*"" >nul 2>&1
+            for /d %%D in ("%%~F\*") do (
+            "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q "%%~D"" >nul 2>&1
+        )
+    )
+)
 
 :: Clear Windows Event Viewer logs
 echo Cleaning Windows Event Logs
