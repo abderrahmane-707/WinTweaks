@@ -471,8 +471,13 @@ set "BATTERY_REPORT=%MKDIR_DIR%\BatteryReport.html"
 cls & echo Creating battery report
 powercfg /batteryreport /output "%BATTERY_REPORT%"
 
-:: Opening battery report
-start "" "%BATTERY_REPORT%"
+:: Check if the report was created successfully
+if %errorlevel% equ 0 (
+    start "" "%BATTERY_REPORT%"
+) else (
+    echo Failed to create battery report
+)
+
 call :GO & goto HW_INFO_MENU
 
 
