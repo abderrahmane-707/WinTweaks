@@ -1452,7 +1452,7 @@ choco upgrade all -y
 call :GO & goto PROGRAMS_MANAGER_MENU
 
 :DOWNLOAD_MO
-start "" cmd /c "Files\Programs\office.bat"
+start "" cmd /c "Files\Programs\Office.bat"
 goto PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
@@ -2583,7 +2583,7 @@ if exist "%TARGET_FILE%" (
 
 if exist "%TARGET_FILE%" (
     echo. & echo Failed to delete old file
-    exit /b 1
+	pause & exit /b 1
 )
 goto :eof
 
@@ -2600,7 +2600,7 @@ if exist "%TARGET_FOLDER%" (
 
 if exist "%TARGET_FOLDER%" (
     echo. & echo Failed to delete old backup folder
-    exit /b 1
+	pause & exit /b 1
 ) else (
     call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
 )
@@ -2650,8 +2650,7 @@ if not exist "%MKDIR_DIR%" (
     mkdir "%~1" >nul 2>&1
     if errorlevel 1 (
         echo Failed to create: %MKDIR_DIR%
-        pause
-        exit
+        pause & goto MAIN_MENU
     )
 )
 goto :eof
