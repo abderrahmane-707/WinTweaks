@@ -1,23 +1,15 @@
 param (
-    [Parameter(Mandatory = $true)]
+    [Parameter(Position = 0)]
     [string]$LogPath,
 
     [string]$ExportPath
 )
 
+. "$PSScriptRoot\..\Common\Logger.ps1"
+
 # Begin transcript if an export path is provided.
 if ($ExportPath) {
     Start-Transcript -Path $ExportPath -Append -ErrorAction SilentlyContinue | Out-Null
-}
-
-# Unified logging function with UTF-8 encoding support.
-function Write-Log {
-    param (
-        [string[]]$Message
-    )
-    $FullText = $Message -join " "
-    Write-Host $FullText
-    $FullText | Add-Content -Path $LogPath -Encoding utf8
 }
 
 # Helper to display Wi-Fi network details consistently.

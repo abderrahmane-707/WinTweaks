@@ -1,15 +1,9 @@
-# Accept optional log file path; default to script directory if not provided
 param (
+    [Parameter(Position = 0)]
     [string]$LogPath
 )
 
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    Add-Content -Path $LogPath -Value $Message -Encoding utf8
-}
+. "$PSScriptRoot\..\Common\Logger.ps1"
 
 # Main function: enumerates startup programs and installed applications
 function Show-SystemPrograms {

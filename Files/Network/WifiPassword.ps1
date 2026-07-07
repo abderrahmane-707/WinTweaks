@@ -1,16 +1,9 @@
 param (
+    [Parameter(Position = 0)]
     [string]$PassedLogPath
 )
 
-$LogPath = $PassedLogPath
-
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    Add-Content -Path $LogPath -Value $Message -Encoding utf8
-}
+. "$PSScriptRoot\..\Common\Logger.ps1"
 
 function Convert-ByteArrayToString {
     param([byte[]]$Bytes)

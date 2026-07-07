@@ -1,17 +1,18 @@
 # Folder path to archive
 param (
-    [Parameter(Mandatory = $true)]
-    [string]$FolderPath
+    [Parameter(Position = 0)]
+    [string]$FolderPath,
+    
+    [Parameter(Position = 1)]
+    [string]$LogPath
 )
-
+. "$PSScriptRoot\..\Common\Logger.ps1"
 # Output archive path
 $ZipPath = "$FolderPath.zip"
-
-Write-Host ""
-
+Write-Log ""
 # Check for the presence of a compressed file and delete it automatically
 if (Test-Path $ZipPath) {
-    Write-Host "Deleting existing file"
+    Write-Log "Deleting existing file"
     Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
 }
 
@@ -36,12 +37,19 @@ $FolderSize = Get-FolderSize -Path $FolderPath
 $FormattedFolderSize = Format-FileSize -Bytes $FolderSize
 
 # Create ZIP archive
-Write-Host "Compressing hive files"
-Compress-Archive `
-    -Path "$FolderPath\*" `
-    -DestinationPath $ZipPath `
-    -CompressionLevel Optimal `
-    -Force
+Write-Log "Compressing hive files"
+try {
+    Compress-Archive `
+        -Path "$FolderPath\*" `
+        -DestinationPath $ZipPath `
+        -CompressionLevel Optimal `
+        -Force `
+        -ErrorAction Stop
+}
+catch {
+    Write-Log "Error: Compression failed - $_"
+    exit 1
+}
 
 # Verify archive creation
 if (Test-Path $ZipPath) {
@@ -51,11 +59,15 @@ if (Test-Path $ZipPath) {
     $FormattedZipSize = Format-FileSize -Bytes $ZipSize
 
     # Remove temporary source folder
-    Write-Host "Deleting $FolderPath"
+    Write-Log "Deleting $FolderPath"
     Remove-Item $FolderPath -Recurse -Force
 
     # Display summary
-    Write-Host "`nSize Before compress: $FormattedFolderSize"
-    Write-Host "Size After compress:  $FormattedZipSize"
-    Write-Host "Backup saved in:      $ZipPath"
+    Write-Log "`nSize Before compress: $FormattedFolderSize"
+    Write-Log "Size After compress:  $FormattedZipSize"
+    Write-Log "Backup saved in:      $ZipPath"
+}
+else {
+    Write-Log "Error: Archive was not created - $ZipPath"
+    exit 1
 }

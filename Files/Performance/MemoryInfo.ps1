@@ -1,14 +1,9 @@
 param (
+    [Parameter(Position = 0)]
     [string]$LogPath
 )
 
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    Add-Content -Path $LogPath -Value $Message -Encoding utf8
-}
+. "$PSScriptRoot\..\Common\Logger.ps1"
 
 # Collect and report memory information
 try {

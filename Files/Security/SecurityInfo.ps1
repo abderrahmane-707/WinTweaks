@@ -1,30 +1,35 @@
-# Accept log path parameter or default to script directory
 param (
+    [Parameter(Position = 0)]
     [string]$LogPath
 )
 
-# Write message to console and append to log file with UTF-8 encoding
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    Add-Content -Path $LogPath -Value $Message -Encoding utf8
-}
+. "$PSScriptRoot\..\Common\Logger.ps1"
+
 
 function Write-SectionHeader {
-    param([string]$Text)
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Text
+    )
     Write-Log "`n$Text"
 }
 
 function Write-Result {
-    param(
+    param (
+        [Parameter(Mandatory = $true)]
         [string]$Label,
+        
+        [Parameter(Mandatory = $true)]
         [string]$Value,
+        
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Good', 'Bad', 'Warn', 'Info')]
         [string]$Level = 'Info'
     )
-    Write-Log ("  {0,-30}: {1}" -f $Label, $Value)
+    
+    $FormatString = "  {0,-30}: {1}"
+    $FormattedText = $FormatString -f $Label, $Value
+    Write-Log $FormattedText
 }
 
 function Get-FirewallStatus {

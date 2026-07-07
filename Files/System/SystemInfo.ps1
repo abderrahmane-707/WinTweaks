@@ -1,18 +1,9 @@
 param (
+    [Parameter(Position = 0)]
     [string]$LogPath
 )
 
-# In-memory buffer to avoid repetitive disk writes.
-$LogLines = [System.Collections.Generic.List[string]]::new()
-
-# Writes to console and appends to the in-memory buffer.
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    $LogLines.Add($Message)
-}
+. "$PSScriptRoot\..\Common\Logger.ps1"
 
 Write-Log "System Information:"
 
@@ -45,6 +36,3 @@ try {
 catch {
     Write-Log "  Error retrieving system information: $_"
 }
-
-# Flush all buffered lines to disk in a single high-performance write operation.
-$LogLines | Out-File -FilePath $LogPath -Append -Encoding utf8

@@ -1894,7 +1894,7 @@ if exist "%TARGET_FOLDER%\*.hive" (
         )
         
         if !PROCEED_COMPRESSION! equ 1 (
-            powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%TARGET_FOLDER%"
+            powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%TARGET_FOLDER%" "%LOG_FILE%"
         )
     )
 ) else (

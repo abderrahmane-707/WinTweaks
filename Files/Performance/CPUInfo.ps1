@@ -1,16 +1,10 @@
-# Accept log path parameter or default to script directory
 param (
+    [Parameter(Position = 0)]
     [string]$LogPath
 )
 
-# Write message to console and append to log file with UTF-8 encoding
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    Add-Content -Path $LogPath -Value $Message -Encoding utf8
-}
+# Import common logging module
+. "$PSScriptRoot\..\Common\Logger.ps1"
 
 # Retrieve processor information via CIM
 try {

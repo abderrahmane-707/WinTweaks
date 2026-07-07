@@ -1,16 +1,9 @@
-# Accept log file path from caller (no default fallback)
 param (
+    [Parameter(Position = 0)]
     [string]$LogPath
 )
 
-# Write output to screen and log file using UTF-8 encoding
-function Write-Log {
-    param (
-        [string]$Message
-    )
-    Write-Host $Message
-    Add-Content -Path $LogPath -Value $Message -Encoding utf8
-}
+. "$PSScriptRoot\..\Common\Logger.ps1"
 
 # Motherboard information
 Write-Log "Motherboard Information:"
