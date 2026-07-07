@@ -33,7 +33,7 @@ if (-not (Test-Path $ExePath)) {
 
     try {
         # Optimize download
-        $ProgressPreference = 'Continue'
+        $ProgressPreference = 'SilentlyContinue'
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
         Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZip -ErrorAction Stop
