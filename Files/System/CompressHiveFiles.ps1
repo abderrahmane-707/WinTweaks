@@ -6,10 +6,13 @@ param (
     [Parameter(Position = 1)]
     [string]$LogPath
 )
+
 . "$PSScriptRoot\..\Common\Logger.ps1"
+
 # Output archive path
 $ZipPath = "$FolderPath.zip"
 Write-Log ""
+
 # Check for the presence of a compressed file and delete it automatically
 if (Test-Path $ZipPath) {
     Write-Log "Deleting existing file"
@@ -47,7 +50,7 @@ try {
         -ErrorAction Stop
 }
 catch {
-    Write-Log "Error: Compression failed - $_"
+    Write-Log "Compression failed - $_"
     exit 1
 }
 
@@ -68,6 +71,6 @@ if (Test-Path $ZipPath) {
     Write-Log "Backup saved in:      $ZipPath"
 }
 else {
-    Write-Log "Error: Archive was not created - $ZipPath"
+    Write-Log "Archive was not created - $ZipPath"
     exit 1
 }
