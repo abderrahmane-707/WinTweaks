@@ -5,6 +5,8 @@ param (
 
 . "$PSScriptRoot\..\Common\Logger.ps1"
 
+$LogPath = $PassedLogPath
+
 function Convert-ByteArrayToString {
     param([byte[]]$Bytes)
     return [System.Text.Encoding]::ASCII.GetString($Bytes).TrimEnd("`0")
