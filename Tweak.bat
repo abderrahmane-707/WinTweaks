@@ -859,36 +859,23 @@ set "SEC_BACKUP=%TARGET_FOLDER%\SecurityBackup.inf"
 
 set "HKLM_POLICIES=1"
 set "HKCU_POLICIES=1"
-
 set "DEFLTBASE_INF=1"
 
+set "HKLM_POL_SUCCESS=1"
+set "HKCU_POL_SUCCESS=1"
+set "SEC_POL_SUCCESS=1"
+
 echo.
-if exist "%GP_DIR%" (
-    echo Moving and Backing up GroupPolicy folder
-    robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo [ERROR] Failed to move: %GP_DIR%. Operation aborted
-        call :GO & goto PRIVACY_SECURITY_MENU
-    )
-)
-
-if exist "%GPU_DIR%" (
-    echo Moving and Backing up GroupPolicyUsers folder
-    robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo [ERROR] Failed to move: %GPU_DIR%. Operation aborted
-        call :GO & goto PRIVACY_SECURITY_MENU
-    )
-)
-
 reg query "%GP_KEY%" >nul 2>&1
 if !errorlevel! equ 0 (
     set "HKLM_POLICIES=0"
     echo Backing up HKLM Policies registry key
     reg export "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
-        echo [ERROR] Failed to backup: %GP_KEY%. Operation aborted
-        call :GO & goto PRIVACY_SECURITY_MENU
+	    set "HKLM_POL_SUCCESS=0"
+        echo Failed to backup: %GP_KEY%
+        echo Skipping deletion for this key
+        echo.
     )
 )
 
@@ -898,8 +885,10 @@ if !errorlevel! equ 0 (
     echo Backing up HKCU Policies registry key
     reg export "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
-        echo [ERROR] Failed to backup: %GPU_KEY%. Operation aborted
-        call :GO & goto PRIVACY_SECURITY_MENU
+	    set "HKCU_POL_SUCCESS=0"
+        echo Failed to backup: %GPU_KEY%
+        echo Skipping deletion for this key
+        echo.
     )
 )
 
@@ -908,22 +897,42 @@ if exist "%INF_FILE%" (
     echo Backing up current security policies
     secedit /export /cfg "%SEC_BACKUP%" >> "%LOG_FILE%" 2>&1
     if !errorlevel! neq 0 (
-        echo [ERROR] Failed to backup: %INF_FILE%. Operation aborted
-        call :GO & goto PRIVACY_SECURITY_MENU
+	    set "SEC_POL_SUCCESS=0"
+        echo Failed to backup: %INF_FILE%
+        echo Skipping baseline security reset
+		echo.
     )
 )
 
-if "!HKLM_POLICIES!"=="0" (
+if exist "%GP_DIR%" (
+    echo Moving and Backing up GroupPolicy folder
+    robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo Failed to move: %GP_DIR%
+        echo Skipping folder movement
+    )
+)
+
+if exist "%GPU_DIR%" (
+    echo Moving and Backing up GroupPolicyUsers folder
+    robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo Failed to move: %GPU_DIR%
+        echo Skipping folder movement
+    )
+)
+
+if "!HKLM_POLICIES!"=="0" if "!HKLM_POL_SUCCESS!"=="1" (
     echo Deleting HKLM Policies registry key
     reg delete "%GP_KEY%" /f >> "%LOG_FILE%" 2>&1
 )
 
-if "!HKCU_POLICIES!"=="0" (
+if "!HKCU_POLICIES!"=="0" if "!HKCU_POL_SUCCESS!"=="1" (
     echo Deleting HKCU Policies registry key
     reg delete "%GPU_KEY%" /f >> "%LOG_FILE%" 2>&1
 )
 
-if "!DEFLTBASE_INF!"=="0" (
+if "!DEFLTBASE_INF!"=="0" if "!SEC_POL_SUCCESS!"=="1" (
     echo Applying default security policy baseline
     secedit /configure /cfg "%INF_FILE%" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
 )
@@ -931,7 +940,9 @@ if "!DEFLTBASE_INF!"=="0" (
 echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
-echo. & echo Backup files saved in: %TARGET_FOLDER%
+echo Backup files saved in: %TARGET_FOLDER%
+call :LOG & goto PRIVACY_SECURITY_MENU
+
 :REV_REMOVE_POLICIES
 echo. & call :CHOICE "WARNING: Restoring previous Group Policy settings will overwrite current changes. Press (N) if you are unsure"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
