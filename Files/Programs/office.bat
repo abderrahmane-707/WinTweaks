@@ -61,8 +61,8 @@ set "CONFIG_FILE=Files\Programs\configuration.xml"
 :OFFICE_MENU
 cls
 echo.
-echo                                                     \\!//
-echo                                                     (o o)
+echo                                                 \\!//
+echo                                                 (o o)
 echo              -------------------------------oOOo-(_)-oOOo-------------------------------
 echo                                     Microsoft Office Installation Tool
 echo              ---------------------------------------------------------------------------
