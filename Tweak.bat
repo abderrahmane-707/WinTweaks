@@ -518,8 +518,8 @@ if "%choice%"=="5" (
 if "%choice%"=="6" (
     set ROUTINE=REMOVE_POLICIES
     set REV_ROUTINE=REV_REMOVE_POLICIES
-    set APPLY=Remove all policies seeting
-    set REVERT=Restore all policies seeting
+    set APPLY=Remove all policies setting
+    set REVERT=Restore all policies setting
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
@@ -2707,7 +2707,6 @@ pause
 goto :eof
 
 :GO
-:: %1 = The label of the menu to return to
 echo. & echo The operation is done.
 pause
 goto :eof
