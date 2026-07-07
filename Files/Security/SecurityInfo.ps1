@@ -29,7 +29,7 @@ function Write-Result {
     
     $FormatString = "  {0,-30}: {1}"
     $FormattedText = $FormatString -f $Label, $Value
-    Write-Log $FormattedText
+    Write-Log $FormattedText -Level $Level
 }
 
 function Get-FirewallStatus {
@@ -258,18 +258,44 @@ function Get-WindowsUpdateStatus {
         Write-Result -Label 'Windows Update service' -Value "Unable to check ($($_.Exception.Message))" -Level Warn
     }
 
+    # Use the Windows Update Agent COM API first - it reflects Cumulative Updates
+    # and other update types that Get-HotFix (QuickFixEngineering) often misses.
+    $reported = $false
     try {
-        $lastUpdate = Get-HotFix -ErrorAction Stop | Sort-Object InstalledOn -Descending | Select-Object -First 1
-        if ($lastUpdate) {
-            Write-Result -Label 'Last update' -Value "$($lastUpdate.HotFixID) - $($lastUpdate.Description)" -Level Info
-            $installedOn = $lastUpdate.InstalledOn
-            $formattedDate = if ($installedOn -is [System.DateTime]) { $installedOn.ToString('dd/MM/yyyy HH:mm') } else { $installedOn }
-            Write-Result -Label 'Installed on' -Value $formattedDate -Level Info
-        } else {
-            Write-Result -Label 'Last update' -Value 'No updates found' -Level Warn
+        $updateSession = New-Object -ComObject Microsoft.Update.Session
+        $updateSearcher = $updateSession.CreateUpdateSearcher()
+        $historyCount = $updateSearcher.GetTotalHistoryCount()
+
+        if ($historyCount -gt 0) {
+            $history = $updateSearcher.QueryHistory(0, $historyCount) |
+                Where-Object { $_.ResultCode -eq 2 } |  # 2 = Succeeded
+                Sort-Object Date -Descending |
+                Select-Object -First 1
+
+            if ($history) {
+                Write-Result -Label 'Last update' -Value $history.Title -Level Info
+                Write-Result -Label 'Installed on' -Value $history.Date.ToString('dd/MM/yyyy HH:mm') -Level Info
+                $reported = $true
+            }
         }
     } catch {
-        Write-Result -Label 'Windows updates' -Value "Unable to check ($($_.Exception.Message))" -Level Warn
+        # COM API unavailable or blocked - fall back below
+    }
+
+    if (-not $reported) {
+        try {
+            $lastUpdate = Get-HotFix -ErrorAction Stop | Sort-Object InstalledOn -Descending | Select-Object -First 1
+            if ($lastUpdate) {
+                Write-Result -Label 'Last update' -Value "$($lastUpdate.HotFixID) - $($lastUpdate.Description)" -Level Info
+                $installedOn = $lastUpdate.InstalledOn
+                $formattedDate = if ($installedOn -is [System.DateTime]) { $installedOn.ToString('dd/MM/yyyy HH:mm') } else { $installedOn }
+                Write-Result -Label 'Installed on' -Value $formattedDate -Level Info
+            } else {
+                Write-Result -Label 'Last update' -Value 'No updates found' -Level Warn
+            }
+        } catch {
+            Write-Result -Label 'Windows updates' -Value "Unable to check ($($_.Exception.Message))" -Level Warn
+        }
     }
 }
 
