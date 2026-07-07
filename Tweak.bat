@@ -6,8 +6,8 @@ title WinTweaks
 fltmc >nul 2>&1
 if errorlevel 1 (
     echo This script must be run with Administrator privileges
-    pause
-    exit
+    pause & exit /b 1
+   
 )
 
 :: Go to script's directory
