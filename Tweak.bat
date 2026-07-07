@@ -609,10 +609,6 @@ call :DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
-:: Clear application launch history and start fresh
-echo Cleaning prefetch files
-del /f /s /q "%SYSTEMROOT%\Prefetch\*" >nul 2>&1
-
 :: Clean System Log files
 echo Cleaning system log files
 for /d %%L in ("%SYSTEMROOT%\Logs\*" "%SYSTEMROOT%\System32\LogFiles\*" ) do "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q /s %%L\*" >nul 2>&1
@@ -2334,8 +2330,8 @@ for %%X in (
 goto :eof
 
 :CLEANING_FUNCTION
-echo Cleaning Temp folders
-for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP") do (
+echo Cleaning Temp and prefetch folders
+for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP" "%SYSTEMROOT%\Prefetch") do (
     if exist "%%~F" (
         del /f /q "%%~F\*" >nul 2>&1
         for /d %%D in ("%%~F\*") do (
