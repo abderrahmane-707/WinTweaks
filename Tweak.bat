@@ -510,7 +510,15 @@ if "%choice%"=="5" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="6" goto REMOVE_POLICIES
+if "%choice%"=="6" (
+    set ROUTINE=REMOVE_POLICIES
+    set REV_ROUTINE=REV_REMOVE_POLICIES
+    set APPLY=Remove all policies seeting
+    set REVERT=Restore all policies seeting
+    set MENU=PRIVACY_SECURITY_MENU
+    goto SUB_MENU
+)
+
 if "%choice%"=="7" goto SECURITY_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
@@ -924,6 +932,73 @@ echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
 echo. & echo Backup files saved in: %TARGET_FOLDER%
+:REV_REMOVE_POLICIES
+echo. & call :CHOICE "WARNING: Restoring previous Group Policy settings will overwrite current changes. Press (N) if you are unsure"
+if errorlevel 2 goto PRIVACY_SECURITY_MENU
+
+call :PATH "Security" "RestoreAllPolicies"
+
+set "TARGET_FOLDER=%MKDIR_DIR%\GroupPolicyBackup"
+
+set "GP_DIR=%WinDir%\System32\GroupPolicy"
+set "GPU_DIR=%WinDir%\System32\GroupPolicyUsers"
+
+set "BACKUP_GP=%TARGET_FOLDER%\GroupPolicy"
+set "BACKUP_GPU=%TARGET_FOLDER%\GroupPolicyUsers"
+
+set "HKLM_POL_BACKUP=%TARGET_FOLDER%\HKLM_Policies_Backup.reg"
+set "HKCU_POL_BACKUP=%TARGET_FOLDER%\HKCU_Policies_Backup.reg"
+set "SEC_BACKUP=%TARGET_FOLDER%\SecurityBackup.inf"
+
+for %%F in (
+    "%HKLM_POL_BACKUP%"
+    "%HKCU_POL_BACKUP%"
+    "%SEC_BACKUP%"
+) do (
+    if exist "%%~F" goto :FOUND_POLICIES_BACKUP
+)
+
+if exist "%BACKUP_GP%" goto :FOUND_POLICIES_BACKUP
+if exist "%BACKUP_GPU%" goto :FOUND_POLICIES_BACKUP
+
+echo No backup files found to restore
+call :LOG & goto PRIVACY_SECURITY_MENU
+
+:FOUND_POLICIES_BACKUP
+if exist "%BACKUP_GP%" (
+    echo Restoring GroupPolicy folder
+    robocopy "%BACKUP_GP%" "%GP_DIR%" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%BACKUP_GPU%" (
+    echo Restoring GroupPolicyUsers folder
+    robocopy "%BACKUP_GPU%" "%GPU_DIR%" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%HKLM_POL_BACKUP%" (
+    echo Restoring HKLM Policies registry keys
+    reg import "%HKLM_POL_BACKUP%" >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%HKCU_POL_BACKUP%" (
+    echo Restoring HKCU Policies registry keys
+    reg import "%HKCU_POL_BACKUP%" >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%SEC_BACKUP%" (
+    echo Restoring security policies baseline
+    secedit /configure /cfg "%SEC_BACKUP%" /db "%TEMP%\defltbase_restore.sdb" /verbose >> "%LOG_FILE%" 2>&1
+)
+
+echo. & echo Applying Group Policy Update
+gpupdate /force >nul 2>&1
+
+echo. & call :CHOICE "Do you want to delete existing backup folder"
+if !errorlevel! equ 1 (
+    echo Deleting: %TARGET_FOLDER%
+    rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
+)
+
 call :LOG & goto PRIVACY_SECURITY_MENU
 
 :SECURITY_INFO
