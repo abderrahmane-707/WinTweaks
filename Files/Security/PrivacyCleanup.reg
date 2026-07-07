@@ -25,3 +25,17 @@ Windows Registry Editor Version 5.00
 ; Clears the Windows Timeline (TaskFlow) and Clipboard history
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\TaskFlow]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Clipboard\History]
+
+; Clears Jump Lists and recent file tracks on the Taskbar
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs]
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage\AppLaunch]
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage\ShowJumpList]
+
+; Clears search history within File Explorer
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SearchHistory]
+
+; Clears history of connected USB storage devices and Wi-Fi networks
+[-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USBSTOR]
+[-HKEY_LOCAL_MACHINE\SYSTEM\MountedTestDevices]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged]
