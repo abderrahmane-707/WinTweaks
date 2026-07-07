@@ -166,6 +166,7 @@ if !errorlevel! equ 1 goto PERFORMANCE_MENU
 
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
+
 echo. & echo Service Startup Status file saved in: %TARGET_FILE%
 call :GO & goto PERFORMANCE_MENU
 
@@ -489,7 +490,7 @@ echo                          [1] Telemetry                                     
 echo.
 echo                          [3] Windows Updates                                 [4] Windows Defender
 echo.
-echo                          [5] Enhance Security                                [6] Remove all policies
+echo                          [5] Enhance Security                                [6] Policies
 echo.
 echo                          [7] Security Info                                   [0] Back
 echo.
@@ -588,7 +589,7 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG & goto PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
-call :CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information!"
+call :CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 echo.
@@ -618,9 +619,9 @@ reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 echo Cleaning system log files
 for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
     if exist "%%~F" (
-        "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q "%%~F\*"" >nul 2>&1
+        "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q "%%~F\*""
             for /d %%D in ("%%~F\*") do (
-            "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q "%%~D"" >nul 2>&1
+            "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q "%%~D""
         )
     )
 )
@@ -681,13 +682,13 @@ echo. & echo Restoring default Windows Update registry settings
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Setting Windows Update services to default startup
-call :SC_CONFIGURE "UsoSvc" "delayed-auto"
+call :SC_CONFIGURE "UsoSvc" "delayed-auto" >> "%LOG_FILE%" 2>&1
 for %%S in ("BITS" "wuauserv") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto WINDOWS_UPDATES_MENU
 
 :RESET_UPDATES
-call :CONFIRM "WARNING: This will purge all Windows Update data and reset security policies!"
+call :CONFIRM "WARNING: This will purge all Windows Update data and reset security policies"
 if errorlevel 2 goto WINDOWS_UPDATES_MENU
 
 call :PATH "Security" "ResetUpdates"
@@ -785,7 +786,7 @@ if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 call :INVALID "(0-3)" "WINDOWS_DEFENDER_MENU"
 
 :DISABLE_DEFENDER
-call :CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection!"
+call :CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Disabling Windows defender via registry
@@ -800,7 +801,7 @@ reg import "Files\Security\DefaultDefender.reg"
 call :GO & goto WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
-call :CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system!"
+call :CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Removing Windows Defender Security Health UI component
@@ -848,7 +849,7 @@ reg import "Files\Security\DefaultSecurity.reg"
 call :GO & goto PRIVACY_SECURITY_MENU
 
 :REMOVE_POLICIES
-call :CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults!"
+call :CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :CREATE_FOLDER "Security" "GroupPolicyBackup"
@@ -1231,7 +1232,7 @@ echo. & echo Wifi Password file saved in: %TARGET_FILE%
 call :GO & goto NETWORK_MENU
 
 :NETWORK_RESET
-call :CONFIRM "WARNING: This script will RESET ALL network configurations!"
+call :CONFIRM "WARNING: This script will RESET ALL network configurations"
 if errorlevel 2 goto NETWORK_MENU
 
 call :PATH "Network" "NetworkReset"
@@ -1461,7 +1462,7 @@ start "" cmd /c "Files\Programs\Office.bat"
 goto PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
-call :CONFIRM "WARNING: This will remove ALL Microsoft Store apps!"
+call :CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
 if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
@@ -2120,7 +2121,7 @@ call :GO & goto DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
-call :CONFIRM "WARNING: This will permanently remove rollback capability for Windows Updates!"
+call :CONFIRM "WARNING: This will permanently remove rollback capability for Windows Updates"
 if errorlevel 2 goto DISM_MENU
 
 echo Cleaning Windows components
