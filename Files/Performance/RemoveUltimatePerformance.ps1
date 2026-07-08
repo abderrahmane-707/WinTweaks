@@ -8,8 +8,8 @@ try {
     $targetPlan = $allPlans | Select-String -Pattern "($planName|\($planName\))"
 
     if (-not $targetPlan) {
-        Write-Host "Plan: '$planName' was not found. Nothing to delete."
-        return
+        Write-Host "Plan: '$planName' was not found. Nothing to delete"
+        exit 1
     }
 
     # Extract the GUID of the target plan
