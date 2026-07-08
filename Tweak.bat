@@ -1080,10 +1080,7 @@ set DNS_IPv4_1=1.1.1.1
 set DNS_IPv4_2=1.0.0.1
 set DNS_IPv6_1=2606:4700:4700::1111
 set DNS_IPv6_2=2606:4700:4700::1001
-call :INTERFACE
-
-echo Flushing DNS cache
-ipconfig /flushdns >> "%LOG_FILE%" 2>&1
+call :UPDATE_DNS
 
 call :LOG & goto NETWORK_MENU
 
@@ -1204,10 +1201,7 @@ call :INVALID "(0-10)" "DNS_MENU"
 call :PATH "Network" "DNS"
 
 echo. & echo Setting %DNS_NAME% server on all connected interfaces
-call :INTERFACE
-
-echo Flushing DNS cache
-ipconfig /flushdns >> "%LOG_FILE%" 2>&1
+call :UPDATE_DNS
 
 call :LOG & goto DNS_MENU
 
@@ -2371,16 +2365,13 @@ echo Emptying Recycle Bin
 powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
 goto :eof
 
-:INTERFACE
-for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
-    echo  - Configure: %%~b
-    
-    netsh interface ipv4 set dns name="%%~b" static %DNS_IPv4_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv4 add dns name="%%~b" %DNS_IPv4_2% index=2 >> "%LOG_FILE%" 2>&1
-    
-    netsh interface ipv6 set dns name="%%~b" static %DNS_IPv6_1% primary >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 add dns name="%%~b" %DNS_IPv6_2% index=2 >> "%LOG_FILE%" 2>&1
-)
+:UPDATE_DNS
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
+    -DnsIPv4Primary "%DNS_IPv4_1%" ^
+    -DnsIPv4Secondary "%DNS_IPv4_2%" ^
+    -DnsIPv6Primary "%DNS_IPv6_1%" ^
+    -DnsIPv6Secondary "%DNS_IPv6_2%"
+
 goto :eof
 
 :CHECK_CHOCO
