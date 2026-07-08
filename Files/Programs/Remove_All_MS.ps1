@@ -1,6 +1,3 @@
-# PowerShell script to remove specified Appx packages for all users and clear provisioning
-# Run this script with administrative privileges
-
 # List of package name patterns to match (Safe patterns that won't trigger system errors)
 $AppxPatterns = @(
     "AdobePhotoshopExpress", "CandyCrush", "Facebook", "LinkedIn", "Netflix", "Spotify", 
@@ -22,7 +19,7 @@ $provisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object { $_.Di
 foreach ($pkg in $provisionedPackages) {
     try {
         Remove-AppxProvisionedPackage -Online -PackageName $pkg.PackageName -ErrorAction Stop | Out-Null
-        Write-Host "[Provisioned] Successfully removed: $($pkg.DisplayName)"
+        Write-Host "Successfully removed: $($pkg.DisplayName)"
     }
     catch {
         Write-Warning "Failed to remove provisioned package $($pkg.DisplayName): $_"
@@ -46,11 +43,11 @@ $errorCount = 0
 foreach ($pkg in $packagesToRemove) {
     try {
         Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
-        Write-Host "[Installed] Successfully removed: $($pkg.Name)"
+        Write-Host "Successfully removed: $($pkg.Name)"
         $removedCount++
     }
     catch {
-        Write-Warning "Failed to remove installed package $($pkg.Name): $_"
+        Write-Warning "Failed to remove: $($pkg.Name): $_"
         $errorCount++
     }
 }

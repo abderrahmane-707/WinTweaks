@@ -2,7 +2,7 @@
 $ultimateTemplateGUID = "e9a42b02-d5df-448d-aa00-03f14749eb61"
 $planName = "Ultimate Performance"
 
-Write-Host " "
+Write-Host ""
 try {
     # Check if the plan already exists
     $allPlans = powercfg /list

@@ -14,6 +14,6 @@ foreach ($n in $net) {
         }
     }
     else {
-        Write-Host "  DNS Servers: Not configured"
+        Write-Host "DNS Servers: Not configured"
     }
 }

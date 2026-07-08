@@ -5,7 +5,6 @@ param (
 
 . "$PSScriptRoot\..\Common\Logger.ps1"
 
-
 function Write-SectionHeader {
     param (
         [Parameter(Mandatory = $true)]

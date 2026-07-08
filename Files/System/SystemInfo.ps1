@@ -8,14 +8,14 @@ param (
 Write-Log "System Information:"
 
 try {
-    # Single-pass CIM queries directly from the kernel — extremely fast.
+    # Single-pass CIM queries directly from the kernel — extremely fast
     $os   = Get-CimInstance -ClassName Win32_OperatingSystem
     $cs   = Get-CimInstance -ClassName Win32_ComputerSystem
     $proc = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
     $bios = Get-CimInstance -ClassName Win32_Bios
     $tz   = Get-CimInstance -ClassName Win32_TimeZone
 
-    # Structured report output — memory section intentionally omitted as requested.
+    # Structured report output — memory section intentionally omitted as requested
     Write-Log "  Host Name:                 $($cs.Name)"
     Write-Log "  OS Name:                   $($os.Caption)"
     Write-Log "  OS Version:                $($os.Version)"

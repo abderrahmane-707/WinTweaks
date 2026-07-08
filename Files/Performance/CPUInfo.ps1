@@ -3,7 +3,6 @@ param (
     [string]$LogPath
 )
 
-# Import common logging module
 . "$PSScriptRoot\..\Common\Logger.ps1"
 
 # Retrieve processor information via CIM

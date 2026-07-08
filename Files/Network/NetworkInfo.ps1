@@ -7,12 +7,7 @@ param (
 
 . "$PSScriptRoot\..\Common\Logger.ps1"
 
-# Begin transcript if an export path is provided.
-if ($ExportPath) {
-    Start-Transcript -Path $ExportPath -Append -ErrorAction SilentlyContinue | Out-Null
-}
-
-# Helper to display Wi-Fi network details consistently.
+# Helper to display Wi-Fi network details consistently
 function DisplayNetworkInfo {
     param (
         [string]$ssid,
@@ -26,11 +21,9 @@ function DisplayNetworkInfo {
     if ($info["Cipher"])        { Write-Log "  Cipher: $($info["Cipher"])" }
 }
 
-# Pre-cache process names for rapid lookup during port enumeration.
+# Pre-cache process names for rapid lookup during port enumeration
 $ProcessMap = @{}
 Get-Process | ForEach-Object { $ProcessMap[$_.Id] = $_.ProcessName }
-
-# --- Data Collection ---
 
 # Current user context
 Write-Log "Username: $env:USERNAME"

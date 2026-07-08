@@ -13,6 +13,7 @@ try {
 
     # Memory calculations (GB)
     $totalPhysicalGB = [math]::Round($computerSystem.TotalPhysicalMemory / 1GB, 2)
+	
     # Convert free memory from KB to GB
     $freePhysicalGB = [math]::Round(($os.FreePhysicalMemory * 1KB) / 1GB, 2)
     $usedPhysicalGB = [math]::Round($totalPhysicalGB - $freePhysicalGB, 2)
