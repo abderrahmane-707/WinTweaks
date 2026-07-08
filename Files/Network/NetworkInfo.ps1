@@ -23,13 +23,15 @@ function DisplayNetworkInfo {
 
 # Pre-cache process names for rapid lookup during port enumeration
 $ProcessMap = @{}
-Get-Process | ForEach-Object { $ProcessMap[$_.Id] = $_.ProcessName }
+Get-Process | ForEach-Object { $ProcessMap[[string]$_.Id] = $_.ProcessName }
+$ProcessMap["0"] = "System Idle Process"
+$ProcessMap["4"] = "System"
 
 # Current user context
 Write-Log "Username: $env:USERNAME"
 Write-Log "Domain: $env:USERDOMAIN"
 
-# Basic internet connectivity test via the default gateway (avoids false negatives in firewalled environments)
+# Basic internet connectivity test via the default gateway
 Write-Log "`nConnection tests:"
 $defaultGateway = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1).NextHop
 $pingTarget = if ($defaultGateway) { $defaultGateway } else { "8.8.8.8" }
@@ -74,7 +76,7 @@ Write-Log "`nActive Network Adapters:"
 Get-CimInstance Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | ForEach-Object {
     $type = if ($_.Name -match 'Wireless|Wi[- ]?Fi') { 'Wi-Fi' } else { 'Ethernet' }
     $speedText = if ($_.Speed) { "$([math]::Round($_.Speed / 1000000, 1)) Mbps" } else { "Not Available" }
-
+    
     $adapterIndex = $_.Index
     $adapterConfig = Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object { $_.Index -eq $adapterIndex }
 
@@ -101,14 +103,20 @@ Get-CimInstance Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq
     Write-Log ""
 }
 
-# IPv6 Status
+# Check and display IPv6 status
 Write-Log "IPv6 Status:"
-$ipv6Addresses = Get-NetIPAddress -AddressFamily IPv6 -ErrorAction SilentlyContinue | Where-Object {
-    $_.IPAddress -notlike 'fe80*' -and
-    $_.IPAddress -notlike '::1' -and
-    $_.PrefixOrigin -notin @('WellKnown', 'RouterAdvertisement', 'Dhcp', 'Manual') -and
-    $_.IPAddress -notmatch '^2001:0:|^2002:|^::ffff:'
-}
+$ipv6Addresses = Get-NetIPAddress -AddressFamily IPv6 -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.IPAddress -notlike 'fe80*' -and
+        $_.IPAddress -notlike '::1' -and
+        $_.PrefixOrigin -notin @('WellKnown', 'RouterAdvertisement', 'Dhcp', 'Manual')
+    } |
+    Where-Object {
+        $_.IPAddress -notmatch '^2001:0:' -and
+        $_.IPAddress -notmatch '^2002:' -and
+        $_.IPAddress -notmatch '^::ffff:'
+    }
+
 if ($ipv6Addresses) {
     Write-Log " Active"
     $ipv6Addresses | Select-Object -First 3 | ForEach-Object {
@@ -123,15 +131,17 @@ if ($ipv6Addresses) {
 Write-Log "`nActive TCP Connections:"
 $connections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue
 if ($connections) {
-    Write-Log " Local Address".PadRight(25) "Remote Address".PadRight(25) "Process"
-    Write-Log " -------------".PadRight(25) "--------------".PadRight(25) "-------"
+    Write-Log " $("Local Address".PadRight(25))$("Remote Address".PadRight(25))Process"
+    Write-Log " $("-------------".PadRight(25))$("--------------".PadRight(25))-------"
 
     foreach ($conn in $connections | Sort-Object LocalPort) {
-        $processName = $ProcessMap[$conn.OwningProcess]
+        # Changed to string for matching
+        $processName = $ProcessMap[[string]$conn.OwningProcess]
         if (-not $processName) { $processName = "N/A" }
 
         $local = "$($conn.LocalAddress):$($conn.LocalPort)"
         $remote = "$($conn.RemoteAddress):$($conn.RemotePort)"
+
         Write-Log " $($local.PadRight(25)) $($remote.PadRight(25)) $processName"
     }
 } else {
@@ -139,19 +149,23 @@ if ($connections) {
 }
 
 # Listening TCP Ports
-Write-Log "`nTCP Port".PadRight(20) "Process"
-Write-Log "--------".PadRight(19) "--------"
+Write-Log "`n$("TCP Port".PadRight(20))Process"
+Write-Log "$("--------".PadRight(19))--------"
 Get-NetTCPConnection -State Listen | Select-Object LocalPort, OwningProcess -Unique | Sort-Object LocalPort | ForEach-Object {
-    $procName = $ProcessMap[$_.OwningProcess]
-    Write-Log " $($_.LocalPort.ToString().PadRight(18)) $($procName -or 'Unknown')"
+    # Changed to string for matching
+    $procName = $ProcessMap[[string]$_.OwningProcess]
+    $displayName = if ($procName) { $procName } else { 'Unknown' }
+    Write-Log " $($_.LocalPort.ToString().PadRight(18)) $displayName"
 }
 
 # Open UDP Ports
-Write-Log "`nUDP Port".PadRight(20) "Process"
-Write-Log "--------".PadRight(19) "--------"
+Write-Log "`n$("UDP Port".PadRight(20))Process"
+Write-Log "$("--------".PadRight(19))--------"
 Get-NetUDPEndpoint | Select-Object LocalPort, OwningProcess -Unique | Sort-Object LocalPort | ForEach-Object {
-    $procName = $ProcessMap[$_.OwningProcess]
-    Write-Log " $($_.LocalPort.ToString().PadRight(18)) $($procName -or 'Unknown')"
+    # Changed to string for matching
+    $procName = $ProcessMap[[string]$_.OwningProcess]
+    $displayName = if ($procName) { $procName } else { 'Unknown' }
+    Write-Log " $($_.LocalPort.ToString().PadRight(18)) $displayName"
 }
 
 # Firewall Status
