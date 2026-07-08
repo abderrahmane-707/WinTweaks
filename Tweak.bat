@@ -1099,7 +1099,7 @@ for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotun
     netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
 )
 
-call :DHCP
+echo. & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDHCP.ps1"
 
 call :LOG & goto NETWORK_MENU
 
@@ -1212,10 +1212,8 @@ ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG & goto DNS_MENU
 
 :SET_DHCP
-call :PATH "Network" "DHCP"
-cls
-call :DHCP
-call :LOG & goto DNS_MENU
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDHCP.ps1"
+call :GO & goto DNS_MENU
 
 :DNS_SERVER_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSTest.ps1"
@@ -2371,22 +2369,6 @@ if !errorlevel! equ 1 (
 :: Force empty the Recycle Bin for all drives
 echo Emptying Recycle Bin
 powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
-goto :eof
-
-:DHCP
-echo Setting DHCP on all connected interfaces
-
-:: Find all active network adapters
-for /f "delims=" %%b in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\GetInterfaces.ps1"') do (
-    echo  - Resetting: %%~b
-    
-    netsh interface ipv4 set address name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1 
-    netsh interface ipv4 set dnsservers name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
-    netsh interface ipv6 set dnsservers name="%%~b" source=dhcp >> "%LOG_FILE%" 2>&1
-)
-
-echo Flushing DNS cache
-ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 goto :eof
 
 :INTERFACE
