@@ -1,4 +1,3 @@
-# Folder path to archive
 param (
     [Parameter(Position = 0)]
     [string]$FolderPath,
@@ -11,12 +10,18 @@ param (
 
 # Output archive path
 $ZipPath = "$FolderPath.zip"
-Write-Log ""
 
-# Check for the presence of a compressed file and delete it automatically
+# Check for the presence of a compressed file and prompt for deletion
 if (Test-Path $ZipPath) {
-    Write-Log "Deleting existing file"
-    Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
+    $ZipFileName = Split-Path $ZipPath -Leaf
+    
+    # Request confirmation for deletion
+    choice /C YN /N /M "`n$ZipFileName already exists. Do you want to replace the existing archive? (Y/N): "
+    
+    if ($LASTEXITCODE -eq 2) {
+        Write-Log "Keeping the existing archive. Compression cancelled"
+        exit 0
+    }
 }
 
 # Calculate folder size
@@ -40,7 +45,7 @@ $FolderSize = Get-FolderSize -Path $FolderPath
 $FormattedFolderSize = Format-FileSize -Bytes $FolderSize
 
 # Create ZIP archive
-Write-Log "Compressing hive files"
+Write-Log "`nCompressing hive files"
 try {
     Compress-Archive `
         -Path "$FolderPath\*" `
@@ -68,9 +73,9 @@ if (Test-Path $ZipPath) {
     # Display summary
     Write-Log "`nSize Before compress: $FormattedFolderSize"
     Write-Log "Size After compress:  $FormattedZipSize"
-    Write-Log "Backup saved in:      $ZipPath"
+    Write-Log "`nBackup saved in: $ZipPath"
 }
 else {
-    Write-Log "Archive was not created - $ZipPath"
+    Write-Log "Archive was not created"
     exit 1
 }

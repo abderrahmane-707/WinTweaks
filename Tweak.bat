@@ -1993,22 +1993,10 @@ for %%A in (
 if exist "%TARGET_FOLDER%\*.hive" (
     echo. & echo Backup Process Finished. Total Success: !SUCCESS_COUNT!/7 
     call :CHOICE "Compress folder?"
-	echo.
     if errorlevel 2 (
-        echo Backup saved in: %TARGET_FOLDER%
+        echo. & echo Backup saved in: %TARGET_FOLDER%
     ) else (
-        set "PROCEED_COMPRESSION=1"
-        if exist "%TARGET_FOLDER%.zip" (
-            call :CHOICE "FullRegistryBackup.zip already exists. Do you want to delete it?"
-            if errorlevel 2 (
-                echo Keeping the existing archive. Compression cancelled
-                set "PROCEED_COMPRESSION=0"
-            )
-        )
-        
-        if !PROCEED_COMPRESSION! equ 1 (
-            powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%TARGET_FOLDER%" "%LOG_FILE%"
-        )
+	    powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%TARGET_FOLDER%" "%LOG_FILE%"
     )
 ) else (
     echo No hive files were created. Backup failed
