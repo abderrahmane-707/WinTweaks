@@ -2221,7 +2221,8 @@ goto TOOLS_MENU
 
 :: Delete "%PROGRAMDATA%\WinTweaks" folder
 :DELETE_SCRIPT_DATA
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1"
+set "MKDIR_DIR=%PROGRAMDATA%\WinTweaks"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%MKDIR_DIR%"
 call :GO & goto TOOLS_MENU
 
 

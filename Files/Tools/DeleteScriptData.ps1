@@ -1,24 +1,38 @@
-$path = "C:\ProgramData\WinTweaks"
+param (
+    [Parameter(Mandatory=$true)]
+    [string]$TargetDir
+)
 
-if (Test-Path $path) {
-	
-    # Calculate folder statistics
-    $stats = Get-ChildItem $path -Recurse -File | Measure-Object -Property Length -Sum
-    $count = $stats.Count
-    $sizeKB = [Math]::Round($stats.Sum / 1KB, 2)
+if (Test-Path $TargetDir) {
+    
+    # Calculate folder statistics safely
+    $files = Get-ChildItem $TargetDir -Recurse -File
+    
+    if ($files) {
+        $stats   = $files | Measure-Object -Property Length -Sum
+        $count   = $stats.Count
+        $sizeSum = $stats.Sum
+    } else {
+        $count   = 0
+        $sizeSum = 0
+    }
 
-    Write-Host "Folder path: $path"
-    Write-Host " Size: $sizeKB KB"
+    # Convert sizes
+    $sizeKB = [Math]::Round($sizeSum / 1KB, 2)
+    $sizeMB = [Math]::Round($sizeSum / 1MB, 2)
+
+    Write-Host "Folder path: $TargetDir"
+    Write-Host " Size: $sizeKB KB ($sizeMB MB)"
     Write-Host " Files: $count"
 
     # Request confirmation for deletion
-    choice /C YN /N /M "`nDelete all data and backups files in WinTweaks folder? (Y/N): "
+    choice /C YN /N /M "`nWARNING: Delete all data and backups files in this folder? (Y/N): "
     
     if ($LASTEXITCODE -eq 1) {
-        Remove-Item -Path $path -Recurse -Force
-        Write-Host "All data has been deleted"
+		Write-Host "Deleting: $TargetDir"
+        Remove-Item -Path $TargetDir -Recurse -Force
     }
 
 } else {
-    Write-Host "The folder does not exist"
+    Write-Host "${TargetDir}: Does not exist"
 }
