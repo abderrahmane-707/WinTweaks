@@ -3,13 +3,15 @@ param (
     [string]$PassedLogPath
 )
 
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 . "$PSScriptRoot\..\Common\Logger.ps1"
 
 $LogPath = $PassedLogPath
 
 function Convert-ByteArrayToString {
     param([byte[]]$Bytes)
-    return [System.Text.Encoding]::ASCII.GetString($Bytes).TrimEnd("`0")
+    return [System.Text.Encoding]::UTF8.GetString($Bytes).TrimEnd("`0")
 }
 
 # Extract value after a colon
@@ -25,7 +27,7 @@ function Get-ValueAfterColon {
     return $parts[1].Trim().Replace('"','')
 }
 
-Write-Log "Saved networks and their passwords"
+Write-Log "Saved networks and their passwords:"
 
 # Enumerate saved Wi-Fi profiles
 $profiles = netsh wlan show profiles |
