@@ -798,6 +798,8 @@ call :GO & goto WINDOWS_DEFENDER_MENU
 :ENABLE_DEFENDER
 echo. & echo Restoring default Windows Defender registry settings
 reg import "Files\Security\DefaultDefender.reg"
+
+call :RESTART
 call :GO & goto WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
@@ -2251,12 +2253,16 @@ call :GO & goto OTHER_MENU
 
 :: Download and launch O&O Shutup 10 ++
 :OO_SHUTUP
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1"
+call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\OOSU10"
+
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1" "%MKDIR_DIR%"
 call :GO & goto OTHER_MENU
 
-:: Download and launch Speedtest CLI 
+:: Download and launch Speedtest CLI
 :NET_SPEED_TEST
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1"
+call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\speedtest_cli"
+
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1" "%MKDIR_DIR%"
 call :GO & goto OTHER_MENU
 
 
