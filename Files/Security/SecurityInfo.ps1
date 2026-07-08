@@ -300,41 +300,38 @@ function Get-WindowsUpdateStatus {
 
 function Get-RecentLogins {
     Write-SectionHeader "Last 10 Successful Interactive/Remote Logins"
+
     try {
-        $events = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4624 } -MaxEvents 500 -ErrorAction Stop
+        $count = 0
 
-        $logins = foreach ($e in $events) {
-            $xml = [xml]$e.ToXml()
-            $data = @{}
-            foreach ($n in $xml.Event.EventData.Data) { $data[$n.Name] = $n.'#text' }
+        Get-WinEvent -FilterHashtable @{
+            LogName = 'Security'
+            Id      = 4624
+        } -MaxEvents 500 -ErrorAction Stop | ForEach-Object {
 
-            $user = $data['TargetUserName']
-            $logonType = $data['LogonType']
+            $user      = $_.Properties[5].Value
+            $logonType = $_.Properties[8].Value
 
-            # Logon types: 2 interactive, 3 network, 7 unlock, 10 RDP/remote interactive, 11 cached interactive
-            if ($user -and $logonType -in @('2', '3', '7', '10', '11') `
-                    -and $user -notmatch '^(SYSTEM|LOCAL SERVICE|NETWORK SERVICE|DWM-\d+|UMFD-\d+)$' `
-                    -and $user -notmatch '\$$') {
-                [PSCustomObject]@{
-                    Time      = $e.TimeCreated
-                    User      = $user
-                    LogonType = $logonType
-                }
+            if ($user -and
+                $logonType -in 2,3,7,10,11 -and
+                $user -notmatch '^(SYSTEM|LOCAL SERVICE|NETWORK SERVICE|DWM-\d+|UMFD-\d+)$' -and
+                $user -notmatch '\$$') {
+
+                Write-Log ("  {0,-22} {1,-20} (type {2})" -f
+                    $_.TimeCreated.ToString('dd/MM/yyyy HH:mm:ss'),
+                    $user,
+                    $logonType)
+
+                if (++$count -ge 10) { break }
             }
         }
 
-        $logins = $logins | Select-Object -First 10
-
-        if ($logins) {
-            foreach ($l in $logins) {
-                $time = $l.Time.ToString('dd/MM/yyyy HH:mm:ss')
-                Write-Log ("  {0,-22} {1,-20} (type {2})" -f $time, $l.User, $l.LogonType)
-            }
-        } else {
+        if ($count -eq 0) {
             Write-Log "  No relevant logon events found in the recent event log window"
         }
-    } catch {
-        Write-Result -Label 'Login history' -Value "Unable to retrieve ($($_.Exception.Message)) - try running as Administrator" -Level Warn
+    }
+    catch {
+        Write-Result -Label 'Login history' -Value "Unable to retrieve ($($_.Exception.Message))" -Level Warn
     }
 }
 
