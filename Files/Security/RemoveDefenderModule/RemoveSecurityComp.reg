@@ -1,4 +1,4 @@
-﻿Windows Registry Editor Version 5.00
+Windows Registry Editor Version 5.00
 
 ; removes data and kills Security Health Service App
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Security Health]
