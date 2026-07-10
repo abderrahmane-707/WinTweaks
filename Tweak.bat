@@ -1377,7 +1377,7 @@ for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "OPT%%A=%OFF%"
 cls & echo. & echo.
 echo                        ----------------------------------- Programs -----------------------------------
 echo.
-echo                           [1] Google Chrome            [7] XnViewMP               [13] VC++ (2015-2022)
+echo                           [1] Google Chrome            [7] XnViewMP               [13] VC++ 2015-2022
 echo.
 echo                           [2] Brave                    [8] Sumatra PDF            [14] DirectX
 echo.
@@ -1434,7 +1434,7 @@ call :IS_ON OPT9  && call :TRY_INSTALL notepadplusplus.install "Notepad++"
 call :IS_ON OPT10 && call :TRY_INSTALL vscode.install "Visual Studio Code"
 call :IS_ON OPT11 && call :TRY_INSTALL git "Git"
 call :IS_ON OPT12 && call :TRY_INSTALL qbittorrent "qbittorrent"
-call :IS_ON OPT13 && call :TRY_INSTALL vcredist140 "VC++ Redistributables (2015-2022)"
+call :IS_ON OPT13 && call :TRY_INSTALL vcredist140 "VC++ Redistributables 2015-2022"
 call :IS_ON OPT14 && call :TRY_INSTALL directx "DirectX"
 call :IS_ON OPT15 && call :TRY_INSTALL virtualbox "Virtual Box"
 call :IS_ON OPT16 && call :TRY_INSTALL io-unlocker "IObit Unlocker"
@@ -2434,7 +2434,7 @@ echo. & echo Installing: %~2
 choco install %~1 -y
 
 if !errorlevel! neq 0 (
-    echo. & echo Failed to install: %~2  
+    echo. & echo Failed to install: %~2
     call :CHOICE "Do you want to ignore checksum and retry?"
     if errorlevel 2 (
 	    echo The program download was ignored
@@ -2475,7 +2475,7 @@ if "!OPT9!"=="%ON%" echo  - Notepad++ & set "ANY=1"
 if "!OPT10!"=="%ON%" echo  - Visual Studio Code & set "ANY=1"
 if "!OPT11!"=="%ON%" echo  - Git & set "ANY=1"
 if "!OPT12!"=="%ON%" echo  - qbittorrent & set "ANY=1"
-if "!OPT13!"=="%ON%" echo  - VC++ Redistributables (2015-2022) & set "ANY=1"
+if "!OPT13!"=="%ON%" echo  - VC++ Redistributables 2015-2022 & set "ANY=1"
 if "!OPT14!"=="%ON%" echo  - DirectX & set "ANY=1"
 if "!OPT15!"=="%ON%" echo  - Virtual Box & set "ANY=1"
 if "!OPT16!"=="%ON%" echo  - IObit Unlocker & set "ANY=1"
