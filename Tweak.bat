@@ -1371,7 +1371,7 @@ set "ON=(YES)"
 set "OFF=(NO)"
 
 :: Initialize all 18 options to "OFF" by default
-for %%A in (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18) do set "OPT%%A=%OFF%"
+for /L %%i in (1,1,18) do set "OPT%%i=%OFF%"
 
 :PROGRAMS_MENU
 cls & echo. & echo.
