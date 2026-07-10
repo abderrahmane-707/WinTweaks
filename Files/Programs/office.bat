@@ -7,18 +7,7 @@ set "ON=(YES)"
 set "OFF=(NO) "
 
 :: Set default programs values - ALL OFF by default
-set "OPT1=%OFF%"
-set "OPT2=%OFF%"
-set "OPT3=%OFF%"
-set "OPT4=%OFF%"
-set "OPT5=%OFF%"
-set "OPT6=%OFF%"
-set "OPT7=%OFF%"
-set "OPT8=%OFF%"
-set "OPT9=%OFF%"
-set "OPT10=%OFF%"
-set "OPT11=%OFF%"
-set "OPT12=%OFF%"
+for /L %%i in (1,1,12) do set "OPT%%i=%OFF%"
 
 :: Determine processor architecture automatically
 if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
@@ -51,8 +40,8 @@ set "OPTV=2021"
 :: Installation Mode: %ON%=Online, %OFF%=Offline
 set "OPTM=%ON%"
 
-:: Language: MatchOS, ar-sa, en-us
-set "OPTL=MatchOS"
+:: Language: ar-sa, en-us
+set "OPTL=en-us"
 
 :: Set configuration file path
 set "CONFIG_FILE=Files\Programs\configuration.xml"
@@ -81,7 +70,6 @@ if "%OPTM%,%OFILES%"=="%OFF%,%ON%" set "MOD_MSG=Delete Offline Files"
 if "%OPTM%,%OFILES%"=="%ON%,%ON%" set "MOD_MSG=Offline Installation"
 
 :: Set language message
-if "%OPTL%"=="MatchOS" set "LANG_MSG=MatchOS"
 if "%OPTL%"=="ar-sa" set "LANG_MSG=ar-sa"
 if "%OPTL%"=="en-us" set "LANG_MSG=en-us"
 
@@ -214,13 +202,6 @@ call :DEL_CONFIG
 echo. & echo Disabling Microsoft Office Telemetry
 reg add "HKLM\SOFTWARE\Microsoft\Office\Common\ClientTelemetry" /v "DisableTelemetry" /t REG_DWORD /d "00000001" /f >nul 2>&1
 
-call :CHOICE "Do you want to activate Microsoft Office?"
-if !errorlevel! equ 1 (
-    echo. & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
-    echo The script will open in a new window. Follow the on-screen instructions
-    powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
-)
-
 echo. & echo The operation is done.
 goto :EXIT
 
@@ -242,8 +223,8 @@ if "!OPT7!"=="%ON%"  echo  - Access & set "ANY=1"
 if "!OPT8!"=="%ON%"  echo  - Visio & set "ANY=1"
 if "!OPT9!"=="%ON%"  echo  - Project & set "ANY=1"
 if "!OPT10!"=="%ON%" echo  - Proofing Tools & set "ANY=1"
-if "!OPT11!"=="%ON%" echo  - Microsoft Teams & set "ANY=1"
-if "!OPT12!"=="%ON%" echo  - Microsoft OneDrive & set "ANY=1"
+if "!OPT11!"=="%ON%" echo  - Teams & set "ANY=1"
+if "!OPT12!"=="%ON%" echo  - OneDrive & set "ANY=1"
 if "!ANY!"=="0" echo  - No program selected
 goto :eof
 
@@ -306,7 +287,7 @@ if "%OPTV%"=="365" (set "OPTV=2021") else if "%OPTV%"=="2021" (set "OPTV=2019") 
 goto :eof
 
 :TOGGLE_LANGUAGE
-if "%OPTL%"=="MatchOS" (set "OPTL=ar-sa") else if "%OPTL%"=="ar-sa" (set "OPTL=en-us") else (set "OPTL=MatchOS")
+if "%OPTL%"=="ar-sa" (set "OPTL=en-us") else (set "OPTL=ar-sa")
 goto :eof
 
 :CONFIG
@@ -348,9 +329,7 @@ if "%NEEDMAIN%"=="%ON%" (
         echo      ^<Product ID="ProPlus2021Volume"^> >> "%CONFIG_FILE%"
     )
 
-    if "%OPTL%"=="MatchOS" (
-        echo        ^<Language ID="MatchOS" Fallback="en-us" /^> >> "%CONFIG_FILE%"
-    ) else if "%OPTL%"=="ar-sa" (
+    if "%OPTL%"=="ar-sa" (
         echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
     ) else if "%OPTL%"=="en-us" (
         echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
@@ -383,9 +362,7 @@ if "%OPT8%"=="%ON%" (
     ) else if "%OPTV%"=="2021" (
         echo      ^<Product ID="VisioPro2021Volume"^> >> "%CONFIG_FILE%"
     )
-    if "%OPTL%"=="MatchOS" (
-        echo        ^<Language ID="MatchOS" Fallback="en-us" /^> >> "%CONFIG_FILE%"
-    ) else if "%OPTL%"=="ar-sa" (
+    if "%OPTL%"=="ar-sa" (
         echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
     ) else if "%OPTL%"=="en-us" (
         echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
@@ -404,9 +381,7 @@ if "%OPT9%"=="%ON%" (
     ) else if "%OPTV%"=="2021" (
         echo      ^<Product ID="ProjectPro2021Volume"^> >> "%CONFIG_FILE%"
     )
-    if "%OPTL%"=="MatchOS" (
-        echo        ^<Language ID="MatchOS" Fallback="en-us" /^> >> "%CONFIG_FILE%"
-    ) else if "%OPTL%"=="ar-sa" (
+    if "%OPTL%"=="ar-sa" (
         echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
     ) else if "%OPTL%"=="en-us" (
         echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
@@ -417,9 +392,7 @@ if "%OPT9%"=="%ON%" (
 
 if "%OPT10%"=="%ON%" (
     echo      ^<Product ID="ProofingTools"^> >> "%CONFIG_FILE%"
-    if "%OPTL%"=="MatchOS" (
-        echo        ^<Language ID="MatchOS" Fallback="en-us" /^> >> "%CONFIG_FILE%"
-    ) else if "%OPTL%"=="ar-sa" (
+    if "%OPTL%"=="ar-sa" (
         echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
     ) else if "%OPTL%"=="en-us" (
         echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
@@ -431,6 +404,10 @@ if "%OPT10%"=="%ON%" (
 echo    ^</Add^> >> "%CONFIG_FILE%"
 echo    ^<Display Level="Full" AcceptEULA="TRUE" /^> >> "%CONFIG_FILE%"
 echo    ^<Property Name="ForceAppShutdown" Value="TRUE" /^> >> "%CONFIG_FILE%"
+echo    ^<AppSettings^> >> "%CONFIG_FILE%"
+echo        ^<User Key="software\microsoft\office\16.0\common" Name="ui theme" Value="5" Type="REG_DWORD" App="office16" Id="L_OfficeTheme" /^> >> "%CONFIG_FILE%"
+echo        ^<User Key="software\microsoft\office\16.0\common" Name="default ui theme" Value="5" Type="REG_DWORD" App="office16" Id="L_OfficeDefaultTheme" /^> >> "%CONFIG_FILE%"
+echo    ^</AppSettings^> >> "%CONFIG_FILE%"
 echo ^</Configuration^> >> "%CONFIG_FILE%"
 
 if not exist "%CONFIG_FILE%" (
