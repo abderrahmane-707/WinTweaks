@@ -335,16 +335,17 @@ if "!BROWSERS_OPEN!"=="1" (
     echo.
     if errorlevel 2 (
         echo Skipping cleaning browsers
+		call :CLEANING_FUNCTION
     ) else (
         echo Closing browsers
         for %%B in (%BROWSERS%) do (
             taskkill /IM "%%B" /F /T >nul 2>&1
         )
-        timeout /t 2 >nul
-        call :CLEAN_BROWSER
+        timeout /t 2 >nul     
     )
 )
 
+call :CLEAN_BROWSER
 call :CLEANING_FUNCTION
 call :GO & goto PERFORMANCE_MENU
 
