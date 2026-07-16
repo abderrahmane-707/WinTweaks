@@ -1334,23 +1334,32 @@ call :LOG & goto NETWORK_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Programs Manager ---------------------------
 echo.
-echo                         [1] Download Programs                                 [2] Update Programs
+echo                         [1] Download Programs                                 [2] Remove Programs
 echo.
-echo                         [3] Download Microsoft Office                         [4] Remove ALL MS Apps
+echo                         [3] Update Programs                                   [4] Microsoft Office
 echo.
-echo                         [5] Programs Info                                     [0] Back
+echo                         [5] Remove ALL MS Apps                                [6] Programs Info
+echo.
+echo                                                          [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto WHERE_CHOCO
-if "%choice%"=="2" goto UPDATE_PROGRAMS
-if "%choice%"=="3" goto DOWNLOAD_MO
-if "%choice%"=="4" goto REMOVE_MS
-if "%choice%"=="5" goto PROGRAMS_INFO
+if "%choice%"=="1" (
+    set "MODE=INSTALL"
+    goto WHERE_CHOCO
+)
+if "%choice%"=="2" (
+    set "MODE=REMOVE"
+    goto WHERE_CHOCO
+)
+if "%choice%"=="3" goto UPDATE_PROGRAMS
+if "%choice%"=="4" goto DOWNLOAD_MO
+if "%choice%"=="5" goto REMOVE_MS
+if "%choice%"=="6" goto PROGRAMS_INFO
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-5)" "PROGRAMS_MANAGER_MENU"
+call :INVALID "(0-6)" "PROGRAMS_MANAGER_MENU"
 
 :WHERE_CHOCO
 :: Check if Chocolatey (Package Manager) is already installed
@@ -1370,8 +1379,25 @@ call :CHECK_CHOCO
 set "ON=(YES)"
 set "OFF=(NO)"
 
-:: Initialize all 18 options to "OFF" by default
-for /L %%i in (1,1,18) do set "OPT%%i=%OFF%"
+:: Define package id + display name for each of the 18 programs (shared by Install and Remove), and reset selection to OFF
+set "PKG1=googlechrome"             & set "NAME1=Google Chrome"                   & set "OPT1=%OFF%"
+set "PKG2=brave"                    & set "NAME2=Brave"                           & set "OPT2=%OFF%"
+set "PKG3=winrar"                   & set "NAME3=WinRAR"                          & set "OPT3=%OFF%"
+set "PKG4=7zip.install"             & set "NAME4=7-Zip"                           & set "OPT4=%OFF%"
+set "PKG5=k-litecodecpack-standard" & set "NAME5=K-Lite Codec"                    & set "OPT5=%OFF%"
+set "PKG6=irfanview"                & set "NAME6=IrfanView"                       & set "OPT6=%OFF%"
+set "PKG7=xnviewmp.install"         & set "NAME7=XnView MP"                       & set "OPT7=%OFF%"
+set "PKG8=sumatrapdf.install"       & set "NAME8=Sumatra PDF"                     & set "OPT8=%OFF%"
+set "PKG9=notepadplusplus.install"  & set "NAME9=Notepad++"                       & set "OPT9=%OFF%"
+set "PKG10=vscode.install"          & set "NAME10=Visual Studio Code"             & set "OPT10=%OFF%"
+set "PKG11=git"                     & set "NAME11=Git"                            & set "OPT11=%OFF%"
+set "PKG12=qbittorrent"             & set "NAME12=qbittorrent"                    & set "OPT12=%OFF%"
+set "PKG13=vcredist140"             & set "NAME13=VC++ Redistributables 2015-2022" & set "OPT13=%OFF%"
+set "PKG14=directx"                 & set "NAME14=DirectX"                        & set "OPT14=%OFF%"
+set "PKG15=virtualbox"              & set "NAME15=Virtual Box"                    & set "OPT15=%OFF%"
+set "PKG16=io-unlocker"             & set "NAME16=IObit Unlocker"                 & set "OPT16=%OFF%"
+set "PKG17=autohotkey"              & set "NAME17=AutoHotkey"                     & set "OPT17=%OFF%"
+set "PKG18=megasync"                & set "NAME18=MEGA"                           & set "OPT18=%OFF%"
 
 :PROGRAMS_MENU
 cls & echo. & echo.
@@ -1403,7 +1429,7 @@ echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-1
 echo. & set "choice=" & set /p "choice=--> Select an option(s) and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
-if /i "%choice%"=="S" goto INSTALL_PROGRAMS
+if /i "%choice%"=="S" goto RUN_PROGRAMS
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
 
@@ -1420,26 +1446,13 @@ goto PROGRAMS_MENU
 for /L %%i in (1,1,18) do set "OPT%%i=%OFF%"
 goto PROGRAMS_MENU
 
-:INSTALL_PROGRAMS
+:: Shared entry point for both Install and Remove: loops through the 18 defined
+:: packages and, for every one selected (ON), performs the action set in %MODE%
+:RUN_PROGRAMS
 cls
-call :IS_ON OPT1  && call :TRY_INSTALL googlechrome "Google Chrome"
-call :IS_ON OPT2  && call :TRY_INSTALL brave "Brave"
-call :IS_ON OPT3  && call :TRY_INSTALL winrar "WinRAR"
-call :IS_ON OPT4  && call :TRY_INSTALL 7zip.install "7-Zip"
-call :IS_ON OPT5  && call :TRY_INSTALL k-litecodecpack-standard "K-Lite Codec"
-call :IS_ON OPT6  && call :TRY_INSTALL irfanview "IrfanView"
-call :IS_ON OPT7  && call :TRY_INSTALL xnviewmp.install "XnView MP"
-call :IS_ON OPT8  && call :TRY_INSTALL sumatrapdf.install "Sumatra PDF"
-call :IS_ON OPT9  && call :TRY_INSTALL notepadplusplus.install "Notepad++"
-call :IS_ON OPT10 && call :TRY_INSTALL vscode.install "Visual Studio Code"
-call :IS_ON OPT11 && call :TRY_INSTALL git "Git"
-call :IS_ON OPT12 && call :TRY_INSTALL qbittorrent "qbittorrent"
-call :IS_ON OPT13 && call :TRY_INSTALL vcredist140 "VC++ Redistributables 2015-2022"
-call :IS_ON OPT14 && call :TRY_INSTALL directx "DirectX"
-call :IS_ON OPT15 && call :TRY_INSTALL virtualbox "Virtual Box"
-call :IS_ON OPT16 && call :TRY_INSTALL io-unlocker "IObit Unlocker"
-call :IS_ON OPT17 && call :TRY_INSTALL autohotkey "AutoHotkey"
-call :IS_ON OPT18 && call :TRY_INSTALL megasync "MEGA"
+for /L %%i in (1,1,18) do (
+    call :IS_ON OPT%%i && call :TRY_ACTION "!PKG%%i!" "!NAME%%i!"
+)
 
 call :GO & goto PROGRAMS_MANAGER_MENU
 
@@ -2429,12 +2442,26 @@ if defined invalid (
 
 goto :eof
 
-:TRY_INSTALL
-echo. & echo Installing: %~2
-choco install %~1 -y
+:TRY_ACTION
+:: %~1 = Chocolatey package id, %~2 = Display name
+:: Uses %MODE% (INSTALL or REMOVE), set from the Programs Manager menu, to decide the choco action
+if /i "%MODE%"=="REMOVE" (
+    set "CHOCO_VERB=uninstall"
+    set "ACTION_VERB=Removing"
+    set "FAIL_VERB=remove"
+) else (
+    set "CHOCO_VERB=install"
+    set "ACTION_VERB=Installing"
+    set "FAIL_VERB=install"
+)
+
+echo. & echo !ACTION_VERB!: %~2
+choco !CHOCO_VERB! %~1 -y
 
 if !errorlevel! neq 0 (
-    echo. & echo Failed to install: %~2
+    echo. & echo Failed to !FAIL_VERB!: %~2
+    if /i "%MODE%"=="REMOVE" goto :eof
+
     call :CHOICE "Do you want to ignore checksum and retry?"
     if errorlevel 2 (
 	    echo The program download was ignored
@@ -2460,27 +2487,15 @@ if "!%1!"=="%ON%" (
 )
 goto :eof
 
-:: List of current selections to the screen
+:: List of current selections to the screen (driven by the PKG/NAME table, no per-program duplication)
 :SHOW_SELECTED
 set "ANY=0"
-if "!OPT1!"=="%ON%" echo  - Google Chrome & set "ANY=1"
-if "!OPT2!"=="%ON%" echo  - Brave & set "ANY=1"
-if "!OPT3!"=="%ON%" echo  - WinRAR & set "ANY=1"
-if "!OPT4!"=="%ON%" echo  - 7-Zip & set "ANY=1"
-if "!OPT5!"=="%ON%" echo  - K-Lite Codec & set "ANY=1"
-if "!OPT6!"=="%ON%" echo  - IrfanView & set "ANY=1"
-if "!OPT7!"=="%ON%" echo  - XnView MP & set "ANY=1"
-if "!OPT8!"=="%ON%" echo  - Sumatra PDF & set "ANY=1"
-if "!OPT9!"=="%ON%" echo  - Notepad++ & set "ANY=1"
-if "!OPT10!"=="%ON%" echo  - Visual Studio Code & set "ANY=1"
-if "!OPT11!"=="%ON%" echo  - Git & set "ANY=1"
-if "!OPT12!"=="%ON%" echo  - qbittorrent & set "ANY=1"
-if "!OPT13!"=="%ON%" echo  - VC++ Redistributables 2015-2022 & set "ANY=1"
-if "!OPT14!"=="%ON%" echo  - DirectX & set "ANY=1"
-if "!OPT15!"=="%ON%" echo  - Virtual Box & set "ANY=1"
-if "!OPT16!"=="%ON%" echo  - IObit Unlocker & set "ANY=1"
-if "!OPT17!"=="%ON%" echo  - AutoHotkey & set "ANY=1"
-if "!OPT18!"=="%ON%" echo  - MEGA & set "ANY=1"
+for /L %%i in (1,1,18) do (
+    if "!OPT%%i!"=="%ON%" (
+        echo  - !NAME%%i!
+        set "ANY=1"
+    )
+)
 if "!ANY!"=="0" echo  - No program selected
 goto :eof
 
