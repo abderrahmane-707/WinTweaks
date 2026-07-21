@@ -370,9 +370,9 @@ if "%choice%"=="1" (
     set MENU=POWER_PLAN_MENU
     goto SUB_MENU
 )
-if "%choice%"=="2" goto PLAN_HIGH
-if "%choice%"=="3" goto PLAN_BALANCED
-if "%choice%"=="4" goto PLAN_SAVER
+if "%choice%"=="2" call :SET_POWER_PLAN "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" "high performance"  & goto POWER_PLAN_MENU
+if "%choice%"=="3" call :SET_POWER_PLAN "381b4222-f694-41f0-9685-ff5bb260df2e" "balanced"          & goto POWER_PLAN_MENU
+if "%choice%"=="4" call :SET_POWER_PLAN "a1841308-3541-4fab-bc81-f71556f20b4a" "power saver"       & goto POWER_PLAN_MENU
 if "%choice%"=="5" goto ACTIVE_PLAN
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
@@ -386,24 +386,6 @@ call :GO & goto POWER_PLAN_MENU
 :: Remove the "Ultimate Performance" plan
 :REMOVE_ULTIMATE_PLAN
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\RemoveUltimatePerformance.ps1"
-call :GO & goto POWER_PLAN_MENU
-
-:PLAN_HIGH
-echo. & echo Activate high performance power plan
-:: This is the standard Windows GUID for High Performance
-powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c >nul
-call :GO & goto POWER_PLAN_MENU
-
-:PLAN_BALANCED
-echo. & echo Activate balanced power plan
-:: This is the standard Windows GUID for Balanced (Windows default)
-powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e >nul
-call :GO & goto POWER_PLAN_MENU
-
-:PLAN_SAVER
-echo. & echo Activate power saver plan
-:: This is the standard Windows GUID for Power Saver
-powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a >nul
 call :GO & goto POWER_PLAN_MENU
 
 :ACTIVE_PLAN
@@ -2524,6 +2506,18 @@ if !errorlevel! equ 1 (
 :: Force empty the Recycle Bin for all drives
 echo Emptying Recycle Bin
 powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
+goto :eof
+
+:SET_POWER_PLAN
+echo. & echo Activate %~2 power plan
+powercfg /setactive %~1 >nul
+call :GO
+goto :eof
+
+:INFO_SCRIPT
+call :PATH "%~1" "%~2"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\%~1\%~2.ps1" "%LOG_FILE%"
+call :LOG
 goto :eof
 
 :UPDATE_DNS
