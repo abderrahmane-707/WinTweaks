@@ -1458,11 +1458,81 @@ call :GO & goto PROGRAMS_MANAGER_MENU
 
 :: Chocolatey must be available to upgrade the programs
 :UPDATE_PROGRAMS
-cls & echo Update all installed programs from Chocolatey
+cls
 call :CHECK_CHOCO
 
-:: Execute the upgrade command for every package managed by Chocolatey
-choco upgrade all -y
+echo Checking for available package updates
+
+set "TEMP_FILE=%TEMP%\ChocoOutdated_%random%.txt"
+choco outdated -r > "%TEMP_FILE%"
+
+:: Count lines (each line = packageName|currentVersion|newVersion|isPinned)
+set count=0
+for /f "usebackq tokens=1,2,3 delims=|" %%A in ("%TEMP_FILE%") do (
+    set /a count+=1
+    set "pkgName_!count!=%%A"
+    set "pkgOld_!count!=%%B"
+    set "pkgNew_!count!=%%C"
+)
+
+echo.
+if %count%==0 (
+    echo No updates are available. All packages are up to date.
+	goto END_UPDATE
+)
+
+echo Found %count% package(s) with an available update:
+echo.
+for /l %%i in (1,1,%count%) do (
+    set "name=!pkgName_%%i!"
+    set "name=!name:~0,38!"
+    set "old=!pkgOld_%%i!"
+    set "old=!old:~0,16!"
+    echo       %%i^) !name! !old! -^>  !pkgNew_%%i!
+)
+
+echo.
+echo    - Enter package numbers separated by commas, e.g.: 1,3,5
+echo    - Enter ALL to update everything
+echo    - Enter 0 to go back
+
+echo. & set "choice=" & set /p "choice=Your choice: "
+
+if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
+
+echo.
+if not defined choice (
+    echo No input detected. Cancelled
+    goto END_UPDATE
+)
+
+if /i "%choice%"=="ALL" (
+    cls & echo Updating all packages  
+    choco upgrade all -y
+	goto END_UPDATE
+)
+
+:: Convert selection (1,3,5) into a list of package names
+set "selectedPkgs="
+for %%N in (%choice:,= %) do (
+    set /a idx=%%N
+    if defined pkgName_!idx! (
+        set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
+    ) else (
+        echo Number %%N is invalid, skipping
+    )
+)
+
+if "%selectedPkgs%"=="" (
+    echo No valid packages were selected. Cancelled
+	goto END_UPDATE
+)
+
+echo. & echo The following packages will be updated:%selectedPkgs%
+choco upgrade%selectedPkgs% -y
+
+:END_UPDATE
+del "%TEMP_FILE%" >nul 2>&1
 call :GO & goto PROGRAMS_MANAGER_MENU
 
 :DOWNLOAD_MO
