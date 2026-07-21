@@ -1334,9 +1334,9 @@ call :LOG & goto NETWORK_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Programs Manager ---------------------------
 echo.
-echo                         [1] Download Programs                                 [2] Remove Programs
+echo                         [1] Download Programs                                 [2] Update Programs
 echo.
-echo                         [3] Update Programs                                   [4] Microsoft Office
+echo                         [3] Remove Programs                                   [4] Microsoft Office
 echo.
 echo                         [5] Remove ALL MS Apps                                [6] Programs Info
 echo.
@@ -1349,11 +1349,8 @@ if "%choice%"=="1" (
     set "MODE=INSTALL"
     goto WHERE_CHOCO
 )
-if "%choice%"=="2" (
-    set "MODE=REMOVE"
-    goto WHERE_CHOCO
-)
-if "%choice%"=="3" goto UPDATE_PROGRAMS
+if "%choice%"=="2" goto UPDATE_PROGRAMS
+if "%choice%"=="3" goto UNINSTALL_PROGRAMS
 if "%choice%"=="4" goto DOWNLOAD_MO
 if "%choice%"=="5" goto REMOVE_MS
 if "%choice%"=="6" goto PROGRAMS_INFO
@@ -1488,7 +1485,7 @@ for /l %%i in (1,1,%count%) do (
     set "name=!name:~0,38!"
     set "old=!pkgOld_%%i!"
     set "old=!old:~0,16!"
-    echo       %%i^) !name! !old! -^>  !pkgNew_%%i!
+    echo       %%i^) !name!   !old! -^>  !pkgNew_%%i!
 )
 
 echo.
@@ -1532,6 +1529,86 @@ echo. & echo The following packages will be updated:%selectedPkgs%
 choco upgrade%selectedPkgs% -y
 
 :END_UPDATE
+del "%TEMP_FILE%" >nul 2>&1
+call :GO & goto PROGRAMS_MANAGER_MENU
+
+:UNINSTALL_PROGRAMS
+cls
+call :CHECK_CHOCO
+
+echo Checking for installed packages
+
+set "TEMP_FILE=%TEMP%\ChocoInstalled_%random%.txt"
+choco list --local-only -r > "%TEMP_FILE%"
+
+:: Count lines (each line = packageName|version)
+set count=0
+for /f "usebackq tokens=1,2 delims=|" %%A in ("%TEMP_FILE%") do (
+    set /a count+=1
+    set "pkgName_!count!=%%A"
+    set "pkgVer_!count!=%%B"
+)
+
+if exist "%TEMP_FILE%" del /f /q "%TEMP_FILE%"
+
+echo.
+if %count%==0 (
+    echo No Chocolatey packages are currently installed.
+    goto END_UNINSTALL
+)
+
+echo Found %count% installed package(s):
+echo.
+for /l %%i in (1,1,%count%) do (
+    set "name=!pkgName_%%i!"
+    set "name=!name:~0,38!"
+    set "ver=!pkgVer_%%i!"
+    set "ver=!ver:~0,16!"
+    echo       %%i^) !name!   !ver!
+)
+
+echo.
+echo     - Enter package numbers separated by commas, e.g.: 1,3,5
+echo     - Enter ALL to uninstall everything
+echo     - Enter 0 to go back
+
+echo. & set "choice=" & set /p "choice=Your choice: "
+
+if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
+
+echo.
+if not defined choice (
+    echo No input detected. Cancelled
+    goto END_UNINSTALL
+)
+
+if /i "%choice%"=="ALL" (
+    cls
+    echo Uninstalling all packages
+    choco uninstall all -y
+    goto END_UNINSTALL
+)
+
+:: Convert selection (1,3,5) into a list of package names
+set "selectedPkgs="
+for %%N in (%choice:,= %) do (
+    set /a idx=%%N
+    if defined pkgName_!idx! (
+        set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
+    ) else (
+        echo Number %%N is invalid, skipping
+    )
+)
+
+if "%selectedPkgs%"=="" (
+    echo No valid packages were selected. Cancelled
+    goto END_UNINSTALL
+)
+
+echo. & echo The following packages will be uninstalled:%selectedPkgs%
+choco uninstall%selectedPkgs% -y
+
+:END_UNINSTALL
 del "%TEMP_FILE%" >nul 2>&1
 call :GO & goto PROGRAMS_MANAGER_MENU
 
