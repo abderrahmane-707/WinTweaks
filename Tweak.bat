@@ -407,45 +407,15 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto CPU_INFO
-if "%choice%"=="2" goto GPU_INFO
-if "%choice%"=="3" goto HARD_DISK_INFO
-if "%choice%"=="4" goto RAM_INFO
-if "%choice%"=="5" goto MOTHERBOARD_INFO
+if "%choice%"=="1" (call :INFO_SCRIPT "Performance" "CPUInfo"          & goto HW_INFO_MENU)
+if "%choice%"=="2" (call :INFO_SCRIPT "Performance" "GPUInfo"          & goto HW_INFO_MENU)
+if "%choice%"=="3" (call :INFO_SCRIPT "Performance" "HardDiskInfo"     & goto HW_INFO_MENU)
+if "%choice%"=="4" (call :INFO_SCRIPT "Performance" "MemoryInfo"       & goto HW_INFO_MENU)
+if "%choice%"=="5" (call :INFO_SCRIPT "Performance" "MotherboardInfo"  & goto HW_INFO_MENU)
 if "%choice%"=="6" goto BATTERY_INFO
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
 call :INVALID "(0-6)" "HW_INFO_MENU"
-
-:: Display detailed processor
-:CPU_INFO
-call :PATH "Performance" "CPUInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\CPUInfo.ps1" "%LOG_FILE%"
-call :LOG & goto HW_INFO_MENU
-
-:: Display Graphics Card details
-:GPU_INFO
-call :PATH "Performance" "GPUInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\GPUInfo.ps1" "%LOG_FILE%"
-call :LOG & goto HW_INFO_MENU
-
-:: Display Storage stats
-:HARD_DISK_INFO
-call :PATH "Performance" "HardDiskInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\HardDiskInfo.ps1" "%LOG_FILE%"
-call :LOG & goto HW_INFO_MENU
-
-:: Display RAM information
-:RAM_INFO
-call :PATH "Performance" "MemoryInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MemoryInfo.ps1" "%LOG_FILE%"
-call :LOG & goto HW_INFO_MENU
-
-:: Display Motherboard information
-:MOTHERBOARD_INFO
-call :PATH "Performance" "MotherboardInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\MotherboardInfo.ps1" "%LOG_FILE%"
-call :LOG & goto HW_INFO_MENU
 
 :: Generate an advanced HTML report regarding battery health and cycle count
 :BATTERY_INFO
@@ -508,7 +478,7 @@ if "%choice%"=="6" (
     goto SUB_MENU
 )
 
-if "%choice%"=="7" goto SECURITY_INFO
+if "%choice%"=="7" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-7)" "PRIVACY_SECURITY_MENU"
@@ -1006,11 +976,6 @@ if !errorlevel! equ 1 (
 
 call :LOG & goto PRIVACY_SECURITY_MENU
 
-:SECURITY_INFO
-call :PATH "Security" "SecurityInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\SecurityInfo.ps1" "%LOG_FILE%"
-call :LOG & goto PRIVACY_SECURITY_MENU
-
 
 :NETWORK_MENU
 cls & echo. & echo.
@@ -1036,7 +1001,7 @@ if "%choice%"=="1" (
 if "%choice%"=="2" goto DNS_MENU
 if "%choice%"=="3" goto WIFI_PASSWORDS
 if "%choice%"=="4" goto NETWORK_RESET
-if "%choice%"=="5" goto NETWORK_INFO
+if "%choice%"=="5" (call :INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-5)" "NETWORK_MENU"
@@ -1307,10 +1272,6 @@ ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 call :RESTART
 call :LOG & goto NETWORK_MENU
 
-:NETWORK_INFO
-call :PATH "Network" "NetworkInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\NetworkInfo.ps1" "%LOG_FILE%"
-call :LOG & goto NETWORK_MENU
 
 :PROGRAMS_MANAGER_MENU
 cls & echo. & echo.
@@ -1335,7 +1296,7 @@ if "%choice%"=="2" goto UPDATE_PROGRAMS
 if "%choice%"=="3" goto UNINSTALL_PROGRAMS
 if "%choice%"=="4" goto DOWNLOAD_MO
 if "%choice%"=="5" goto REMOVE_MS
-if "%choice%"=="6" goto PROGRAMS_INFO
+if "%choice%"=="6" (call :INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-6)" "PROGRAMS_MANAGER_MENU"
@@ -1605,11 +1566,6 @@ if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
 call :GO & goto PROGRAMS_MANAGER_MENU
 
-:: Get information about all installed and startup programs
-:PROGRAMS_INFO
-call :PATH "Programs" "ProgramsInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\ProgramsInfo.ps1" "%LOG_FILE%"
-call :LOG & goto PROGRAMS_MANAGER_MENU
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
@@ -2030,7 +1986,7 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto RESTORE_POINT
 if "%choice%"=="2" goto REG_BACK
 if "%choice%"=="3" goto ACTIVATION_MENU
-if "%choice%"=="4" goto SYSTEM_INFO
+if "%choice%"=="4" (call :INFO_SCRIPT "System" "SystemInfo"  & goto SYSTEM_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-4)" "SYSTEM_MENU"
@@ -2167,11 +2123,6 @@ call :GO & goto ACTIVATION_MENU
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivationStatus.ps1"
 call :GO & goto ACTIVATION_MENU
 
-:: Display basic system information 
-:SYSTEM_INFO
-call :PATH "System" "SystemInfo"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\SystemInfo.ps1" "%LOG_FILE%"
-call :LOG & goto SYSTEM_MENU
 
 :TOOLS_MENU
 cls & echo. & echo.
