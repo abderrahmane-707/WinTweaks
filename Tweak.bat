@@ -1069,74 +1069,25 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 
 :: Google DNS: Highly reliable and fast global infrastructure
-if "%choice%"=="1" (
-    set DNS_NAME=Google Public DNS
-    set DNS_IPv4_1=8.8.8.8
-    set DNS_IPv4_2=8.8.4.4
-    set DNS_IPv6_1=2001:4860:4860::8888
-    set DNS_IPv6_2=2001:4860:4860::8844
-    goto SET_DNS
-)
+if "%choice%"=="1" (set "DNS_NAME=Google Public DNS" & set "DNS_IPv4_1=8.8.8.8" & set "DNS_IPv4_2=8.8.4.4" & set "DNS_IPv6_1=2001:4860:4860::8888" & set "DNS_IPv6_2=2001:4860:4860::8844" & goto SET_DNS)
 
 :: Cloudflare DNS: Focused on speed and strict user privacy
-if "%choice%"=="2" (
-    set DNS_NAME=Cloudflare DNS
-    set DNS_IPv4_1=1.1.1.1
-    set DNS_IPv4_2=1.0.0.1
-    set DNS_IPv6_1=2606:4700:4700::1111
-    set DNS_IPv6_2=2606:4700:4700::1001
-    goto SET_DNS
-)
+if "%choice%"=="2" (set "DNS_NAME=Cloudflare DNS" & set "DNS_IPv4_1=1.1.1.1" & set "DNS_IPv4_2=1.0.0.1" & set "DNS_IPv6_1=2606:4700:4700::1111" & set "DNS_IPv6_2=2606:4700:4700::1001" & goto SET_DNS)
 
 :: Cloudflare Family: Blocks malware and adult content automatically
-if "%choice%"=="3" (
-    set DNS_NAME=Cloudflare Family DNS
-    set DNS_IPv4_1=1.1.1.3
-    set DNS_IPv4_2=1.0.0.3
-    set DNS_IPv6_1=2606:4700:4700::1113
-    set DNS_IPv6_2=2606:4700:4700::1003
-    goto SET_DNS
-)
+if "%choice%"=="3" (set "DNS_NAME=Cloudflare Family DNS" & set "DNS_IPv4_1=1.1.1.3" & set "DNS_IPv4_2=1.0.0.3" & set "DNS_IPv6_1=2606:4700:4700::1113" & set "DNS_IPv6_2=2606:4700:4700::1003" & goto SET_DNS)
 
 :: AdGuard DNS: Filters out ads and trackers at the network level
-if "%choice%"=="4" (
-    set DNS_NAME=AdGuard DNS
-    set DNS_IPv4_1=94.140.14.14
-    set DNS_IPv4_2=94.140.15.15
-    set DNS_IPv6_1=2a10:50c0::ad1:ff
-    set DNS_IPv6_2=2a10:50c0::ad2:ff
-    goto SET_DNS
-)
+if "%choice%"=="4" (set "DNS_NAME=AdGuard DNS" & set "DNS_IPv4_1=94.140.14.14" & set "DNS_IPv4_2=94.140.15.15" & set "DNS_IPv6_1=2a10:50c0::ad1:ff" & set "DNS_IPv6_2=2a10:50c0::ad2:ff" & goto SET_DNS)
 
 :: Clean Browsing: Optimized for family safety and security filtering
-if "%choice%"=="5" (
-    set DNS_NAME=Clean Browsing DNS
-    set DNS_IPv4_1=185.228.168.168
-    set DNS_IPv4_2=185.228.169.168
-    set DNS_IPv6_1=2a0d:2a00:1::
-    set DNS_IPv6_2=2a0d:2a00:2::
-    goto SET_DNS
-)
+if "%choice%"=="5" (set "DNS_NAME=Clean Browsing DNS" & set "DNS_IPv4_1=185.228.168.168" & set "DNS_IPv4_2=185.228.169.168" & set "DNS_IPv6_1=2a0d:2a00:1::" & set "DNS_IPv6_2=2a0d:2a00:2::" & goto SET_DNS)
 
 :: Quad9 DNS: Strong emphasis on blocking malicious domains and phishing
-if "%choice%"=="6" (
-    set DNS_NAME=Quad9 DNS
-    set DNS_IPv4_1=9.9.9.9
-    set DNS_IPv4_2=149.112.112.112
-    set DNS_IPv6_1=2620:fe::fe
-    set DNS_IPv6_2=2620:fe::9
-    goto SET_DNS
-)
+if "%choice%"=="6" (set "DNS_NAME=Quad9 DNS" & set "DNS_IPv4_1=9.9.9.9" & set "DNS_IPv4_2=149.112.112.112" & set "DNS_IPv6_1=2620:fe::fe" & set "DNS_IPv6_2=2620:fe::9" & goto SET_DNS)
 
 :: OpenDNS: Provides customizable web filtering and high uptime
-if "%choice%"=="7" (
-    set DNS_NAME=OpenDNS
-    set DNS_IPv4_1=208.67.222.222
-    set DNS_IPv4_2=208.67.220.220
-    set DNS_IPv6_1=2620:119:35::35
-    set DNS_IPv6_2=2620:119:53::53
-    goto SET_DNS
-)
+if "%choice%"=="7" (set "DNS_NAME=OpenDNS" & set "DNS_IPv4_1=208.67.222.222" & set "DNS_IPv4_2=208.67.220.220" & set "DNS_IPv6_1=2620:119:35::35" & set "DNS_IPv6_2=2620:119:53::53" & goto SET_DNS)
 
 if "%choice%"=="8" goto SET_DHCP
 if "%choice%"=="9" goto DNS_SERVER_TEST
