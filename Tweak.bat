@@ -1239,10 +1239,7 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
-    set "MODE=INSTALL"
-    goto WHERE_CHOCO
-)
+if "%choice%"=="1" goto WHERE_CHOCO
 if "%choice%"=="2" goto UPDATE_PROGRAMS
 if "%choice%"=="3" goto UNINSTALL_PROGRAMS
 if "%choice%"=="4" goto DOWNLOAD_MO
@@ -1337,8 +1334,6 @@ goto PROGRAMS_MENU
 for /L %%i in (1,1,18) do set "OPT%%i=%OFF%"
 goto PROGRAMS_MENU
 
-:: Shared entry point for both Install and Remove: loops through the 18 defined
-:: packages and, for every one selected (ON), performs the action set in %MODE%
 :RUN_PROGRAMS
 cls
 for /L %%i in (1,1,18) do (
@@ -1368,7 +1363,7 @@ for /f "usebackq tokens=1,2,3 delims=|" %%A in ("%TEMP_FILE%") do (
 
 echo.
 if %count%==0 (
-    echo No updates are available. All packages are up to date.
+    echo No updates are available. All packages are up to date
 	goto END_UPDATE
 )
 
@@ -1392,7 +1387,7 @@ echo. & set "choice=" & set /p "choice=Your choice: "
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 
 echo.
-if not defined choice (
+if "%choice%"=="" (
     echo No input detected. Cancelled
     goto END_UPDATE
 )
@@ -1406,9 +1401,16 @@ if /i "%choice%"=="ALL" (
 :: Convert selection (1,3,5) into a list of package names
 set "selectedPkgs="
 for %%N in (%choice:,= %) do (
-    set /a idx=%%N
-    if defined pkgName_!idx! (
-        set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
+    set "isNum=1"
+    for /f "delims=0123456789" %%C in ("%%N") do set "isNum=0"
+
+    if "!isNum!"=="1" if defined %%N (
+        set /a idx=%%N
+        if defined pkgName_!idx! (
+            set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
+        ) else (
+            echo Number %%N is invalid, skipping
+        )
     ) else (
         echo Number %%N is invalid, skipping
     )
@@ -1443,11 +1445,9 @@ for /f "usebackq tokens=1,2 delims=|" %%A in ("%TEMP_FILE%") do (
     set "pkgVer_!count!=%%B"
 )
 
-if exist "%TEMP_FILE%" del /f /q "%TEMP_FILE%"
-
 echo.
 if %count%==0 (
-    echo No Chocolatey packages are currently installed.
+    echo No Chocolatey packages are currently installed
     goto END_UNINSTALL
 )
 
@@ -1471,7 +1471,7 @@ echo. & set "choice=" & set /p "choice=Your choice: "
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 
 echo.
-if not defined choice (
+if "%choice%"=="" (
     echo No input detected. Cancelled
     goto END_UNINSTALL
 )
@@ -1486,9 +1486,16 @@ if /i "%choice%"=="ALL" (
 :: Convert selection (1,3,5) into a list of package names
 set "selectedPkgs="
 for %%N in (%choice:,= %) do (
-    set /a idx=%%N
-    if defined pkgName_!idx! (
-        set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
+    set "isNum=1"
+    for /f "delims=0123456789" %%C in ("%%N") do set "isNum=0"
+
+    if "!isNum!"=="1" if defined %%N (
+        set /a idx=%%N
+        if defined pkgName_!idx! (
+            set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
+        ) else (
+            echo Number %%N is invalid, skipping
+        )
     ) else (
         echo Number %%N is invalid, skipping
     )
@@ -2451,10 +2458,13 @@ for %%G in (%tokens%) do (
 
     if not "!tok!"=="!noHyphen!" (
         :: Looks like a range e.g. 1-5
+        set "rangeStart="
+        set "rangeEnd="
         for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
             set "rangeStart=%%X"
             set "rangeEnd=%%Y"
         )
+		
         set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
         set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
 
@@ -2486,25 +2496,11 @@ if defined invalid (
 goto :eof
 
 :TRY_ACTION
-:: %~1 = Chocolatey package id, %~2 = Display name
-:: Uses %MODE% (INSTALL or REMOVE), set from the Programs Manager menu, to decide the choco action
-if /i "%MODE%"=="REMOVE" (
-    set "CHOCO_VERB=uninstall"
-    set "ACTION_VERB=Removing"
-    set "FAIL_VERB=remove"
-) else (
-    set "CHOCO_VERB=install"
-    set "ACTION_VERB=Installing"
-    set "FAIL_VERB=install"
-)
-
-echo. & echo !ACTION_VERB!: %~2
-choco !CHOCO_VERB! %~1 -y
+echo. & echo Installing: %~2
+choco install %~1 -y
 
 if !errorlevel! neq 0 (
-    echo. & echo Failed to !FAIL_VERB!: %~2
-    if /i "%MODE%"=="REMOVE" goto :eof
-
+    echo. & echo Failed to install: %~2
     call :CHOICE "Do you want to ignore checksum and retry?"
     if errorlevel 2 (
 	    echo The program download was ignored
