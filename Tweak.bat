@@ -1267,41 +1267,39 @@ call :CHECK_CHOCO
 set "ON=(YES)"
 set "OFF=(NO)"
 
-:: Define package id + display name for each of the 18 programs (shared by Install and Remove), and reset selection to OFF
-set "PKG1=googlechrome"                                     & set "NAME1=Google Chrome"                    & set "OPT1=%OFF%"
-set "PKG2=brave"                                            & set "NAME2=Brave"                            & set "OPT2=%OFF%"
-set "PKG3=winrar"                                           & set "NAME3=WinRAR"                           & set "OPT3=%OFF%"
-set "PKG4=7zip.install"                                     & set "NAME4=7-Zip"                            & set "OPT4=%OFF%"
-set "PKG5=k-litecodecpack-standard"                         & set "NAME5=K-Lite Codec"                     & set "OPT5=%OFF%"
-set "PKG6=irfanview irfanviewplugins"                       & set "NAME6=IrfanView"                        & set "OPT6=%OFF%"
-set "PKG7=xnviewmp.install"                                 & set "NAME7=XnView MP"                        & set "OPT7=%OFF%"
-set "PKG8=sumatrapdf.install"                               & set "NAME8=Sumatra PDF"                      & set "OPT8=%OFF%"
-set "PKG9=notepadplusplus.install"                          & set "NAME9=Notepad++"                        & set "OPT9=%OFF%"
-set "PKG10=vscode.install"                                  & set "NAME10=Visual Studio Code"              & set "OPT10=%OFF%"
-set "PKG11=git.install"                                     & set "NAME11=Git"                             & set "OPT11=%OFF%"
-set "PKG12=qbittorrent"                                     & set "NAME12=qbittorrent"                     & set "OPT12=%OFF%"
-set "PKG13=vcredist140"                                     & set "NAME13=VC++ 2015-2022"                  & set "OPT13=%OFF%"
-set "PKG14=directx"                                         & set "NAME14=DirectX"                         & set "OPT14=%OFF%"
-set "PKG15=virtualbox"                                      & set "NAME15=Virtual Box"                     & set "OPT15=%OFF%"
-set "PKG16=io-unlocker"                                     & set "NAME16=IObit Unlocker"                  & set "OPT16=%OFF%"
-set "PKG17=autohotkey.install"                              & set "NAME17=AutoHotkey"                      & set "OPT17=%OFF%"
-set "PKG18=megasync"                                        & set "NAME18=MEGA"                            & set "OPT18=%OFF%"
+set "PKG1=googlechrome"                     & set "NAME1=Google Chrome"                 & set "OPT1=%OFF%"
+set "PKG2=brave"                            & set "NAME2=Brave"                         & set "OPT2=%OFF%"
+set "PKG3=winrar"                           & set "NAME3=WinRAR"                        & set "OPT3=%OFF%"
+set "PKG4=7zip.install"                     & set "NAME4=7-Zip"                         & set "OPT4=%OFF%"
+set "PKG5=k-litecodecpack-standard"         & set "NAME5=K-Lite Codec"                  & set "OPT5=%OFF%"
+set "PKG6=irfanview irfanviewplugins"       & set "NAME6=IrfanView"                     & set "OPT6=%OFF%"
+set "PKG7=sumatrapdf.install"               & set "NAME7=Sumatra PDF"                   & set "OPT7=%OFF%"
+set "PKG8=notepadplusplus.install"          & set "NAME8=Notepad++"                     & set "OPT8=%OFF%"
+set "PKG9=vscode.install"                   & set "NAME9=Visual Studio Code"            & set "OPT9=%OFF%"
+set "PKG10=git.install"                     & set "NAME10=Git"                          & set "OPT10=%OFF%"
+set "PKG11=qbittorrent"                     & set "NAME11=qbittorrent"                  & set "OPT11=%OFF%"
+set "PKG12=vcredist140"                     & set "NAME12=VC++ 2015-2022"               & set "OPT12=%OFF%"
+set "PKG13=directx"                         & set "NAME13=DirectX"                      & set "OPT13=%OFF%"
+set "PKG14=virtualbox"                      & set "NAME14=Virtual Box"                  & set "OPT14=%OFF%"
+set "PKG15=io-unlocker"                     & set "NAME15=IObit Unlocker"               & set "OPT15=%OFF%"
+set "PKG16=autohotkey.install"              & set "NAME16=AutoHotkey"                   & set "OPT16=%OFF%"
+set "PKG17=megasync"                        & set "NAME17=MEGA"                         & set "OPT17=%OFF%"
 
 :PROGRAMS_MENU
 cls & echo. & echo.
 echo                        ----------------------------------- Programs -----------------------------------
 echo.
-echo                           [1] Google Chrome            [7] XnViewMP               [13] VC++ 2015-2022
+echo                           [1] Google Chrome            [7] Sumatra PDF               [13] DirectX
 echo.
-echo                           [2] Brave                    [8] Sumatra PDF            [14] DirectX
+echo                           [2] Brave                    [8] Notepad++                 [14] Virtual Box
 echo.
-echo                           [3] WinRAR                   [9] Notepad++              [15] Virtual Box
+echo                           [3] WinRAR                   [9] VS Code                   [15] IObit Unlocker
 echo.
-echo                           [4] 7-Zip                    [10] VS Code               [16] IObit Unlocker
+echo                           [4] 7-Zip                    [10] Git                      [16] AutoHotkey
 echo.
-echo                           [5] K-Lite Codec             [11] Git                   [17] AutoHotkey
+echo                           [5] K-Lite Codec             [11] qbittorrent              [17] MEGA
 echo.
-echo                           [6] IrfanView                [12] qbittorrent           [18] MEGA
+echo                           [6] IrfanView                [12] VC++ 2015-2022           [18] More 
 echo.
 echo                        --------------------------------------------------------------------------------
 echo.
@@ -1317,6 +1315,7 @@ echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-1
 echo. & set "choice=" & set /p "choice=--> Select an option(s) and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
+if "%choice%"=="18" goto MORE_PROG
 if /i "%choice%"=="S" goto RUN_PROGRAMS
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
@@ -1326,18 +1325,31 @@ goto PROGRAMS_MENU
 
 :: Set "ON" for all programs
 :SELECT_ALL
-for /L %%i in (1,1,18) do set "OPT%%i=%ON%"
+for /L %%i in (1,1,17) do set "OPT%%i=%ON%"
 goto PROGRAMS_MENU
 
 :: Set "OFF" for all programs
 :DESELECT_ALL
-for /L %%i in (1,1,18) do set "OPT%%i=%OFF%"
+for /L %%i in (1,1,17) do set "OPT%%i=%OFF%"
 goto PROGRAMS_MENU
 
 :RUN_PROGRAMS
 cls
-for /L %%i in (1,1,18) do (call :IS_ON OPT%%i && call :TRY_ACTION "!PKG%%i!" "!NAME%%i!")
+for /L %%i in (1,1,17) do (call :IS_ON OPT%%i && call :TRY_ACTION "!PKG%%i!" "!NAME%%i!")
 call :GO & goto PROGRAMS_MANAGER_MENU
+
+:MORE_PROG
+cls
+:: Ask the user for one or more app names
+set "apps=" & set /p apps="Enter app name(s) separated by spaces: "
+
+if "%apps%"=="" goto MORE_PROG
+
+:: Loop through each app the user entered
+for %%A in (%apps%) do call :PROCESS_APP "%%A"
+
+del "%temp%\ChocoResult.txt" >nul 2>&1
+call :GO & goto PROGRAMS_MENU
 
 :: Chocolatey must be available to upgrade the programs
 :UPDATE_PROGRAMS
@@ -2346,6 +2358,7 @@ if !errorlevel! equ 0 goto :eof
 echo Choco not found
 call :GO & goto PROGRAMS_MANAGER_MENU
 
+
 :MULTI_INPUT
 :: Process numerical input to toggle selections (supports: 1,2,3  or  1 2 3  or  1-5  or mixed like 1-3,7,10-12)
 set "invalid="
@@ -2370,7 +2383,7 @@ for %%G in (%tokens%) do (
         set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
 
         if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq 18 if !rangeStart! leq !rangeEnd! (
+            if !rangeStart! geq 1 if !rangeEnd! leq 17 if !rangeStart! leq !rangeEnd! (
                 for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE OPT%%N
                 set "matched=1"
             )
@@ -2379,7 +2392,7 @@ for %%G in (%tokens%) do (
         :: Single number
         set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
         if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq 18 (
+            if !tok! geq 1 if !tok! leq 17 (
                 call :TOGGLE_SINGLE OPT!tok!
                 set "matched=1"
             )
@@ -2430,13 +2443,46 @@ goto :eof
 :: List of current selections to the screen (driven by the PKG/NAME table, no per-program duplication)
 :SHOW_SELECTED
 set "ANY=0"
-for /L %%i in (1,1,18) do (
+for /L %%i in (1,1,17) do (
     if "!OPT%%i!"=="%ON%" (
         echo  - !NAME%%i!
         set "ANY=1"
     )
 )
 if "!ANY!"=="0" echo  - No program selected
+goto :eof
+
+:PROCESS_APP
+set "app=%~1"
+echo. & echo Searching for: %app%
+
+:: Exact match search in the Chocolatey repository
+choco search "%app%" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
+
+set "found=0"
+set "official_pkg="
+set "official_version="
+for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do (
+    set "found=1"
+    set "official_pkg=%%L"
+    set "official_version=%%M"
+)
+
+if "!found!"=="1" (
+    echo. & echo Official package found: !official_pkg! !official_version!
+    call :CHOICE "Do you want to install !official_pkg!?"
+    if errorlevel 2 (
+        echo Installation skipped
+    ) else if errorlevel 1 (
+        echo Installing !official_pkg!
+        choco install "!official_pkg!" -y
+    )
+) else (
+    echo No exact match for "%app%" was found
+    echo Similar packages available in Chocolatey:
+    echo. & choco search "%app%" --limit-output
+    echo. & echo No package was installed automatically. Check the list above and pick the correct name if available
+)
 goto :eof
 
 :PARSE_PKG_LIST
