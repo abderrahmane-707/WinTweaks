@@ -1280,7 +1280,7 @@ set "PKG9=notepadplusplus.install"                          & set "NAME9=Notepad
 set "PKG10=vscode.install"                                  & set "NAME10=Visual Studio Code"              & set "OPT10=%OFF%"
 set "PKG11=git.install"                                     & set "NAME11=Git"                             & set "OPT11=%OFF%"
 set "PKG12=qbittorrent"                                     & set "NAME12=qbittorrent"                     & set "OPT12=%OFF%"
-set "PKG13=vcredist140"                                     & set "NAME13=VC++ Redistributables 2015-2022" & set "OPT13=%OFF%"
+set "PKG13=vcredist140"                                     & set "NAME13=VC++ 2015-2022"                  & set "OPT13=%OFF%"
 set "PKG14=directx"                                         & set "NAME14=DirectX"                         & set "OPT14=%OFF%"
 set "PKG15=virtualbox"                                      & set "NAME15=Virtual Box"                     & set "OPT15=%OFF%"
 set "PKG16=io-unlocker"                                     & set "NAME16=IObit Unlocker"                  & set "OPT16=%OFF%"
@@ -1336,10 +1336,7 @@ goto PROGRAMS_MENU
 
 :RUN_PROGRAMS
 cls
-for /L %%i in (1,1,18) do (
-    call :IS_ON OPT%%i && call :TRY_ACTION "!PKG%%i!" "!NAME%%i!"
-)
-
+for /L %%i in (1,1,18) do (call :IS_ON OPT%%i && call :TRY_ACTION "!PKG%%i!" "!NAME%%i!")
 call :GO & goto PROGRAMS_MANAGER_MENU
 
 :: Chocolatey must be available to upgrade the programs
@@ -1347,169 +1344,73 @@ call :GO & goto PROGRAMS_MANAGER_MENU
 cls
 call :CHECK_CHOCO
 
-echo Checking for available package updates
+set "screenTitle=Checking for available package updates"
+echo %screenTitle%
 
 set "TEMP_FILE=%TEMP%\ChocoOutdated_%random%.txt"
 choco outdated -r > "%TEMP_FILE%"
 
-:: Count lines (each line = packageName|currentVersion|newVersion|isPinned)
-set count=0
-for /f "usebackq tokens=1,2,3 delims=|" %%A in ("%TEMP_FILE%") do (
-    set /a count+=1
-    set "pkgName_!count!=%%A"
-    set "pkgOld_!count!=%%B"
-    set "pkgNew_!count!=%%C"
-)
+call :PARSE_PKG_LIST "%TEMP_FILE%"
 
 echo.
 if %count%==0 (
     echo No updates are available. All packages are up to date
-	goto END_UPDATE
+    goto END_UPDATE_UNINSTALL
 )
 
-echo Found %count% package(s) with an available update:
-echo.
-for /l %%i in (1,1,%count%) do (
-    set "name=!pkgName_%%i!"
-    set "name=!name:~0,38!"
-    set "old=!pkgOld_%%i!"
-    set "old=!old:~0,16!"
-    echo       %%i^) !name!   !old! -^>  !pkgNew_%%i!
-)
+set "foundMsg=Found %count% package(s) with an available update:"
+set "colFlag=1"
 
-echo.
-echo    - Enter package numbers separated by commas, e.g.: 1,3,5
-echo    - Enter ALL to update everything
-echo    - Enter 0 to go back
-
-echo. & set "choice=" & set /p "choice=Your choice: "
-
-if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
-
-echo.
-if "%choice%"=="" (
-    echo No input detected. Cancelled
-    goto END_UPDATE
-)
-
-if /i "%choice%"=="ALL" (
-    cls & echo Updating all packages  
+:UPDATE_ASK
+call :REDRAW_SCREEN
+call :READ_CHOICE
+if errorlevel 3 (
+    cls & echo Updating all packages
     choco upgrade all -y
-	goto END_UPDATE
+    goto END_UPDATE_UNINSTALL
 )
+if errorlevel 2 goto UPDATE_ASK
+if errorlevel 1 (del "%TEMP_FILE%" >nul 2>&1 & goto PROGRAMS_MANAGER_MENU)
 
-:: Convert selection (1,3,5) into a list of package names
-set "selectedPkgs="
-for %%N in (%choice:,= %) do (
-    set "isNum=1"
-    for /f "delims=0123456789" %%C in ("%%N") do set "isNum=0"
-
-    if "!isNum!"=="1" if defined %%N (
-        set /a idx=%%N
-        if defined pkgName_!idx! (
-            set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
-        ) else (
-            echo Number %%N is invalid, skipping
-        )
-    ) else (
-        echo Number %%N is invalid, skipping
-    )
-)
-
-if "%selectedPkgs%"=="" (
-    echo No valid packages were selected. Cancelled
-	goto END_UPDATE
-)
-
-echo. & echo The following packages will be updated:%selectedPkgs%
+cls & echo The following packages will be updated:%selectedPkgs%
 choco upgrade%selectedPkgs% -y
-
-:END_UPDATE
-del "%TEMP_FILE%" >nul 2>&1
-call :GO & goto PROGRAMS_MANAGER_MENU
 
 :UNINSTALL_PROGRAMS
 cls
 call :CHECK_CHOCO
 
-echo Checking for installed packages
+set "screenTitle=Checking for installed packages"
+echo %screenTitle%
 
 set "TEMP_FILE=%TEMP%\ChocoInstalled_%random%.txt"
 choco list --local-only -r > "%TEMP_FILE%"
 
-:: Count lines (each line = packageName|version)
-set count=0
-for /f "usebackq tokens=1,2 delims=|" %%A in ("%TEMP_FILE%") do (
-    set /a count+=1
-    set "pkgName_!count!=%%A"
-    set "pkgVer_!count!=%%B"
-)
+call :PARSE_PKG_LIST "%TEMP_FILE%"
 
 echo.
 if %count%==0 (
     echo No Chocolatey packages are currently installed
-    goto END_UNINSTALL
+    goto END_UPDATE_UNINSTALL
 )
 
-echo Found %count% installed package(s):
-echo.
-for /l %%i in (1,1,%count%) do (
-    set "name=!pkgName_%%i!"
-    set "name=!name:~0,38!"
-    set "ver=!pkgVer_%%i!"
-    set "ver=!ver:~0,16!"
-    echo       %%i^) !name!   !ver!
-)
+set "foundMsg=Found %count% installed package(s):"
+set "colFlag=0"
 
-echo.
-echo     - Enter package numbers separated by commas, e.g.: 1,3,5
-echo     - Enter ALL to uninstall everything
-echo     - Enter 0 to go back
-
-echo. & set "choice=" & set /p "choice=Your choice: "
-
-if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
-
-echo.
-if "%choice%"=="" (
-    echo No input detected. Cancelled
-    goto END_UNINSTALL
-)
-
-if /i "%choice%"=="ALL" (
-    cls
-    echo Uninstalling all packages
+:UNINSTALL_ASK
+call :REDRAW_SCREEN
+call :READ_CHOICE
+if errorlevel 3 (
+    cls & echo Uninstalling all packages
     choco uninstall all -y
-    goto END_UNINSTALL
+    goto END_UPDATE_UNINSTALL
 )
+if errorlevel 2 goto UNINSTALL_ASK
+if errorlevel 1 (del "%TEMP_FILE%" >nul 2>&1 & goto PROGRAMS_MANAGER_MENU)
 
-:: Convert selection (1,3,5) into a list of package names
-set "selectedPkgs="
-for %%N in (%choice:,= %) do (
-    set "isNum=1"
-    for /f "delims=0123456789" %%C in ("%%N") do set "isNum=0"
-
-    if "!isNum!"=="1" if defined %%N (
-        set /a idx=%%N
-        if defined pkgName_!idx! (
-            set "selectedPkgs=!selectedPkgs! !pkgName_%%N!"
-        ) else (
-            echo Number %%N is invalid, skipping
-        )
-    ) else (
-        echo Number %%N is invalid, skipping
-    )
-)
-
-if "%selectedPkgs%"=="" (
-    echo No valid packages were selected. Cancelled
-    goto END_UNINSTALL
-)
-
-echo. & echo The following packages will be uninstalled:%selectedPkgs%
+cls & echo The following packages will be uninstalled:%selectedPkgs%
 choco uninstall%selectedPkgs% -y
 
-:END_UNINSTALL
+:END_UPDATE_UNINSTALL
 del "%TEMP_FILE%" >nul 2>&1
 call :GO & goto PROGRAMS_MANAGER_MENU
 
@@ -2489,7 +2390,7 @@ for %%G in (%tokens%) do (
 )
 
 if defined invalid (
-    echo. & echo Invalid or out-of-range input ignored:!invalid!
+    echo. & echo Invalid or out-of-range input:!invalid!
     pause
 )
 
@@ -2537,6 +2438,102 @@ for /L %%i in (1,1,18) do (
 )
 if "!ANY!"=="0" echo  - No program selected
 goto :eof
+
+:PARSE_PKG_LIST
+set count=0
+for /f "usebackq tokens=1,2,3 delims=|" %%A in ("%~1") do (
+    set /a count+=1
+    set "pkgName_!count!=%%A"
+    set "pkgCol2_!count!=%%B"
+    set "pkgCol3_!count!=%%C"
+)
+goto :eof
+
+:DISPLAY_PKG_LIST
+for /l %%i in (1,1,%count%) do (
+    set "name=!pkgName_%%i!"
+    set "name=!name:~0,38!"
+    set "col2=!pkgCol2_%%i!"
+    set "col2=!col2:~0,16!"
+    if "%~1"=="1" (
+        echo       %%i^) !name!   !col2! -^>  !pkgCol3_%%i!
+    ) else (
+        echo       %%i^) !name!   !col2!
+    )
+)
+goto :eof
+
+:SELECT_PKGS
+set "selectedPkgs="
+set "invalid="
+set "tokens=%choice:,= %"
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+    set "noHyphen=!tok:-=!"
+    if not "!tok!"=="!noHyphen!" (
+        set "rangeStart="
+        set "rangeEnd="
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq %count% if !rangeStart! leq !rangeEnd! (
+                for /l %%N in (!rangeStart!,1,!rangeEnd!) do call :ADD_PKG %%N
+                set "matched=1"
+            )
+        )
+    ) else (
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq %count% (
+                call :ADD_PKG !tok!
+                set "matched=1"
+            )
+        )
+    )
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
+)
+goto :eof
+
+:ADD_PKG
+if defined pkgName_%1 (
+    echo !selectedPkgs! | find /i " !pkgName_%1! " >nul
+    if errorlevel 1 set "selectedPkgs=!selectedPkgs! !pkgName_%1!"
+)
+goto :eof
+
+:REDRAW_SCREEN
+cls
+echo %screenTitle%
+echo.
+echo %foundMsg%
+echo.
+call :DISPLAY_PKG_LIST %colFlag%
+goto :eof
+
+:READ_CHOICE
+echo.
+echo    - Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
+echo    - Enter ALL for all packages
+echo    - Enter 0 to go back
+echo. & set "choice=" & set /p "choice=Select an option(s): "
+
+if "%choice%"=="0" exit /b 1
+if "%choice%"=="" exit /b 2
+if /i "%choice%"=="ALL" exit /b 3
+
+call :SELECT_PKGS
+if defined invalid (
+    echo. & echo Invalid or out-of-range input:!invalid!
+    pause & exit /b 2
+)
+
+exit /b 0
 
 :NET_CONTROL
 :: %~1 = Service Name
