@@ -1228,26 +1228,22 @@ call :LOG & goto NETWORK_MENU
 cls & echo. & echo.
 echo                        ------------------------------ Programs Manager ---------------------------
 echo.
-echo                         [1] Download Programs                                 [2] Update Programs
+echo                         [1] Download Programs                                 [2] Microsoft Office
 echo.
-echo                         [3] Remove Programs                                   [4] Microsoft Office
+echo                         [3] Remove ALL MS Apps                                [4] Programs Info
 echo.
-echo                         [5] Remove ALL MS Apps                                [6] Programs Info
-echo.
-echo                                                          [0] Back
+echo                                                           [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto WHERE_CHOCO
-if "%choice%"=="2" goto UPDATE_PROGRAMS
-if "%choice%"=="3" goto UNINSTALL_PROGRAMS
-if "%choice%"=="4" goto DOWNLOAD_MO
-if "%choice%"=="5" goto REMOVE_MS
-if "%choice%"=="6" (call :INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
+if "%choice%"=="2" goto DOWNLOAD_MO
+if "%choice%"=="3" goto REMOVE_MS
+if "%choice%"=="4" (call :INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-6)" "PROGRAMS_MANAGER_MENU"
+call :INVALID "(0-4)" "PROGRAMS_MANAGER_MENU"
 
 :WHERE_CHOCO
 :: Check if Chocolatey (Package Manager) is already installed
@@ -1269,41 +1265,44 @@ set "OFF=(NO)"
 
 set "PKG1=googlechrome"                     & set "NAME1=Google Chrome"                 & set "OPT1=%OFF%"
 set "PKG2=brave"                            & set "NAME2=Brave"                         & set "OPT2=%OFF%"
-set "PKG3=winrar"                           & set "NAME3=WinRAR"                        & set "OPT3=%OFF%"
-set "PKG4=7zip.install"                     & set "NAME4=7-Zip"                         & set "OPT4=%OFF%"
-set "PKG5=k-litecodecpack-standard"         & set "NAME5=K-Lite Codec"                  & set "OPT5=%OFF%"
-set "PKG6=irfanview irfanviewplugins"       & set "NAME6=IrfanView"                     & set "OPT6=%OFF%"
-set "PKG7=sumatrapdf.install"               & set "NAME7=Sumatra PDF"                   & set "OPT7=%OFF%"
-set "PKG8=notepadplusplus.install"          & set "NAME8=Notepad++"                     & set "OPT8=%OFF%"
-set "PKG9=vscode.install"                   & set "NAME9=Visual Studio Code"            & set "OPT9=%OFF%"
-set "PKG10=git.install"                     & set "NAME10=Git"                          & set "OPT10=%OFF%"
-set "PKG11=qbittorrent"                     & set "NAME11=qbittorrent"                  & set "OPT11=%OFF%"
-set "PKG12=vcredist140"                     & set "NAME12=VC++ 2015-2022"               & set "OPT12=%OFF%"
-set "PKG13=directx"                         & set "NAME13=DirectX"                      & set "OPT13=%OFF%"
-set "PKG14=virtualbox"                      & set "NAME14=Virtual Box"                  & set "OPT14=%OFF%"
-set "PKG15=io-unlocker"                     & set "NAME15=IObit Unlocker"               & set "OPT15=%OFF%"
-set "PKG16=autohotkey.install"              & set "NAME16=AutoHotkey"                   & set "OPT16=%OFF%"
-set "PKG17=megasync"                        & set "NAME17=MEGA"                         & set "OPT17=%OFF%"
+set "PKG3=firefox"                          & set "NAME3=Firefox"                       & set "OPT3=%OFF%"
+set "PKG4=winrar"                           & set "NAME4=WinRAR"                        & set "OPT4=%OFF%"
+set "PKG5=7zip.install"                     & set "NAME5=7-Zip"                         & set "OPT5=%OFF%"
+set "PKG6=vlc.install"                      & set "NAME6=VLC"                           & set "OPT6=%OFF%"
+set "PKG7=k-litecodecpack-standard"         & set "NAME7=K-Lite Codec"                  & set "OPT7=%OFF%"
+set "PKG8=irfanview irfanviewplugins"       & set "NAME8=IrfanView"                     & set "OPT8=%OFF%"
+set "PKG9=sumatrapdf.install"               & set "NAME9=Sumatra PDF"                   & set "OPT9=%OFF%"
+set "PKG10=notepadplusplus.install"         & set "NAME10=Notepad++"                    & set "OPT10=%OFF%"
+set "PKG11=vscode.install"                  & set "NAME11=Visual Studio Code"           & set "OPT11=%OFF%"
+set "PKG12=git.install"                     & set "NAME12=Git"                          & set "OPT12=%OFF%"
+set "PKG13=qbittorrent"                     & set "NAME13=qbittorrent"                  & set "OPT13=%OFF%"
+set "PKG14=vcredist140"                     & set "NAME14=VC++ 2015-2022"               & set "OPT14=%OFF%"
+set "PKG15=virtualbox"                      & set "NAME15=Virtual Box"                  & set "OPT15=%OFF%"
+set "PKG16=io-unlocker"                     & set "NAME16=IObit Unlocker"               & set "OPT16=%OFF%"
+set "PKG17=autohotkey.install"              & set "NAME17=AutoHotkey"                   & set "OPT17=%OFF%"
+set "PKG18=megasync"                        & set "NAME18=MEGA"                         & set "OPT18=%OFF%"
 
 :PROGRAMS_MENU
 cls & echo. & echo.
 echo                        ----------------------------------- Programs -----------------------------------
 echo.
-echo                           [1] Google Chrome            [7] Sumatra PDF               [13] DirectX
+echo                            [1] Google Chrome            [7] K-Lite Codec             [13] qbittorrent
 echo.
-echo                           [2] Brave                    [8] Notepad++                 [14] Virtual Box
+echo                            [2] Brave                    [8] IrfanView                [14] VC++ 2015-2022
 echo.
-echo                           [3] WinRAR                   [9] VS Code                   [15] IObit Unlocker
+echo                            [3] Firefox                  [9] Sumatra PDF              [15] Virtual Box
 echo.
-echo                           [4] 7-Zip                    [10] Git                      [16] AutoHotkey
+echo                            [4] WinRAR                   [10] Notepad++               [16] IObit Unlocker
 echo.
-echo                           [5] K-Lite Codec             [11] qbittorrent              [17] MEGA
+echo                            [5] 7-Zip                    [11] VS Code                 [17] AutoHotkey
 echo.
-echo                           [6] IrfanView                [12] VC++ 2015-2022           [18] More 
+echo                            [6] VLC                      [12] Git                     [18] MEGA
 echo.
 echo                        --------------------------------------------------------------------------------
 echo.
-echo                           [A] Select All              [D] Deselect All           [0] Back
+echo                             [A] Select All               [D] Deselect All             [M] More
+echo.
+echo                             [U] Update Programs          [X] Remove Programs          [0] Back
 echo.
 
 :: Display a real-time list of what the user has selected
@@ -1315,10 +1314,12 @@ echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-1
 echo. & set "choice=" & set /p "choice=--> Select an option(s) and press [S] to Start: "
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
-if "%choice%"=="18" goto MORE_PROG
 if /i "%choice%"=="S" goto RUN_PROGRAMS
 if /i "%choice%"=="A" goto SELECT_ALL
 if /i "%choice%"=="D" goto DESELECT_ALL
+if /i "%choice%"=="M" goto MORE_PROG
+if /i "%choice%"=="U" goto UPDATE_PROGRAMS
+if /i "%choice%"=="X" goto UNINSTALL_PROGRAMS
 
 call :MULTI_INPUT
 goto PROGRAMS_MENU
@@ -1382,7 +1383,7 @@ if errorlevel 3 (
     goto END_UPDATE_UNINSTALL
 )
 if errorlevel 2 goto UPDATE_ASK
-if errorlevel 1 (del "%TEMP_FILE%" >nul 2>&1 & goto PROGRAMS_MANAGER_MENU)
+if errorlevel 1 (del "%TEMP_FILE%" >nul 2>&1 & goto PROGRAMS_MENU)
 
 cls & echo The following packages will be updated:%selectedPkgs%
 choco upgrade%selectedPkgs% -y
@@ -1417,14 +1418,14 @@ if errorlevel 3 (
     goto END_UPDATE_UNINSTALL
 )
 if errorlevel 2 goto UNINSTALL_ASK
-if errorlevel 1 (del "%TEMP_FILE%" >nul 2>&1 & goto PROGRAMS_MANAGER_MENU)
+if errorlevel 1 (del "%TEMP_FILE%" >nul 2>&1 & goto PROGRAMS_MENU)
 
 cls & echo The following packages will be uninstalled:%selectedPkgs%
 choco uninstall%selectedPkgs% -y
 
 :END_UPDATE_UNINSTALL
 del "%TEMP_FILE%" >nul 2>&1
-call :GO & goto PROGRAMS_MANAGER_MENU
+call :GO & goto PROGRAMS_MENU
 
 :DOWNLOAD_MO
 start "" cmd /c "Files\Programs\Office.bat"
