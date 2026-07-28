@@ -1253,7 +1253,9 @@ set "OFF=(NO)"
 
 call :DEFINE_SCOOP_PROGRAMS
 call :DEFINE_CHOCO_PROGRAMS
+call :DEFINE_SCOOP_BUCKETS
 call :RESET_SELECTIONS
+call :RESET_BUCKET_SELECTIONS
 call :LOAD_PKGMGR_DATA
 
 :PROGRAMS_MENU
@@ -1296,6 +1298,11 @@ echo                             [A] Select All               [D] Deselect All  
 echo.
 echo                             [U] Update Programs          [X] Remove Programs          [0] Back
 
+if "%PKGMGR%"=="SCOOP" (
+    echo.
+	echo                             [B] Manage Buckets
+)
+
 echo. & echo Selected programs:
 call :SHOW_SELECTED
 
@@ -1312,6 +1319,7 @@ if /i "%choice%"=="P" goto TOGGLE_AND_RETURN
 if /i "%choice%"=="U" goto UPDATE_MENU
 if /i "%choice%"=="X" goto REMOVE_MENU
 if /i "%choice%"=="M" goto MORE_PROG
+if /I "%choice%"=="B" goto BUCKET_MENU
 
 call :MULTI_INPUT
 goto PROGRAMS_MENU
@@ -1410,6 +1418,74 @@ if "%apps%"=="" goto MORE_PROG
 
 for %%A in (%apps%) do call :PROCESS_APP "%%A"
 call :GO & goto PROGRAMS_MENU
+
+:BUCKET_MENU
+if not "%PKGMGR%"=="SCOOP" (
+    echo. & echo Buckets are only available when the package manager is Scoop
+    pause
+    goto PROGRAMS_MENU
+)
+cls & echo.
+echo                        -------------------------------- Scoop Buckets ---------------------------------
+echo.
+echo                            [1] extras                     [4] php                 [7] nonportable
+echo.
+echo                            [2] versions                   [5] games               [8] sysinternals
+echo.
+echo                            [3] java                       [6] nerd-fonts          [9] nirsoft
+echo.
+echo                        --------------------------------------------------------------------------------
+echo.
+echo                             [A] Select All          [D] Deselect All          [0] Back
+echo.
+echo                             [I] Install Selected    [R] Remove Selected
+
+echo. & echo Selected buckets:
+call :SHOW_SELECTED_BUCKETS
+
+echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
+
+echo. & set "choice=" & set /p "choice=--> Select option(s): "
+
+if "%choice%"=="" goto BUCKET_MENU
+if "%choice%"=="0" goto PROGRAMS_MENU
+if /i "%choice%"=="A" goto BUCKET_SELECT_ALL
+if /i "%choice%"=="D" goto BUCKET_DESELECT_ALL
+if /i "%choice%"=="I" goto INSTALL_BUCKETS
+if /i "%choice%"=="R" goto REMOVE_BUCKETS
+
+call :BUCKET_MULTI_INPUT
+goto BUCKET_MENU
+
+:BUCKET_SELECT_ALL
+for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%ON%"
+goto BUCKET_MENU
+
+:BUCKET_DESELECT_ALL
+for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%OFF%"
+goto BUCKET_MENU
+
+:INSTALL_BUCKETS
+cls & echo Installing Buckets
+echo.
+for /L %%i in (1,1,%BUCKET_COUNT%) do (
+    if "!BOPT%%i!"=="%ON%" (
+        echo Installing: !BUCKET%%i!
+        call scoop bucket add !BUCKET%%i!
+    )
+)
+call :GO & call :RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
+
+:REMOVE_BUCKETS
+cls & echo Removing Buckets
+echo.
+for /L %%i in (1,1,%BUCKET_COUNT%) do (
+    if "!BOPT%%i!"=="%ON%" (
+        echo Removing: !BUCKET%%i!
+        call scoop bucket rm !BUCKET%%i!
+    )
+)
+call :GO & call :RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
 
 :DOWNLOAD_MO
 start "" cmd /c "Files\Programs\Office.bat"
@@ -2336,6 +2412,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
 
 goto :eof
 
+
 :: Program tables (source of truth per package manager)
 :DEFINE_SCOOP_PROGRAMS
 set "SCOOP_PKG1=git"                         & set "SCOOP_NAME1=Git"
@@ -2432,9 +2509,6 @@ if "%PKGMGR%"=="CHOCO" (
         echo Scoop installation failed or not found in PATH
         call :GO & goto PROGRAMS_MENU
     )
-	
-	echo Adding extras repo
-	call scoop bucket add extras
 )
 goto :eof
 
@@ -2567,6 +2641,81 @@ for /L %%i in (1,1,%MAX_PROGS%) do (
     )
 )
 if "!ANY!"=="0" echo    - No program selected
+goto :eof
+
+:DEFINE_SCOOP_BUCKETS
+set COUNT=9
+set "BUCKET1=extras"
+set "BUCKET2=versions"
+set "BUCKET3=java"
+set "BUCKET4=php"
+set "BUCKET5=games"
+set "BUCKET6=nerd-fonts"
+set "BUCKET7=nonportable"
+set "BUCKET8=sysinternals"
+set "BUCKET9=nirsoft"
+goto :eof
+
+:RESET_BUCKET_SELECTIONS
+for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%OFF%"
+goto :eof
+
+:BUCKET_MULTI_INPUT
+set "invalid="
+set "tokens=%choice:,= %"
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+    set "noHyphen=!tok:-=!"
+
+    if not "!tok!"=="!noHyphen!" (
+        set "rangeStart="
+        set "rangeEnd="
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq %BUCKET_COUNT% if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
+                    if "!BOPT%%N!"=="%ON%" (set "BOPT%%N=%OFF%") else (set "BOPT%%N=%ON%")
+                )
+                set "matched=1"
+            )
+        )
+    ) else (
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq %BUCKET_COUNT% (
+                for %%T in (!tok!) do (
+                    if "!BOPT%%T!"=="%ON%" (set "BOPT%%T=%OFF%") else (set "BOPT%%T=%ON%")
+                )
+                set "matched=1"
+            )
+        )
+    )
+
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
+)
+
+if defined invalid (
+    echo. & echo Invalid or out-of-range input:!invalid!
+    pause
+)
+goto :eof
+
+:SHOW_SELECTED_BUCKETS
+set "ANY=0"
+for /L %%i in (1,1,%BUCKET_COUNT%) do (
+    if "!BOPT%%i!"=="%ON%" (
+        echo    - !BUCKET%%i!
+        set "ANY=1"
+    )
+)
+if "!ANY!"=="0" echo    - No bucket selected
 goto :eof
 
 :NET_CONTROL
