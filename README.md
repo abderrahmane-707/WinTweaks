@@ -13,7 +13,7 @@
 * Disable Windows Update
 * Download Microsoft Office Suite
 * Improve startup performance
-* Install common software packages using Chocolatey (Package Manager)
+* Install common software packages using Chocolatey & Scoop (Package Manager)
 * Remove temporary files
 * Safely disable unnecessary Windows services
 * Show Hardware Information
