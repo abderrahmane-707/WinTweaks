@@ -1363,12 +1363,13 @@ if "%choice%"=="" goto UPDATE_MENU
 
 if /i "%choice%"=="ALL" (
     cls & echo Updating all programs
-    if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update *)
+    if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k *)
 ) else (
     cls
+	call scoop update -k
     for %%G in (%choice:,= %) do (
         echo. & echo Updating: %%G
-        if "%PKGMGR%"=="CHOCO" (call choco upgrade %%G -y) else (call scoop update %%G)
+        if "%PKGMGR%"=="CHOCO" (call choco upgrade %%G -y) else (call scoop update -k %%G)
     )
 )
 
@@ -2504,6 +2505,7 @@ if "%PKGMGR%"=="CHOCO" (
 	echo. & echo Installing Scoop package manager
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
     if exist "%USERPROFILE%\scoop\shims" set "PATH=%PATH%;%USERPROFILE%\scoop\shims"
+	call scoop config auto_cleanup true >nul 2>&1
     where scoop >nul 2>&1
     if !errorlevel! neq 0 (
         echo Scoop installation failed or not found in PATH
@@ -2535,7 +2537,7 @@ if "%PKGMGR%"=="CHOCO" (
         )
     )
 ) else (
-    call scoop install %~1
+    call scoop install -k %~1
     if !errorlevel! neq 0 (
         echo. & echo Failed to install: %~2
     )
@@ -2581,7 +2583,7 @@ if "%PKGMGR%"=="CHOCO" (
     echo.
     set "installName="
     set /p "installName=Enter the exact package name to install (or leave blank to skip): "
-    if not "!installName!"=="" call scoop install "!installName!"
+    if not "!installName!"=="" call scoop install -k "!installName!"
 )
 goto :eof
 
