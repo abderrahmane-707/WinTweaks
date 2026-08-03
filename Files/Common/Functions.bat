@@ -144,6 +144,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
 
 exit /b
 
+:SELECT_ALL
+for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%ON%"
+exit /b
+
+:DESELECT_ALL
+for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%OFF%"
+exit /b
+
 :: Program tables (source of truth per package manager)
 :DEFINE_SCOOP_PROGRAMS
 set "SCOOP_PKG1=git"                         & set "SCOOP_NAME1=Git"
