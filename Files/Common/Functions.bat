@@ -5,6 +5,7 @@ if "%~1" neq "" (
     exit /b
 )
 
+:: ----------------------------------------------------------------< MAIN FUNCTIONS >----------------------------------------------------------------
 :SET_TASKS
 :: %~1 = Action (Enable/Disable)
 :: %~2 = Path to text file containing task names
@@ -215,14 +216,14 @@ if "%PKGMGR%"=="CHOCO" (
 
     cls & call "%F%" CHOICE  "Do you want to install Chocolatey package manager"
     if errorlevel 2 goto PROGRAMS_MANAGER_MENU
-	
-	echo. & echo Installing Chocolatey package manager
+    
+    echo. & echo Installing Chocolatey package manager
     powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
     call :REFRESH_ENV
     where choco >nul 2>&1
     if !errorlevel! neq 0 (
         echo Chocolatey installation failed or not found in PATH
-		call "%F%" GO & goto PROGRAMS_MENU
+        call "%F%" GO & goto PROGRAMS_MENU
     )
 ) else (
     where scoop >nul 2>&1
@@ -230,11 +231,11 @@ if "%PKGMGR%"=="CHOCO" (
 
     cls & call "%F%" CHOICE  "Do you want to install Scoop package manager"
     if errorlevel 2 goto PROGRAMS_MANAGER_MENU
-	
-	echo. & echo Installing Scoop package manager
+    
+    echo. & echo Installing Scoop package manager
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
     if exist "%USERPROFILE%\scoop\shims" set "PATH=%PATH%;%USERPROFILE%\scoop\shims"
-	call scoop config auto_cleanup true >nul 2>&1
+    call scoop config auto_cleanup true >nul 2>&1
     where scoop >nul 2>&1
     if !errorlevel! neq 0 (
         echo Scoop installation failed or not found in PATH
@@ -523,7 +524,7 @@ if exist "%TARGET_FILE%" (
 
 if exist "%TARGET_FILE%" (
     echo. & echo Failed to delete old file
-	pause & exit /b 1
+    pause & exit /b 1
 )
 exit /b
 
@@ -534,13 +535,13 @@ if exist "%TARGET_FOLDER%" (
     echo. & echo %TARGET_FOLDER%: Already exists
     call "%F%" CHOICE  "Do you want to delete the existing backup folder and start fresh?"
     if errorlevel 2 exit /b 1
-	
+    
     rd /s /q "%TARGET_FOLDER%" >nul 2>&1
 )
 
 if exist "%TARGET_FOLDER%" (
     echo. & echo Failed to delete old backup folder
-	pause & exit /b 1
+    pause & exit /b 1
 ) else (
     call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
 )
@@ -629,3 +630,155 @@ exit /b
 echo. & echo The operation is done.
 pause
 exit /b
+
+:: ----------------------------------------------------------------< OFFICE FUNCTIONS >----------------------------------------------------------------
+
+:TOGGLE_SINGLE
+if "!%1!"=="%ON%" (
+    set "%1=%OFF%"
+) else (
+    set "%1=%ON%"
+)
+goto :eof
+
+:IS_ON
+if "!%1!"=="%ON%" exit /b 0
+exit /b 1
+
+:TOGGLE_VERSION
+if "%OPTV%"=="365" (set "OPTV=2021") else if "%OPTV%"=="2021" (set "OPTV=2019") else if "%OPTV%"=="2019" (set "OPTV=2016") else (set "OPTV=365")
+goto :eof
+
+:TOGGLE_LANGUAGE
+if "%OPTL%"=="ar-sa" (set "OPTL=en-us") else (set "OPTL=ar-sa")
+goto :eof
+
+:CONFIG
+echo. & echo Creating Configuration File for Microsoft Office %OPTV%
+call :DEL_CONFIG
+
+echo ^<?xml version="1.0" encoding="utf-8"?^> > "%CONFIG_FILE%"
+echo ^<Configuration^> >> "%CONFIG_FILE%"
+
+if "%OPTV%"=="365" (
+    echo    ^<Add OfficeClientEdition="%CPU%" Channel="Current" MigrateArch="TRUE"^> >> "%CONFIG_FILE%"
+) else if "%OPTV%"=="2019" (
+    echo    ^<Add OfficeClientEdition="%CPU%" Channel="PerpetualVL2019" MigrateArch="TRUE"^> >> "%CONFIG_FILE%"
+) else if "%OPTV%"=="2016" (
+    echo    ^<Add OfficeClientEdition="%CPU%" Channel="PerpetualVL2016" MigrateArch="TRUE"^> >> "%CONFIG_FILE%"
+) else if "%OPTV%"=="2021" (
+    echo    ^<Add OfficeClientEdition="%CPU%" Channel="PerpetualVL2021" MigrateArch="TRUE"^> >> "%CONFIG_FILE%"
+)
+
+set "NEEDMAIN=%OFF%"
+if "%OPT1%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT2%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT3%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT4%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT5%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT6%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT7%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT11%"=="%ON%" set "NEEDMAIN=%ON%"
+if "%OPT12%"=="%ON%" set "NEEDMAIN=%ON%"
+
+if "%NEEDMAIN%"=="%ON%" (
+    if "%OPTV%"=="365" (
+        echo      ^<Product ID="O365ProPlusRetail"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2019" (
+        echo      ^<Product ID="ProPlus2019Volume"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2016" (
+        echo      ^<Product ID="ProPlusRetail"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2021" (
+        echo      ^<Product ID="ProPlus2021Volume"^> >> "%CONFIG_FILE%"
+    )
+
+    if "%OPTL%"=="ar-sa" (
+        echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
+    ) else if "%OPTL%"=="en-us" (
+        echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
+    )
+
+    echo        ^<ExcludeApp ID="Lync" /^> >> "%CONFIG_FILE%"
+    echo        ^<ExcludeApp ID="Groove" /^> >> "%CONFIG_FILE%"
+    echo        ^<ExcludeApp ID="Bing" /^> >> "%CONFIG_FILE%"
+
+    if "%OPT1%"=="%OFF%" echo        ^<ExcludeApp ID="Word" /^> >> "%CONFIG_FILE%"
+    if "%OPT2%"=="%OFF%" echo        ^<ExcludeApp ID="Excel" /^> >> "%CONFIG_FILE%"
+    if "%OPT3%"=="%OFF%" echo        ^<ExcludeApp ID="PowerPoint" /^> >> "%CONFIG_FILE%"
+    if "%OPT4%"=="%OFF%" echo        ^<ExcludeApp ID="Outlook" /^> >> "%CONFIG_FILE%"
+    if "%OPT5%"=="%OFF%" echo        ^<ExcludeApp ID="OneNote" /^> >> "%CONFIG_FILE%"
+    if "%OPT6%"=="%OFF%" echo        ^<ExcludeApp ID="Publisher" /^> >> "%CONFIG_FILE%"
+    if "%OPT7%"=="%OFF%" echo        ^<ExcludeApp ID="Access" /^> >> "%CONFIG_FILE%"
+    if "%OPT11%"=="%OFF%" echo        ^<ExcludeApp ID="Teams" /^> >> "%CONFIG_FILE%"
+    if "%OPT12%"=="%OFF%" echo        ^<ExcludeApp ID="OneDrive" /^> >> "%CONFIG_FILE%"
+
+    echo      ^</Product^> >> "%CONFIG_FILE%"
+)
+
+if "%OPT8%"=="%ON%" (
+    if "%OPTV%"=="365" (
+        echo      ^<Product ID="VisioProRetail"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2019" (
+        echo      ^<Product ID="VisioPro2019Volume"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2016" (
+        echo      ^<Product ID="VisioPro2016Volume"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2021" (
+        echo      ^<Product ID="VisioPro2021Volume"^> >> "%CONFIG_FILE%"
+    )
+    if "%OPTL%"=="ar-sa" (
+        echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
+    ) else if "%OPTL%"=="en-us" (
+        echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
+    )
+    echo        ^<ExcludeApp ID="Bing" /^> >> "%CONFIG_FILE%"
+    echo      ^</Product^> >> "%CONFIG_FILE%"
+)
+
+if "%OPT9%"=="%ON%" (
+    if "%OPTV%"=="365" (
+        echo      ^<Product ID="ProjectProRetail"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2019" (
+        echo      ^<Product ID="ProjectPro2019Volume"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2016" (
+        echo      ^<Product ID="ProjectPro2016Volume"^> >> "%CONFIG_FILE%"
+    ) else if "%OPTV%"=="2021" (
+        echo      ^<Product ID="ProjectPro2021Volume"^> >> "%CONFIG_FILE%"
+    )
+    if "%OPTL%"=="ar-sa" (
+        echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
+    ) else if "%OPTL%"=="en-us" (
+        echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
+    )
+    echo        ^<ExcludeApp ID="Bing" /^> >> "%CONFIG_FILE%"
+    echo      ^</Product^> >> "%CONFIG_FILE%"
+)
+
+if "%OPT10%"=="%ON%" (
+    echo      ^<Product ID="ProofingTools"^> >> "%CONFIG_FILE%"
+    if "%OPTL%"=="ar-sa" (
+        echo        ^<Language ID="ar-sa" /^> >> "%CONFIG_FILE%"
+    ) else if "%OPTL%"=="en-us" (
+        echo        ^<Language ID="en-us" /^> >> "%CONFIG_FILE%"
+    )
+    echo        ^<ExcludeApp ID="Bing" /^> >> "%CONFIG_FILE%"
+    echo      ^</Product^> >> "%CONFIG_FILE%"
+)
+
+echo    ^</Add^> >> "%CONFIG_FILE%"
+echo    ^<Display Level="Full" AcceptEULA="TRUE" /^> >> "%CONFIG_FILE%"
+echo    ^<Property Name="ForceAppShutdown" Value="TRUE" /^> >> "%CONFIG_FILE%"
+echo    ^<AppSettings^> >> "%CONFIG_FILE%"
+echo        ^<User Key="software\microsoft\office\16.0\common" Name="ui theme" Value="5" Type="REG_DWORD" App="office16" Id="L_OfficeTheme" /^> >> "%CONFIG_FILE%"
+echo        ^<User Key="software\microsoft\office\16.0\common" Name="default ui theme" Value="5" Type="REG_DWORD" App="office16" Id="L_OfficeDefaultTheme" /^> >> "%CONFIG_FILE%"
+echo    ^</AppSettings^> >> "%CONFIG_FILE%"
+echo ^</Configuration^> >> "%CONFIG_FILE%"
+
+if not exist "%CONFIG_FILE%" (
+    echo Failed to create configuration file!
+    exit /b 1
+)
+goto :eof
+
+:DEL_CONFIG
+del /f /q "%CONFIG_FILE%" >nul 2>&1
+goto :eof

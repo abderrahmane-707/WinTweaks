@@ -1489,7 +1489,8 @@ call "%F%" GO & call "%F%" RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
 
 :DOWNLOAD_MO
 call "Files\Programs\Office.bat"
-goto PROGRAMS_MANAGER_MENU
+if %ERRORLEVEL%==99 goto PROGRAMS_MANAGER_MENU
+call "%F%" GO & goto PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
 call "%F%" CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
