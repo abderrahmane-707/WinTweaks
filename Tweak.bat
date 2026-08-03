@@ -7,11 +7,11 @@ fltmc >nul 2>&1
 if errorlevel 1 (
     echo This script must be run with Administrator privileges
     pause & exit /b 1
-   
 )
 
 :: Go to script's directory
 cd /d "%~dp0"
+set "F=Files\Common\Functions.bat"
 
 :: WinTweaks Script main menu
 :MAIN_MENU
@@ -44,8 +44,7 @@ if "%choice%"=="7" goto TOOLS_MENU
 if "%choice%"=="8" goto OTHER_MENU
 if "%choice%"=="0" exit
 
-call :INVALID "(0-8)" "MAIN_MENU"
-
+call "%F%" INVALID "(0-8)" & goto MAIN_MENU
 
 :PERFORMANCE_MENU
 cls & echo. & echo.
@@ -84,7 +83,7 @@ if "%choice%"=="5" goto POWER_PLAN_MENU
 if "%choice%"=="6" goto HW_INFO_MENU
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-6)" "PERFORMANCE_MENU"
+call "%F%" INVALID "(0-8)" & goto PERFORMANCE_MENU
 
 :SERVICES_MENU
 cls & echo. & echo.
@@ -120,10 +119,10 @@ if "%choice%"=="3" (
 if "%choice%"=="4" goto EXPORT_SERVICES
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
-call :INVALID "(0-4)" "SERVICES_MENU"
+call "%F%" INVALID "(0-4)" & goto SERVICES_MENU
 
 :SET_SERVICES
-call :PATH "Performance" "%LOG%"
+call "%F%" PATH_DIR "Performance" "%LOG%"
 echo. & echo %MESSAGE%
 
 :: Process each line in the configuration file
@@ -157,38 +156,38 @@ for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     )
 )
 
-call :LOG & goto SERVICES_MENU
+call "%F%" LOG & goto SERVICES_MENU
 
 :: Create a snapshot of all current Service startup types
 :EXPORT_SERVICES
-call :CREATE_FILE "Performance" "ServiceStartupStatus.log"
+call "%F%" CREATE_FILE "Performance" "ServiceStartupStatus.log"
 if !errorlevel! equ 1 goto PERFORMANCE_MENU
 
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
 
 echo. & echo Service Startup Status file saved in: %TARGET_FILE%
-call :GO & goto PERFORMANCE_MENU
+call "%F%" GO & goto PERFORMANCE_MENU
 
 :DISABLE_TASKS
-call :PATH "Performance" "DisableScheduledTasks"
+call "%F%" PATH_DIR "Performance" "DisableScheduledTasks"
 
 echo. & echo Disabling unnecessary scheduled tasks
-call :SET_TASKS "Disable" "Files\Performance\TasksList.txt"
-call :LOG & goto PERFORMANCE_MENU
+call "%F%" SET_TASKS "Disable" "Files\Performance\TasksList.txt"
+call "%F%" LOG & goto PERFORMANCE_MENU
     
 :ENABLE_TASKS
-call :PATH "Performance" "EnableScheduledTasks"
+call "%F%" PATH_DIR "Performance" "EnableScheduledTasks"
 
 echo. & echo Re-enable previously disabled scheduled tasks
-call :SET_TASKS "Enable" "Files\Performance\TasksList.txt"
-call :LOG & goto PERFORMANCE_MENU
+call "%F%" SET_TASKS "Enable" "Files\Performance\TasksList.txt"
+call "%F%" LOG & goto PERFORMANCE_MENU
 
 :BOOT_TWEAKS
-call :CREATE_FOLDER "Performance" "StartupBackup"
+call "%F%" CREATE_FOLDER "Performance" "StartupBackup"
 if !errorlevel! equ 1 goto PERFORMANCE_MENU
 
-call :PATH "Performance" "BootTweaks"
+call "%F%" PATH_DIR "Performance" "BootTweaks"
 
 set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
@@ -264,10 +263,10 @@ if "!HKLM_STARTUP!"=="0" if "!HKLM_BACKUP_SUCCESS!"=="1" (
 )
 
 echo Backup files saved in: %TARGET_FOLDER%
-call :LOG & goto PERFORMANCE_MENU
+call "%F%" LOG & goto PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
-call :PATH "Performance" "DefaultBootSettings"
+call "%F%" PATH_DIR "Performance" "DefaultBootSettings"
 
 set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
 
@@ -293,11 +292,11 @@ for %%F in (
 )
 
 echo No backup files found to restore
-call :LOG & goto PERFORMANCE_MENU
+call "%F%" LOG & goto PERFORMANCE_MENU
 
 :FOUND_BACKUP
-echo. & call :CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
-if errorlevel 2 (call :LOG & goto PERFORMANCE_MENU)
+echo. & call "%F%" CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
+if errorlevel 2 (call "%F%" LOG & goto PERFORMANCE_MENU)
 
 if exist "%BACKUP_USER%\*.lnk" (
     echo Restoring current user's Startup folder
@@ -319,23 +318,23 @@ if exist "%HKLM_RUN_BACKUP%" (
     reg import "%HKLM_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
 )
 
-echo. & call :CHOICE "Do you want to delete existing backup folder"
+echo. & call "%F%" CHOICE "Do you want to delete existing backup folder"
 if !errorlevel! equ 1 (
     echo deleting: %TARGET_FOLDER%
     rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 )
-call :LOG & goto PERFORMANCE_MENU
+call "%F%" LOG & goto PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
-call :RUNNING_BROWSERS
+call "%F%" RUNNING_BROWSERS
 
 if "!BROWSERS_OPEN!"=="1" (
-    call :CHOICE "Close browsers to clean them?"
+    call "%F%" CHOICE "Close browsers to clean them?"
     echo.
     if errorlevel 2 (
         echo Skipping cleaning browsers
-		call :CLEANING_FUNCTION
+		call "%F%" CLEANING_FUNCTION
     ) else (
         echo Closing browsers
         for %%B in (%BROWSERS%) do (
@@ -345,9 +344,9 @@ if "!BROWSERS_OPEN!"=="1" (
     )
 )
 
-call :CLEAN_BROWSER
-call :CLEANING_FUNCTION
-call :GO & goto PERFORMANCE_MENU
+call "%F%" CLEAN_BROWSER
+call "%F%" CLEANING_FUNCTION
+call "%F%" GO & goto PERFORMANCE_MENU
 
 :POWER_PLAN_MENU
 cls & echo. & echo.
@@ -370,27 +369,27 @@ if "%choice%"=="1" (
     set MENU=POWER_PLAN_MENU
     goto SUB_MENU
 )
-if "%choice%"=="2" call :SET_POWER_PLAN "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" "high performance"  & goto POWER_PLAN_MENU
-if "%choice%"=="3" call :SET_POWER_PLAN "381b4222-f694-41f0-9685-ff5bb260df2e" "balanced"          & goto POWER_PLAN_MENU
-if "%choice%"=="4" call :SET_POWER_PLAN "a1841308-3541-4fab-bc81-f71556f20b4a" "power saver"       & goto POWER_PLAN_MENU
+if "%choice%"=="2" call "%F%" SET_POWER_PLAN "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" "high performance"  & goto POWER_PLAN_MENU
+if "%choice%"=="3" call "%F%" SET_POWER_PLAN "381b4222-f694-41f0-9685-ff5bb260df2e" "balanced"          & goto POWER_PLAN_MENU
+if "%choice%"=="4" call "%F%" SET_POWER_PLAN "a1841308-3541-4fab-bc81-f71556f20b4a" "power saver"       & goto POWER_PLAN_MENU
 if "%choice%"=="5" goto ACTIVE_PLAN
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
-call :INVALID "(0-5)" "POWER_PLAN_MENU"
+call "%F%" INVALID "(0-5)" & goto POWER_PLAN_MENU
 
 :: Unlock and add the "Ultimate Performance" plan
 :ADD_ULTIMATE_PLAN
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\AddUltimatePerformance.ps1"
-call :GO & goto POWER_PLAN_MENU
+call "%F%" GO & goto POWER_PLAN_MENU
 
 :: Remove the "Ultimate Performance" plan
 :REMOVE_ULTIMATE_PLAN
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\RemoveUltimatePerformance.ps1"
-call :GO & goto POWER_PLAN_MENU
+call "%F%" GO & goto POWER_PLAN_MENU
 
 :ACTIVE_PLAN
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\ActivePlan.ps1"
-call :GO & goto POWER_PLAN_MENU
+call "%F%" GO & goto POWER_PLAN_MENU
 
 :HW_INFO_MENU
 cls & echo. & echo.
@@ -407,19 +406,19 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (call :INFO_SCRIPT "Performance" "CPUInfo"          & goto HW_INFO_MENU)
-if "%choice%"=="2" (call :INFO_SCRIPT "Performance" "GPUInfo"          & goto HW_INFO_MENU)
-if "%choice%"=="3" (call :INFO_SCRIPT "Performance" "HardDiskInfo"     & goto HW_INFO_MENU)
-if "%choice%"=="4" (call :INFO_SCRIPT "Performance" "MemoryInfo"       & goto HW_INFO_MENU)
-if "%choice%"=="5" (call :INFO_SCRIPT "Performance" "MotherboardInfo"  & goto HW_INFO_MENU)
+if "%choice%"=="1" (call "%F%" INFO_SCRIPT "Performance" "CPUInfo"          & goto HW_INFO_MENU)
+if "%choice%"=="2" (call "%F%" INFO_SCRIPT "Performance" "GPUInfo"          & goto HW_INFO_MENU)
+if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Performance" "HardDiskInfo"     & goto HW_INFO_MENU)
+if "%choice%"=="4" (call "%F%" INFO_SCRIPT "Performance" "MemoryInfo"       & goto HW_INFO_MENU)
+if "%choice%"=="5" (call "%F%" INFO_SCRIPT "Performance" "MotherboardInfo"  & goto HW_INFO_MENU)
 if "%choice%"=="6" goto BATTERY_INFO
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
-call :INVALID "(0-6)" "HW_INFO_MENU"
+call "%F%" INVALID "(0-6)" & goto HW_INFO_MENU
 
 :: Generate an advanced HTML report regarding battery health and cycle count
 :BATTERY_INFO
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Performance"
+call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Performance"
 set "BATTERY_REPORT=%MKDIR_DIR%\BatteryReport.html"
 
 cls & echo Creating battery report
@@ -432,7 +431,7 @@ if %errorlevel% equ 0 (
     echo Failed to create battery report
 )
 
-call :GO & goto HW_INFO_MENU
+call "%F%" GO & goto HW_INFO_MENU
 
 
 :PRIVACY_SECURITY_MENU
@@ -478,14 +477,14 @@ if "%choice%"=="6" (
     goto SUB_MENU
 )
 
-if "%choice%"=="7" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
+if "%choice%"=="7" (call "%F%" INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-7)" "PRIVACY_SECURITY_MENU"
+call "%F%" INVALID "(0-7)" & goto PRIVACY_SECURITY_MENU
 
 :DISABLE_TELEMETRY
-call :PATH "Security" "DisableTelemetry"
-call :CREATE_FILE "Security" "HostsOriginal"
+call "%F%" PATH_DIR "Security" "DisableTelemetry"
+call "%F%" CREATE_FILE "Security" "HostsOriginal"
 if !errorlevel! equ 1 goto PRIVACY_SECURITY_MENU
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
@@ -498,7 +497,7 @@ echo Disabling Windows telemetry services
 :: DiagTrack:      Connected User Experiences and Telemetry
 :: dmwappushsvc:   WAP Push Message Routing Service
 :: WerSvc:         Windows Error Reporting Service
-for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
+for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call "%F%" SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
 
 echo Backing up original Hosts file
 copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
@@ -514,10 +513,10 @@ for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-call :LOG & goto PRIVACY_SECURITY_MENU
+call "%F%" LOG & goto PRIVACY_SECURITY_MENU
 
 :REV_DISABLE_TELEMETRY
-call :PATH "Security" "DefaultTelemetry"
+call "%F%" PATH_DIR "Security" "DefaultTelemetry"
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 set "TEMP_FILE=%TEMP%\HostsClean.txt"
@@ -526,7 +525,7 @@ echo. & echo Restoring default telemetry registry settings
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Setting telemetry services to manual startup
-for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call "%F%" SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 echo Removing telemetry and trash domain entries from the Hosts file
 :: Filter out blocked domains listed in TrackingDomains.txt from the HOSTS file
@@ -539,14 +538,14 @@ del "%TEMP_FILE%" >nul 2>&1
 echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 
-call :LOG & goto PRIVACY_SECURITY_MENU
+call "%F%" LOG & goto PRIVACY_SECURITY_MENU
 
 :PRIVACY_CLEANUP
-call :CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information"
+call "%F%" CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 echo.
-call :RUNNING_BROWSERS
+call "%F%" RUNNING_BROWSERS
 
 if "!BROWSERS_OPEN!"=="1" (
     echo Closing open browsers
@@ -557,13 +556,13 @@ if "!BROWSERS_OPEN!"=="1" (
 )
 
 :: Remove all Chromium-based browsers personal data
-call :DELETE_FOLDERS "Cleaning Google Chrome data" "%LOCALAPPDATA%\Google\Chrome\User Data"
-call :DELETE_FOLDERS "Cleaning Brave data" "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data"
-call :DELETE_FOLDERS "Cleaning Microsoft Edge data" "%LOCALAPPDATA%\Microsoft\Edge\User Data"
+call "%F%" DELETE_FOLDERS "Cleaning Google Chrome data" "%LOCALAPPDATA%\Google\Chrome\User Data"
+call "%F%" DELETE_FOLDERS "Cleaning Brave data" "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data"
+call "%F%" DELETE_FOLDERS "Cleaning Microsoft Edge data" "%LOCALAPPDATA%\Microsoft\Edge\User Data"
 
 :: Remove all Mozilla Firefox personal data
-call :DELETE_FOLDERS "Cleaning Firefox roaming user data" "%APPDATA%\Mozilla\Firefox"
-call :DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\Firefox"
+call "%F%" DELETE_FOLDERS "Cleaning Firefox roaming user data" "%APPDATA%\Mozilla\Firefox"
+call "%F%" DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\Firefox"
 
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
@@ -589,8 +588,8 @@ echo. | clip >nul
 echo Flushing DNS cache
 ipconfig /flushdns >nul 2>&1
 
-call :CLEANING_FUNCTION
-call :GO & goto PRIVACY_SECURITY_MENU
+call "%F%" CLEANING_FUNCTION
+call "%F%" GO & goto PRIVACY_SECURITY_MENU
 
 :WINDOWS_UPDATES_MENU
 cls & echo. & echo.
@@ -608,43 +607,43 @@ if "%choice%"=="2" goto ENABLE_UPDATES
 if "%choice%"=="3" goto RESET_UPDATES
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
-call :INVALID "(0-3)" "WINDOWS_UPDATES_MENU"
+call "%F%" INVALID "(0-3)" & goto WINDOWS_UPDATES_MENU
 
 :DISABLE_UPDATES
-call :PATH "Security" "DisableUpdates"
+call "%F%" PATH_DIR "Security" "DisableUpdates"
 
 echo. & echo Disabling Windows Updates via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows Update services
-for %%S in ("BITS" "UsoSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
+for %%S in ("BITS" "UsoSvc" "wuauserv") do call "%F%" SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
 
 echo Stopping Windows Update services
-for %%S in ("BITS" "UsoSvc" "wuauserv") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+for %%S in ("BITS" "UsoSvc" "wuauserv") do call "%F%" NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
-call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
+call "%F%" DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
 
-call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
+call "%F%" DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
 
-call :LOG & goto WINDOWS_UPDATES_MENU
+call "%F%" LOG & goto WINDOWS_UPDATES_MENU
 
 :ENABLE_UPDATES
-call :PATH "Security" "DefaultUpdates"
+call "%F%" PATH_DIR "Security" "DefaultUpdates"
 
 echo. & echo Restoring default Windows Update registry settings
 reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Setting Windows Update services to default startup
-call :SC_CONFIGURE "UsoSvc" "delayed-auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("BITS" "wuauserv") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+call "%F%" SC_CONFIGURE "UsoSvc" "delayed-auto" >> "%LOG_FILE%" 2>&1
+for %%S in ("BITS" "wuauserv") do call "%F%" SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
-call :LOG & goto WINDOWS_UPDATES_MENU
+call "%F%" LOG & goto WINDOWS_UPDATES_MENU
 
 :RESET_UPDATES
-call :CONFIRM "WARNING: This will purge all Windows Update data and reset security policies"
+call "%F%" CONFIRM "WARNING: This will purge all Windows Update data and reset security policies"
 if errorlevel 2 goto WINDOWS_UPDATES_MENU
 
-call :PATH "Security" "ResetUpdates"
+call "%F%" PATH_DIR "Security" "ResetUpdates"
 
 echo. & echo Resetting Windows Update registry keys to default
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
@@ -658,18 +657,18 @@ echo Stopping Windows Update services
 :: WaaSMedicSvc:          Windows Update Medic Service
 :: wuauserv:              Windows Update Service
 :: WinHttpAutoProxySvc:   Automatically discover proxy settings using WPAD
-for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call "%F%" NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
 :: Remove pending Updates and update history
-call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
+call "%F%" DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
 
 :: Force Windows to rebuild the update database and signatures
-call :DELETE_FOLDERS "Deleting Catroot2 folder" "%SYSTEMROOT%\System32\catroot2" "%LOG_FILE%"
+call "%F%" DELETE_FOLDERS "Deleting Catroot2 folder" "%SYSTEMROOT%\System32\catroot2" "%LOG_FILE%"
 
 :: Remove BITS Queue Manager (QMGR) data files to clear stuck download jobs
-call :DELETE_FILES "Clearing BITS queue manager data files" "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" "%LOG_FILE%"
+call "%F%" DELETE_FILES "Clearing BITS queue manager data files" "%ALLUSERSPROFILE%\Microsoft\Network\Downloader\qmgr*.dat" "%LOG_FILE%"
 
-call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
+call "%F%" DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
 
 :: Restore default Security Descriptors (Permissions) for BITS and Windows Update services
 :: This fixes "Access Denied" errors that prevent services from starting
@@ -692,9 +691,9 @@ echo Clearing all BITS download jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
 echo Setting Windows Update services to default startup
-call :SC_CONFIGURE "CryptSvc" "auto"
-for %%S in ("UsoSvc" "DoSvc") do call :SC_CONFIGURE "%%S" "delayed-auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("BITS" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+call "%F%" SC_CONFIGURE "CryptSvc" "auto"
+for %%S in ("UsoSvc" "DoSvc") do call "%F%" SC_CONFIGURE "%%S" "delayed-auto" >> "%LOG_FILE%" 2>&1
+for %%S in ("BITS" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call "%F%" SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
@@ -717,8 +716,8 @@ ipconfig /renew >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-call :RESTART
-call :LOG & goto WINDOWS_UPDATES_MENU
+call "%F%" RESTART 
+call "%F%" LOG & goto WINDOWS_UPDATES_MENU
 
 :WINDOWS_DEFENDER_MENU
 cls & echo. & echo.
@@ -736,27 +735,27 @@ if "%choice%"=="2" goto ENABLE_DEFENDER
 if "%choice%"=="3" goto REMOVE_DEFENDER
 if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
 
-call :INVALID "(0-3)" "WINDOWS_DEFENDER_MENU"
+call "%F%" INVALID "(0-3)" & goto WINDOWS_DEFENDER_MENU
 
 :DISABLE_DEFENDER
-call :CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection"
+call "%F%" CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Disabling Windows defender via registry
 reg import "Files\Security\DisableDefender.reg"
 
-call :RESTART
-call :GO & goto WINDOWS_DEFENDER_MENU
+call "%F%" RESTART 
+call "%F%" GO & goto WINDOWS_DEFENDER_MENU
 
 :ENABLE_DEFENDER
 echo. & echo Restoring default Windows Defender registry settings
 reg import "Files\Security\DefaultDefender.reg"
 
-call :RESTART
-call :GO & goto WINDOWS_DEFENDER_MENU
+call "%F%" RESTART 
+call "%F%" GO & goto WINDOWS_DEFENDER_MENU
 
 :REMOVE_DEFENDER
-call :CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system"
+call "%F%" CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
 
 echo. & echo Removing Windows Defender Security Health UI component
@@ -768,11 +767,11 @@ for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\Powe
 echo Deleting Windows Defender files
 "Files\Security\PowerRun.exe" /TI /SW:0 "Files\Security\DefenderFileRemover.bat"
 
-call :RESTART
-call :GO & goto WINDOWS_DEFENDER_MENU
+call "%F%" RESTART 
+call "%F%" GO & goto WINDOWS_DEFENDER_MENU
 
 :ENHANCE_SECURITY
-call :PATH "Security" "EnhanceSecurity"
+call "%F%" PATH_DIR "Security" "EnhanceSecurity"
 
 echo. & echo Applying security hardening registry settings
 reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
@@ -787,30 +786,30 @@ echo Disabling unsafe Windows services
 :: SNMP:            Simple Network Management Protocol (Often used for network reconnaissance)
 :: SNMPTRAP:        Receives trap messages generated by local or remote SNMP agents
 for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP") do (
-    call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
-    call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
+    call "%F%" NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+    call "%F%" SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
 )
 
 :: Remove 'defaultuser0', a temporary account often left behind after Windows installation
 echo Removing temporary default user account
 net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
 
-call :LOG & goto PRIVACY_SECURITY_MENU
+call "%F%" LOG & goto PRIVACY_SECURITY_MENU
 
 :REV_ENHANCE_SECURITY
 echo. & echo Restoring default Windows security registry settings
 reg import "Files\Security\DefaultSecurity.reg"
 
-call :GO & goto PRIVACY_SECURITY_MENU
+call "%F%" GO & goto PRIVACY_SECURITY_MENU
 
 :REMOVE_POLICIES
-call :CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults"
+call "%F%" CONFIRM "WARNING: This script will RESET all Group Policy settings to system defaults"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
-call :CREATE_FOLDER "Security" "GroupPolicyBackup"
+call "%F%" CREATE_FOLDER "Security" "GroupPolicyBackup"
 if !errorlevel! equ 1 goto PRIVACY_SECURITY_MENU
 
-call :PATH "Security" "RemoveAllPolicies"
+call "%F%" PATH_DIR "Security" "RemoveAllPolicies"
 
 set "GP_DIR=%WinDir%\System32\GroupPolicy"
 set "GPU_DIR=%WinDir%\System32\GroupPolicyUsers"
@@ -905,13 +904,13 @@ echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
 echo Backup files saved in: %TARGET_FOLDER%
-call :LOG & goto PRIVACY_SECURITY_MENU
+call "%F%" LOG & goto PRIVACY_SECURITY_MENU
 
 :REV_REMOVE_POLICIES
-echo. & call :CHOICE "WARNING: Restoring previous Group Policy settings will overwrite current changes. Press (N) if you are unsure"
+echo. & call "%F%" CHOICE "WARNING: Restoring previous Group Policy settings will overwrite current changes. Press (N) if you are unsure"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
-call :PATH "Security" "RestoreAllPolicies"
+call "%F%" PATH_DIR "Security" "RestoreAllPolicies"
 
 set "TARGET_FOLDER=%MKDIR_DIR%\GroupPolicyBackup"
 
@@ -937,7 +936,7 @@ if exist "%BACKUP_GP%" goto :FOUND_POLICIES_BACKUP
 if exist "%BACKUP_GPU%" goto :FOUND_POLICIES_BACKUP
 
 echo No backup files found to restore
-call :LOG & goto PRIVACY_SECURITY_MENU
+call "%F%" LOG & goto PRIVACY_SECURITY_MENU
 
 :FOUND_POLICIES_BACKUP
 if exist "%BACKUP_GP%" (
@@ -968,13 +967,13 @@ if exist "%SEC_BACKUP%" (
 echo. & echo Applying Group Policy Update
 gpupdate /force >nul 2>&1
 
-echo. & call :CHOICE "Do you want to delete existing backup folder"
+echo. & call "%F%" CHOICE "Do you want to delete existing backup folder"
 if !errorlevel! equ 1 (
     echo Deleting: %TARGET_FOLDER%
     rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 )
 
-call :LOG & goto PRIVACY_SECURITY_MENU
+call "%F%" LOG & goto PRIVACY_SECURITY_MENU
 
 
 :NETWORK_MENU
@@ -1001,13 +1000,13 @@ if "%choice%"=="1" (
 if "%choice%"=="2" goto DNS_MENU
 if "%choice%"=="3" goto WIFI_PASSWORDS
 if "%choice%"=="4" goto NETWORK_RESET
-if "%choice%"=="5" (call :INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
+if "%choice%"=="5" (call "%F%" INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-5)" "NETWORK_MENU"
+call "%F%" INVALID "(0-5)" & goto NETWORK_MENU
 
 :NETWORK_TWEAKS
-call :PATH "Network" "NetworkTweaks"
+call "%F%" PATH_DIR "Network" "NetworkTweaks"
 
 echo. & echo Improve network settings via registry
 reg import "Files\Network\NetworkTweaks.reg" >> "%LOG_FILE%" 2>&1
@@ -1028,12 +1027,12 @@ set DNS_IPv4_1=1.1.1.1
 set DNS_IPv4_2=1.0.0.1
 set DNS_IPv6_1=2606:4700:4700::1111
 set DNS_IPv6_2=2606:4700:4700::1001
-call :UPDATE_DNS
+call "%F%" UPDATE_DNS
 
-call :LOG & goto NETWORK_MENU
+call "%F%" LOG & goto NETWORK_MENU
 
 :REV_NETWORK_TWEAKS
-call :PATH "Network" "DefaultNetworkSettings"
+call "%F%" PATH_DIR "Network" "DefaultNetworkSettings"
 
 echo. & echo Restoring default network registry settings
 reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
@@ -1046,7 +1045,7 @@ for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotun
 
 echo. & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDHCP.ps1"
 
-call :LOG & goto NETWORK_MENU
+call "%F%" LOG & goto NETWORK_MENU
 
 :DNS_MENU
 cls & echo. & echo.
@@ -1094,41 +1093,41 @@ if "%choice%"=="9" goto DNS_SERVER_TEST
 if "%choice%"=="10" goto DNS_STATUS
 if "%choice%"=="0" goto NETWORK_MENU
 
-call :INVALID "(0-10)" "DNS_MENU"
+call "%F%" INVALID "(0-10)" & goto DNS_MENU
 
 :SET_DNS
-call :PATH "Network" "DNS"
+call "%F%" PATH_DIR "Network" "DNS"
 
 echo. & echo Setting %DNS_NAME% server on all connected interfaces
-call :UPDATE_DNS
+call "%F%" UPDATE_DNS
 
-call :LOG & goto DNS_MENU
+call "%F%" LOG & goto DNS_MENU
 
 :SET_DHCP
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDHCP.ps1"
-call :GO & goto DNS_MENU
+call "%F%" GO & goto DNS_MENU
 
 :DNS_SERVER_TEST
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSTest.ps1"
-call :GO & goto DNS_MENU
+call "%F%" GO & goto DNS_MENU
 
 :DNS_STATUS
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSStatus.ps1"
-call :GO & goto DNS_MENU
+call "%F%" GO & goto DNS_MENU
 
 :WIFI_PASSWORDS
-call :CREATE_FILE "Network" "WifiPassword.log"
+call "%F%" CREATE_FILE "Network" "WifiPassword.log"
 if !errorlevel! equ 1 goto NETWORK_MENU
 
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
 echo. & echo Wifi Password file saved in: %TARGET_FILE%
-call :GO & goto NETWORK_MENU
+call "%F%" GO & goto NETWORK_MENU
 
 :NETWORK_RESET
-call :CONFIRM "WARNING: This script will RESET ALL network configurations"
+call "%F%" CONFIRM "WARNING: This script will RESET ALL network configurations"
 if errorlevel 2 goto NETWORK_MENU
 
-call :PATH "Network" "NetworkReset"
+call "%F%" PATH_DIR "Network" "NetworkReset"
 echo. & echo Stopping Network Services
 
 :: Dhcp:      Obtains and renews IP configuration from DHCP servers
@@ -1139,14 +1138,14 @@ echo. & echo Stopping Network Services
 :: nlasvc:    Collects and stores configuration information
 :: WlanSvc:   Connects to Wi-Fi
 :: WwanSvc:   Manages mobile broadband
-for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call "%F%" NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
 echo Resetting Network services to default startup
-for %%S in ("Dhcp" "dnscache" "nlasvc" "WlanSvc") do call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+for %%S in ("Dhcp" "dnscache" "nlasvc" "WlanSvc") do call "%F%" SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
+for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call "%F%" SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 echo Starting Network Services
-for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
+for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call "%F%" NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
 
 :: Reset the core TCP/IP stack to factory defaults (rewrites registry keys)
 echo Reset TCP/IP Stack
@@ -1220,8 +1219,8 @@ ipconfig /renew6  >> "%LOG_FILE%" 2>&1
 echo Registering DNS name
 ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
-call :RESTART
-call :LOG & goto NETWORK_MENU
+call "%F%" RESTART 
+call "%F%" LOG & goto NETWORK_MENU
 
 
 :PROGRAMS_MANAGER_MENU
@@ -1240,10 +1239,10 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto PROGRAMS_MENU_VAR
 if "%choice%"=="2" goto DOWNLOAD_MO
 if "%choice%"=="3" goto REMOVE_MS
-if "%choice%"=="4" (call :INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
+if "%choice%"=="4" (call "%F%" INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-4)" "PROGRAMS_MANAGER_MENU"
+call "%F%" INVALID "(0-4)" & goto PROGRAMS_MANAGER_MENU
 
 :PROGRAMS_MENU_VAR
 set "MAX_PROGS=18"
@@ -1251,15 +1250,15 @@ set "PKGMGR=CHOCO"
 set "ON=(YES)"
 set "OFF=(NO)"
 
-call :DEFINE_SCOOP_PROGRAMS
-call :DEFINE_CHOCO_PROGRAMS
-call :DEFINE_SCOOP_BUCKETS
-call :RESET_SELECTIONS
-call :RESET_BUCKET_SELECTIONS
-call :LOAD_PKGMGR_DATA
+call "%F%" DEFINE_SCOOP_PROGRAMS
+call "%F%" DEFINE_CHOCO_PROGRAMS
+call "%F%" DEFINE_SCOOP_BUCKETS
+call "%F%" RESET_SELECTIONS
+call "%F%" RESET_BUCKET_SELECTIONS
+call "%F%" LOAD_PKGMGR_DATA
 
 :PROGRAMS_MENU
-call :ENSURE_PKGMGR
+call "%F%" ENSURE_PKGMGR
 cls & echo.
 echo [P] Package Manager: %PKGMGR%
 echo.
@@ -1304,7 +1303,7 @@ if "%PKGMGR%"=="SCOOP" (
 )
 
 echo. & echo Selected programs:
-call :SHOW_SELECTED
+call "%F%" SHOW_SELECTED
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -1321,11 +1320,11 @@ if /i "%choice%"=="X" goto REMOVE_MENU
 if /i "%choice%"=="M" goto MORE_PROG
 if /I "%choice%"=="B" goto BUCKET_MENU
 
-call :MULTI_INPUT
+call "%F%" MULTI_INPUT
 goto PROGRAMS_MENU
 
 :TOGGLE_AND_RETURN
-call :TOGGLE_MANAGER
+call "%F%" TOGGLE_MANAGER
 goto PROGRAMS_MENU
 
 :SELECT_ALL
@@ -1340,10 +1339,10 @@ goto PROGRAMS_MENU
 cls
 for /L %%i in (1,1,%MAX_PROGS%) do (
     if "!OPT%%i!"=="%ON%" (
-        call :TRY_ACTION "!PKG%%i!" "!NAME%%i!"
+        call "%F%" TRY_ACTION "!PKG%%i!" "!NAME%%i!"
     )
 )
-call :GO & call :RESET_SELECTIONS & goto PROGRAMS_MENU
+call "%F%" GO & call "%F%" RESET_SELECTIONS & goto PROGRAMS_MENU
 
 :UPDATE_MENU
 cls & echo Checking available updates
@@ -1373,7 +1372,7 @@ if /i "%choice%"=="ALL" (
     )
 )
 
-call :GO & goto PROGRAMS_MENU
+call "%F%" GO & goto PROGRAMS_MENU
 
 :REMOVE_MENU
 cls & echo Installed programs
@@ -1411,14 +1410,14 @@ if /i "%choice%"=="ALL" (
     )
 )
 
-call :GO & goto PROGRAMS_MENU
+call "%F%" GO & goto PROGRAMS_MENU
 
 :MORE_PROG
 cls & set "apps=" & set /p apps="Enter app name(s) separated by spaces: "
 if "%apps%"=="" goto MORE_PROG
 
-for %%A in (%apps%) do call :PROCESS_APP "%%A"
-call :GO & goto PROGRAMS_MENU
+for %%A in (%apps%) do call "%F%" PROCESS_APP "%%A"
+call "%F%" GO & goto PROGRAMS_MENU
 
 :BUCKET_MENU
 if not "%PKGMGR%"=="SCOOP" (
@@ -1442,7 +1441,7 @@ echo.
 echo                             [I] Install Selected    [R] Remove Selected
 
 echo. & echo Selected buckets:
-call :SHOW_SELECTED_BUCKETS
+call "%F%" SHOW_SELECTED_BUCKETS
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -1455,7 +1454,7 @@ if /i "%choice%"=="D" goto BUCKET_DESELECT_ALL
 if /i "%choice%"=="I" goto INSTALL_BUCKETS
 if /i "%choice%"=="R" goto REMOVE_BUCKETS
 
-call :BUCKET_MULTI_INPUT
+call "%F%" BUCKET_MULTI_INPUT
 goto BUCKET_MENU
 
 :BUCKET_SELECT_ALL
@@ -1475,7 +1474,7 @@ for /L %%i in (1,1,%BUCKET_COUNT%) do (
         call scoop bucket add !BUCKET%%i!
     )
 )
-call :GO & call :RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
+call "%F%" GO & call "%F%" RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
 
 :REMOVE_BUCKETS
 cls & echo Removing Buckets
@@ -1486,18 +1485,18 @@ for /L %%i in (1,1,%BUCKET_COUNT%) do (
         call scoop bucket rm !BUCKET%%i!
     )
 )
-call :GO & call :RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
+call "%F%" GO & call "%F%" RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
 
 :DOWNLOAD_MO
-start "" cmd /c "Files\Programs\Office.bat"
+call "Files\Programs\Office.bat"
 goto PROGRAMS_MANAGER_MENU
 
 :REMOVE_MS
-call :CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
+call "%F%" CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
 if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
-call :GO & goto PROGRAMS_MANAGER_MENU
+call "%F%" GO & goto PROGRAMS_MANAGER_MENU
 
 
 :CUSTOMIZATION_MENU
@@ -1587,7 +1586,7 @@ if "%choice%"=="9" (
 if "%choice%"=="10" goto CONTEXT_MENU
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-10)" "CUSTOMIZATION_MENU"
+call "%F%" INVALID "(0-10)" & goto CUSTOMIZATION_MENU
 
 :FILE_EXPLORER_MENU
 cls & echo. & echo.
@@ -1636,29 +1635,29 @@ if "%choice%"=="4" (
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
-call :INVALID "(0-4)" "FILE_EXPLORER_MENU"
+call "%F%" INVALID "(0-4)" & goto FILE_EXPLORER_MENU
 
 :: Enable the visibility of file extensions
 :SHOW_EXTENSIONS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO & goto FILE_EXPLORER_MENU
+call "%F%" GO & goto FILE_EXPLORER_MENU
 
 :: Hide file extensions
 :HIDE_EXTENSIONS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO & goto FILE_EXPLORER_MENU
+call "%F%" GO & goto FILE_EXPLORER_MENU
 
 :: Show both hidden files and protected operating system files
 :SHOW_HIDDEN
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO & goto FILE_EXPLORER_MENU
+call "%F%" GO & goto FILE_EXPLORER_MENU
 
 :: Hide hidden files and protected system files
 :DIS_HIDDEN
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO & goto FILE_EXPLORER_MENU
+call "%F%" GO & goto FILE_EXPLORER_MENU
 
 :: Disable "Recent Files" and "Frequent Folders" in Quick Access and the Start Menu
 :HIDE_RECENT
@@ -1679,110 +1678,110 @@ goto ON_QUICK_ACCESS
 :: Configure File Explorer to open to "This PC" by default
 :ON_THIS_PC
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO & goto FILE_EXPLORER_MENU
+call "%F%" GO & goto FILE_EXPLORER_MENU
 
 :: Configure File Explorer to open to "Quick Access" by default
 :ON_QUICK_ACCESS
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 2 /f >nul 2>&1
-call :GO & goto FILE_EXPLORER_MENU
+call "%F%" GO & goto FILE_EXPLORER_MENU
 
 :: Enable System-wide Dark Mode for both Apps and the Windows Taskbar/Start Menu
 :DARK_MODE
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Enable Light Mode for Apps while keeping System components (Taskbar) Dark
 :LIGHT_MODE
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Disable notifications
 :DIS_NOTIFICATION
 echo. & echo Disabling notification services
-for %%S in ("WpnService" "WpnUserService") do call :SC_CONFIGURE "%%S" "disabled" >nul 2>&1
+for %%S in ("WpnService" "WpnUserService") do call "%F%" SC_CONFIGURE "%%S" "disabled" >nul 2>&1
 
 echo Disabling notification via registry
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Re-enable notification
 :ENA_NOTIFICATION
 echo. & echo Enabling notification services
-for %%S in ("WpnService" "WpnUserService") do call :SC_CONFIGURE "%%S" "auto" >nul 2>&1
+for %%S in ("WpnService" "WpnUserService") do call "%F%" SC_CONFIGURE "%%S" "auto" >nul 2>&1
 
 echo Enabling notification via registry
 reg delete "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Remove the small arrow icon that appears on desktop shortcuts
 :HIDE_SHORTCUT_ARROW
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /t REG_EXPAND_SZ /d "%SystemRoot%\System32\imageres.dll,197" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /t REG_BINARY /d 00000000 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Restore the default Windows shortcut arrow icon
 :SHOW_SHORTCUT_ARROW
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" /v 29 /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v link /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Ensure NumLock is OFF at the login screen and for the current user
 :NUM_LOCK_OFF
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 0 /f >nul 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483648 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Ensure NumLock is ON at the login screen and for the current user
 :NUM_LOCK_ON
 reg add "HKCU\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2 /f >nul 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Keyboard" /v InitialKeyboardIndicators /t REG_SZ /d 2147483650 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to UTC (recommended for Dual-Boot with Linux)
 :UTC
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Set the Hardware Clock to Local Time
 :LOCAL_TIME
 reg delete "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /f >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Create the "God Mode" folder on the desktop (access to all Windows settings in one list)
 :POWER_SETTINGS
-call :MKDIR_PROMPT "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}"
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" MKDIR_PROMPT "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}"
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Delete the "God Mode" folder from the desktop
 :REMOVE_POWER_SETTINGS
 rd /s /q "%USERPROFILE%\Desktop\Powerful Settings.{ED7BA470-8E54-465E-825C-99712043E01C}" >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Disable Trash feature
 :TRASH
 reg import "Files\Customization\DisableTrash.reg" >nul 2>&1
 reg import "Files\Security\DisableTelemetry.reg" >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Restore default Windows Trash
 :DEF_TRASH
 reg import "Files\Customization\DefaultTrash.reg" >nul 2>&1
 reg import "Files\Security\DefaultTelemetry.reg" >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Restore the classic Windows Photo Viewer
 :PHOTO_VIEWER
 reg import "Files\Customization\RestoreClassicPhotoViewer.reg" >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :: Remove the classic Windows Photo Viewer registry entries
 :REMOVE_PHOTO_VIEWER
 reg import "Files\Customization\RemoveClassicPhotoViewer.reg" >nul 2>&1
-call :GO & goto CUSTOMIZATION_MENU
+call "%F%" GO & goto CUSTOMIZATION_MENU
 
 :CONTEXT_MENU
 cls & echo. & echo.
@@ -1831,7 +1830,7 @@ if "%choice%"=="4" (
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
-call :INVALID "(0-4)" "CONTEXT_MENU"
+call "%F%" INVALID "(0-4)" & goto CONTEXT_MENU
 
 :: Add the "Open Command Prompt Here"
 :CMD_CONTEXT
@@ -1844,13 +1843,13 @@ reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHere\command" /ve /d "cmd.
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /ve /d "Open CMD Here" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere\command" /ve /d "cmd.exe /k pushd \"%%V\"" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Remove "Open Command Prompt Here"
 :REV_CMD_CONTEXT
 reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHere" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Add "Open Command Prompt Here (Admin)" to folder and background context menus
 :CMD_CONTEXT_ADMIN
@@ -1867,13 +1866,13 @@ reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /ve 
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Remove the "Open Command Prompt Here (Admin)"
 :REV_CMD_CONTEXT_ADMIN
 reg delete "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Add "Restart Explorer" to the Desktop right-click menu
 :RESTART_EXPLORER
@@ -1882,12 +1881,12 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /v "Icon
 
 :: The command kills the explorer.exe process and immediately restarts it
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer\command" /ve /d "cmd.exe /c taskkill /F /IM explorer.exe >nul 2>&1 & start explorer.exe" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Remove the "Restart Explorer" right-click menu
 :REV_RESTART_EXPLORER
 reg delete "HKCU\Software\Classes\DesktopBackground\Shell\RestartExplorer" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Add "Kill frozen process" to the Desktop right-click menu
 :KILL_FROZEN
@@ -1896,12 +1895,12 @@ reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /v "Ic
 
 :: Targets only processes with the window status "NOT RESPONDING"
 reg add "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding\Command" /ve /d "cmd.exe /C taskkill.exe /F /FI \"status eq NOT RESPONDING\"" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :: Remove the "Kill frozen process" right-click menu
 :REV_KILL_FROZEN
 reg delete "HKCU\Software\Classes\DesktopBackground\Shell\KillNotResponding" /f >nul 2>&1
-call :GO & goto CONTEXT_MENU
+call "%F%" GO & goto CONTEXT_MENU
 
 :SYSTEM_MENU
 cls & echo. & echo.
@@ -1919,18 +1918,18 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto RESTORE_POINT
 if "%choice%"=="2" goto REG_BACK
 if "%choice%"=="3" goto ACTIVATION_MENU
-if "%choice%"=="4" (call :INFO_SCRIPT "System" "SystemInfo"  & goto SYSTEM_MENU)
+if "%choice%"=="4" (call "%F%" INFO_SCRIPT "System" "SystemInfo"  & goto SYSTEM_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-4)" "SYSTEM_MENU"
+call "%F%" INVALID "(0-4)" & goto SYSTEM_MENU
 
 :RESTORE_POINT
 :: RestorePointType: MODIFY_SETTINGS indicates settings were changed
 cls & echo Creating a System Restore Point
 powershell -Command "Checkpoint-Computer -Description 'WinTweaks Restore Point' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop"
-if %errorlevel% equ 0 (call :GO & goto SYSTEM_MENU)
+if %errorlevel% equ 0 (call "%F%" GO & goto SYSTEM_MENU)
 
-call :PATH "System" "RestorePoint"
+call "%F%" PATH_DIR "System" "RestorePoint"
 
 :: If Creating failed (errorlevel>0)
 echo Creating a restore point failed. Attempting to fix system dependencies
@@ -1946,7 +1945,7 @@ echo Stopping restore point services
 
 :: VSS:      Volume Shadow Copy Service (Manages data backup/snapshots)
 :: swprv:    Microsoft Software Shadow Copy Provider (Coordinates snapshot creation)
-for %%S in ("VSS" "swprv") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+for %%S in ("VSS" "swprv") do call "%F%" NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
 echo Re-registering VSS-related system libraries
 for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
@@ -1962,8 +1961,8 @@ vssvc /register  >> "%LOG_FILE%" 2>&1
 
 echo Starting restore point services
 for %%S in ("VSS" "swprv") do (
-    call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
-    call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
+    call "%F%" SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+    call "%F%" NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
 )
 
 :: RpcSs:         Remote Procedure Call (RPC) Service (Manages inter-process communication)
@@ -1971,8 +1970,8 @@ for %%S in ("VSS" "swprv") do (
 :: EventSystem:   COM+ Event System (Distributes system events to subscribed components)
 :: Schedule:      Task Scheduler Service (Manages scheduled tasks, including automatic restore point creation)
 for %%S in ("RpcSs" "CryptSvc" "EventLog" "EventSystem" "Schedule") do (
-    call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
-    call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
+    call "%F%" SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
+    call "%F%" NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
 )
 
 echo Checking VSS Writers status
@@ -1985,14 +1984,14 @@ if %errorlevel% equ 0 (
 ) else (
     echo Creating system restore point has failed after troubleshooting 
 )
-call :LOG & goto SYSTEM_MENU
+call "%F%" LOG & goto SYSTEM_MENU
 
 :REG_BACK
 cls
-call :CREATE_FOLDER "System" "FullRegistryBackup"
+call "%F%" CREATE_FOLDER "System" "FullRegistryBackup"
 if !errorlevel! equ 1 goto SYSTEM_MENU
 
-call :PATH "System" "FullRegistryBackup"
+call "%F%" PATH_DIR "System" "FullRegistryBackup"
 
 set "SUCCESS_COUNT=0"
 
@@ -2016,7 +2015,7 @@ for %%A in (
 
 if exist "%TARGET_FOLDER%\*.hive" (
     echo. & echo Backup Process Finished. Total Success: !SUCCESS_COUNT!/7 
-    call :CHOICE "Compress folder?"
+    call "%F%" CHOICE "Compress folder?"
     if errorlevel 2 (
         echo. & echo Backup saved in: %TARGET_FOLDER%
     ) else (
@@ -2025,7 +2024,7 @@ if exist "%TARGET_FOLDER%\*.hive" (
 ) else (
     echo No hive files were created. Backup failed
 )
-call :LOG & goto SYSTEM_MENU
+call "%F%" LOG & goto SYSTEM_MENU
 
 :ACTIVATION_MENU
 cls & echo. & echo.
@@ -2042,19 +2041,19 @@ if "%choice%"=="1" goto RUN_ACTIVATION
 if "%choice%"=="2" goto CHECK_ACTIVATION
 if "%choice%"=="0" goto SYSTEM_MENU
 
-call :INVALID "(0-2)" "ACTIVATION_MENU"
+call "%F%" INVALID "(0-2)" & goto ACTIVATION_MENU
 
 :: Activating Windows and Microsoft Office using MAS script
 :RUN_ACTIVATION
 cls & echo Launching Microsoft Activation Script (MAS) to activate Windows and Office
 echo The script will open in a new window. Follow the on-screen instructions
 powershell -NoP -EP Bypass -c "irm https://get.activated.win | iex"
-call :GO & goto ACTIVATION_MENU
+call "%F%" GO & goto ACTIVATION_MENU
 
 :: Check if the Machine is Activated or not
 :CHECK_ACTIVATION
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivationStatus.ps1"
-call :GO & goto ACTIVATION_MENU
+call "%F%" GO & goto ACTIVATION_MENU
 
 
 :TOOLS_MENU
@@ -2081,13 +2080,13 @@ if "%choice%"=="6" goto CLEAN_MGR
 if "%choice%"=="7" goto DELETE_SCRIPT_DATA
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-7)" "TOOLS_MENU"
+call "%F%" INVALID "(0-7)" & goto TOOLS_MENU
 
 :: Scan and verify the integrity of all protected system files and repair corrupted
 :SFC_SCAN
 cls & echo Running sfc scan
 sfc /scannow
-call :GO & goto TOOLS_MENU
+call "%F%" GO & goto TOOLS_MENU
 
 :DISM_MENU
 cls & echo. & echo.
@@ -2108,34 +2107,34 @@ if "%choice%"=="3" goto DISM_RESTORE_HEALTH
 if "%choice%"=="4" goto DISM_COMPONENT_CLEANUP
 if "%choice%"=="0" goto TOOLS_MENU
 
-call :INVALID "(0-4)" "DISM_MENU"
+call "%F%" INVALID "(0-4)" & goto DISM_MENU
 
 :: Perform a quick check to see if the OS has already flagged any corruption
 :DISM_CHECK_HEALTH
 cls & echo Performing quick health check of Windows image
 dism /Online /Cleanup-Image /CheckHealth
-call :GO & goto DISM_MENU
+call "%F%" GO & goto DISM_MENU
 
 :: This does not fix errors, it only reports them
 :DISM_SCAN_HEALTH
 cls & echo Performing deep scan of Windows image
 dism /Online /Cleanup-Image /ScanHealth
-call :GO & goto DISM_MENU
+call "%F%" GO & goto DISM_MENU
 
 :: Repair the Windows Image by downloading healthy files from Windows Update
 :DISM_RESTORE_HEALTH
 cls & echo Fix Windows component
 dism /Online /Cleanup-Image /RestoreHealth
-call :GO & goto DISM_MENU
+call "%F%" GO & goto DISM_MENU
 
 :: Clean up the WinSxS folder by removing superseded (old) versions of components
 :DISM_COMPONENT_CLEANUP
-call :CONFIRM "WARNING: This will permanently remove rollback capability for Windows Updates"
+call "%F%" CONFIRM "WARNING: This will permanently remove rollback capability for Windows Updates"
 if errorlevel 2 goto DISM_MENU
 
 echo Cleaning Windows components
 dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
-call :GO & goto DISM_MENU
+call "%F%" GO & goto DISM_MENU
 
 :: Launch Windows Defragment
 :DEFRAG
@@ -2191,14 +2190,14 @@ if "%choice%"=="2" goto FIX_FILE
 if "%choice%"=="3" goto FIX_SECTORS
 if "%choice%"=="0" goto CHKDSK
 
-call :INVALID "(0-3)" "CHKDSK_MENU"
+call "%F%" INVALID "(0-3)" & goto CHKDSK_MENU
 
 :: Scans for errors but does not fix anything
 :DISK_STATUS
 cls & echo Running read-only CHKDSK on drive %drive%:\ to check for errors
 timeout /t 2 >nul
 chkdsk %drive%:
-call :GO & goto CHKDSK_MENU
+call "%F%" GO & goto CHKDSK_MENU
 
 :FIX_FILE
 cls & echo Running CHKDSK with /f option on drive %drive%:\ to fix file system errors
@@ -2206,7 +2205,7 @@ timeout /t 2 >nul
 
 :: /f: Fixes errors on the disk
 chkdsk %drive%: /f
-call :GO & goto CHKDSK_MENU
+call "%F%" GO & goto CHKDSK_MENU
 
 :FIX_SECTORS
 cls & echo Running CHKDSK with /r option on drive %drive%:\ to find bad sectors and recover data
@@ -2214,7 +2213,7 @@ timeout /t 2 >nul
 
 :: /r: Locates bad sectors and recovers readable information
 chkdsk %drive%: /r
-call :GO & goto CHKDSK_MENU
+call "%F%" GO & goto CHKDSK_MENU
 
 :: Launch Memory Diagnostic
 :MEMORY_DIAG
@@ -2230,7 +2229,7 @@ goto TOOLS_MENU
 :DELETE_SCRIPT_DATA
 set "MKDIR_DIR=%PROGRAMDATA%\WinTweaks"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%MKDIR_DIR%"
-call :GO & goto TOOLS_MENU
+call "%F%" GO & goto TOOLS_MENU
 
 
 :OTHER_MENU
@@ -2251,620 +2250,28 @@ if "%choice%"=="2" goto OO_SHUTUP
 if "%choice%"=="3" goto NET_SPEED_TEST
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-3)" "OTHER_MENU"
+call "%F%" INVALID "(0-3)" & goto OTHER_MENU
 
 :: Launch CTT
 :CTT
 cls & echo Running Chris Titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
-call :GO & goto OTHER_MENU
+call "%F%" GO & goto OTHER_MENU
 
 :: Download and launch O&O Shutup 10 ++
 :OO_SHUTUP
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\OOSU10"
+call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\OOSU10"
 
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1" "%MKDIR_DIR%"
-call :GO & goto OTHER_MENU
+call "%F%" GO & goto OTHER_MENU
 
 :: Download and launch Speedtest CLI
 :NET_SPEED_TEST
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\speedtest_cli"
+call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\speedtest_cli"
 
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1" "%MKDIR_DIR%"
-call :GO & goto OTHER_MENU
+call "%F%" GO & goto OTHER_MENU
 
-
-:: ----------------------------------------------------------------< FUNCTIONS >----------------------------------------------------------------
-:SET_TASKS
-:: %~1 = Action (Enable/Disable)
-:: %~2 = Path to text file containing task names
-
-for /f "usebackq delims=" %%i in ("%~2") do (
-    set "TASK_NAME=%%i"
-    set "TASK_RESULT=[SUCCESS]"
-
-    schtasks /query /tn "%%i" >nul 2>&1
-    if !errorlevel! neq 0 (
-        set "TASK_RESULT=[NOT_FOUND]"
-    ) else (
-        if /i "%~1"=="Disable" (
-            schtasks /change /tn "%%i" /disable >nul 2>&1
-        ) else (
-            schtasks /change /tn "%%i" /enable >nul 2>&1
-        )
-
-        if !errorlevel! neq 0 (
-            set "TASK_RESULT=[FAILED]"
-        )
-    )
-
-    echo !TASK_RESULT!: !TASK_NAME! >>"%LOG_FILE%"
-)
-goto :eof
-
-:RUNNING_BROWSERS
-:: List of browser processes to check
-set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
-set "BROWSERS_OPEN=0"
-
-:: Check if any browser is currently running
-for %%A in (%BROWSERS%) do (
-    tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
-    if not errorlevel 1 (
-        echo %%A is currently running
-        set "BROWSERS_OPEN=1"
-    )
-)
-goto :eof
-
-:CLEAN_BROWSER
-::  Chromium-based browsers (Chrome, Edge, Brave)
-for %%X in (
-    "Google\Chrome\User Data|Google Chrome"
-    "Microsoft\Edge\User Data|Microsoft Edge"
-    "BraveSoftware\Brave-Browser\User Data|Brave"
-) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-        if exist "%LOCALAPPDATA%\%%A" (
-            echo Cleaning %%B
-            for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
-                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "Media Cache" "Download Service") do (
-                    rd /s /q "%%P\%%~D" >nul 2>&1
-                )
-            )
-        )
-    )
-)
-
-:: Mozilla Firefox
-for %%X in (
-    "Mozilla\Firefox|Mozilla Firefox"
-) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-        if exist "%APPDATA%\%%A" (
-            echo Cleaning %%B
-            if exist "%LOCALAPPDATA%\%%A\Profiles" (
-                for /d %%P in ("%LOCALAPPDATA%\%%A\Profiles\*") do (
-                    for %%D in ("cache2" "thumbnails" "jumpListCache" "startupCache") do (
-                        rd /s /q "%%P\%%~D" >nul 2>&1
-                    )
-                )
-            )
-            rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
-        )
-    )
-)
-goto :eof
-
-:CLEANING_FUNCTION
-echo Cleaning Temp and prefetch folders
-for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP" "%SYSTEMROOT%\Prefetch") do (
-    if exist "%%~F" (
-        del /f /q "%%~F\*" >nul 2>&1
-        for /d %%D in ("%%~F\*") do (
-            rd /s /q "%%D" >nul 2>&1
-        )
-    )
-)
-
-:: Clear the "Recent Items" list shown in File Explorer
-call :DELETE_FILES "Clearing Recent Files" "%APPDATA%\Microsoft\Windows\Recent\*.lnk"
-
-:: Rebuild icon and thumbnail cache
-echo Rebuilding Thumbnail and Icon cache
-taskkill /F /IM explorer.exe >nul 2>&1
-timeout /t 2 /nobreak >nul
-del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
-del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
-start explorer.exe >nul 2>&1
-
-:: Delete PowerShell command history
-call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
-
-call :CHOICE "Run Disk Cleanup to complete the cleaning?"
-if !errorlevel! equ 1 (
-    echo Running Disk Cleanup
-    cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
-)
-
-:: Force empty the Recycle Bin for all drives
-echo Emptying Recycle Bin
-powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
-goto :eof
-
-:SET_POWER_PLAN
-echo. & echo Activate %~2 power plan
-powercfg /setactive %~1 >nul
-call :GO
-goto :eof
-
-:INFO_SCRIPT
-call :PATH "%~1" "%~2"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\%~1\%~2.ps1" "%LOG_FILE%"
-call :LOG
-goto :eof
-
-:UPDATE_DNS
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
-    -DnsIPv4Primary "%DNS_IPv4_1%" ^
-    -DnsIPv4Secondary "%DNS_IPv4_2%" ^
-    -DnsIPv6Primary "%DNS_IPv6_1%" ^
-    -DnsIPv6Secondary "%DNS_IPv6_2%"
-
-goto :eof
-
-
-:: Program tables (source of truth per package manager)
-:DEFINE_SCOOP_PROGRAMS
-set "SCOOP_PKG1=git"                         & set "SCOOP_NAME1=Git"
-set "SCOOP_PKG2=sourcegit"                   & set "SCOOP_NAME2=SourceGit"
-set "SCOOP_PKG3=gcc"                         & set "SCOOP_NAME3=GCC"
-set "SCOOP_PKG4=llvm"                        & set "SCOOP_NAME4=LLVM / Clang"
-set "SCOOP_PKG5=gdb"                         & set "SCOOP_NAME5=GDB Debugger"
-set "SCOOP_PKG6=make"                        & set "SCOOP_NAME6=Make"
-set "SCOOP_PKG7=cmake"                       & set "SCOOP_NAME7=CMake"
-set "SCOOP_PKG8=ninja"                       & set "SCOOP_NAME8=Ninja"
-set "SCOOP_PKG9=vscode"                      & set "SCOOP_NAME9=Visual Studio Code"
-set "SCOOP_PKG10=geany"                      & set "SCOOP_NAME10=Geany IDE"
-set "SCOOP_PKG11=7zip"                       & set "SCOOP_NAME11=7-Zip"
-set "SCOOP_PKG12=curl"                       & set "SCOOP_NAME12=cURL"
-set "SCOOP_PKG13=ripgrep"                    & set "SCOOP_NAME13=ripgrep"
-set "SCOOP_PKG14=fd"                         & set "SCOOP_NAME14=fd"
-set "SCOOP_PKG15=fzf"                        & set "SCOOP_NAME15=fzf"
-set "SCOOP_PKG16=bat"                        & set "SCOOP_NAME16=bat"
-set "SCOOP_PKG17=neovim"                     & set "SCOOP_NAME17=Neovim"
-set "SCOOP_PKG18=python"                     & set "SCOOP_NAME18=Python"
-goto :eof
-
-:DEFINE_CHOCO_PROGRAMS
-set "CHOCO_PKG1=googlechrome"                & set "CHOCO_NAME1=Google Chrome"
-set "CHOCO_PKG2=brave"                       & set "CHOCO_NAME2=Brave"
-set "CHOCO_PKG3=firefox"                     & set "CHOCO_NAME3=Firefox"
-set "CHOCO_PKG4=winrar"                      & set "CHOCO_NAME4=WinRAR"
-set "CHOCO_PKG5=7zip.install"                & set "CHOCO_NAME5=7-Zip"
-set "CHOCO_PKG6=vlc.install"                 & set "CHOCO_NAME6=VLC"
-set "CHOCO_PKG7=k-litecodecpack-standard"    & set "CHOCO_NAME7=K-Lite Codec"
-set "CHOCO_PKG8=irfanview irfanviewplugins"  & set "CHOCO_NAME8=IrfanView"
-set "CHOCO_PKG9=sumatrapdf.install"          & set "CHOCO_NAME9=Sumatra PDF"
-set "CHOCO_PKG10=notepadplusplus.install"    & set "CHOCO_NAME10=Notepad++"
-set "CHOCO_PKG11=vscode.install"             & set "CHOCO_NAME11=Visual Studio Code"
-set "CHOCO_PKG12=git.install"                & set "CHOCO_NAME12=Git"
-set "CHOCO_PKG13=qbittorrent"                & set "CHOCO_NAME13=qbittorrent"
-set "CHOCO_PKG14=vcredist140"                & set "CHOCO_NAME14=VC++ 2015-2022"
-set "CHOCO_PKG15=virtualbox"                 & set "CHOCO_NAME15=VirtualBox"
-set "CHOCO_PKG16=io-unlocker"                & set "CHOCO_NAME16=IObit Unlocker"
-set "CHOCO_PKG17=autohotkey.install"         & set "CHOCO_NAME17=AutoHotkey"
-set "CHOCO_PKG18=megasync"                   & set "CHOCO_NAME18=MEGA"
-goto :eof
-
-:LOAD_PKGMGR_DATA
-for /L %%i in (1,1,%MAX_PROGS%) do (
-    if "%PKGMGR%"=="CHOCO" (
-        set "PKG%%i=!CHOCO_PKG%%i!"
-        set "NAME%%i=!CHOCO_NAME%%i!"
-    ) else (
-        set "PKG%%i=!SCOOP_PKG%%i!"
-        set "NAME%%i=!SCOOP_NAME%%i!"
-    )
-)
-goto :eof
-
-:RESET_SELECTIONS
-for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%OFF%"
-goto :eof
-
-:TOGGLE_MANAGER
-if "%PKGMGR%"=="CHOCO" (set "PKGMGR=SCOOP") else (set "PKGMGR=CHOCO")
-call :RESET_SELECTIONS
-call :LOAD_PKGMGR_DATA
-goto :eof
-
-:ENSURE_PKGMGR
-if "%PKGMGR%"=="CHOCO" (
-    where choco >nul 2>&1
-    if !errorlevel! equ 0 goto :eof
-
-    cls & call :CHOICE "Do you want to install Chocolatey package manager"
-    if errorlevel 2 goto PROGRAMS_MANAGER_MENU
-	
-	echo. & echo Installing Chocolatey package manager
-    powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
-    call :REFRESH_ENV
-    where choco >nul 2>&1
-    if !errorlevel! neq 0 (
-        echo Chocolatey installation failed or not found in PATH
-		call :GO & goto PROGRAMS_MENU
-    )
-) else (
-    where scoop >nul 2>&1
-    if !errorlevel! equ 0 goto :eof
-
-    cls & call :CHOICE "Do you want to install Scoop package manager"
-    if errorlevel 2 goto PROGRAMS_MANAGER_MENU
-	
-	echo. & echo Installing Scoop package manager
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
-    if exist "%USERPROFILE%\scoop\shims" set "PATH=%PATH%;%USERPROFILE%\scoop\shims"
-	call scoop config auto_cleanup true >nul 2>&1
-    where scoop >nul 2>&1
-    if !errorlevel! neq 0 (
-        echo Scoop installation failed or not found in PATH
-        call :GO & goto PROGRAMS_MENU
-    )
-)
-goto :eof
-
-:REFRESH_ENV
-if exist "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd" (
-    call "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd" >nul 2>&1
-) else (
-    if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-)
-goto :eof
-
-:TRY_ACTION
-echo. & echo Installing: %~2
-if "%PKGMGR%"=="CHOCO" (
-    choco install %~1 -y
-    if !errorlevel! neq 0 (
-        echo. & echo Failed to install: %~2
-        call :CHOICE "Do you want to ignore checksum and retry?"
-        if errorlevel 2 (
-            echo The program download was ignored
-        ) else (
-            echo. & echo Retrying with --ignore-checksums 
-            choco install %~1 --ignore-checksums -y
-        )
-    )
-) else (
-    call scoop install -k %~1
-    if !errorlevel! neq 0 (
-        echo. & echo Failed to install: %~2
-    )
-)
-goto :eof
-
-:PROCESS_APP
-set "app=%~1"
-echo. & echo Searching for: %app%
-if "%PKGMGR%"=="CHOCO" (
-    choco search "%app%" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
-
-    set "found=0"
-    set "official_pkg="
-    set "official_version="
-    for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do (
-        set "found=1"
-        set "official_pkg=%%L"
-        set "official_version=%%M"
-    )
-
-    if "!found!"=="1" (
-        echo.
-        echo Official package found: !official_pkg! !official_version!
-        call :CHOICE "Do you want to install !official_pkg!?"
-        if errorlevel 2 (
-            echo Installation skipped
-        ) else if errorlevel 1 (
-            echo Installing !official_pkg!
-            choco install "!official_pkg!" -y
-        )
-    ) else (
-        echo No exact match for "%app%" was found
-        echo Similar packages available in Chocolatey:
-        echo.
-        choco search "%app%" --limit-output
-        echo.
-        echo No package was installed automatically. Check the list above and pick the correct name if available
-    )
-    del "%temp%\choco_result.txt" >nul 2>&1
-) else (
-    scoop search "%app%"
-    echo.
-    set "installName="
-    set /p "installName=Enter the exact package name to install (or leave blank to skip): "
-    if not "!installName!"=="" call scoop install -k "!installName!"
-)
-goto :eof
-
-:MULTI_INPUT
-set "invalid="
-set "tokens=%choice:,= %"
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        set "rangeStart="
-        set "rangeEnd="
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq %MAX_PROGS% if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
-                    if "!OPT%%N!"=="%ON%" (set "OPT%%N=%OFF%") else (set "OPT%%N=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    ) else (
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq %MAX_PROGS% (
-                for %%T in (!tok!) do (
-                    if "!OPT%%T!"=="%ON%" (set "OPT%%T=%OFF%") else (set "OPT%%T=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input:!invalid!
-    pause
-)
-goto :eof
-
-:SHOW_SELECTED
-set "ANY=0"
-for /L %%i in (1,1,%MAX_PROGS%) do (
-    if "!OPT%%i!"=="%ON%" (
-        echo    - !NAME%%i!
-        set "ANY=1"
-    )
-)
-if "!ANY!"=="0" echo    - No program selected
-goto :eof
-
-:DEFINE_SCOOP_BUCKETS
-set COUNT=9
-set "BUCKET1=extras"
-set "BUCKET2=versions"
-set "BUCKET3=java"
-set "BUCKET4=php"
-set "BUCKET5=games"
-set "BUCKET6=nerd-fonts"
-set "BUCKET7=nonportable"
-set "BUCKET8=sysinternals"
-set "BUCKET9=nirsoft"
-goto :eof
-
-:RESET_BUCKET_SELECTIONS
-for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%OFF%"
-goto :eof
-
-:BUCKET_MULTI_INPUT
-set "invalid="
-set "tokens=%choice:,= %"
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        set "rangeStart="
-        set "rangeEnd="
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq %BUCKET_COUNT% if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
-                    if "!BOPT%%N!"=="%ON%" (set "BOPT%%N=%OFF%") else (set "BOPT%%N=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    ) else (
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq %BUCKET_COUNT% (
-                for %%T in (!tok!) do (
-                    if "!BOPT%%T!"=="%ON%" (set "BOPT%%T=%OFF%") else (set "BOPT%%T=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input:!invalid!
-    pause
-)
-goto :eof
-
-:SHOW_SELECTED_BUCKETS
-set "ANY=0"
-for /L %%i in (1,1,%BUCKET_COUNT%) do (
-    if "!BOPT%%i!"=="%ON%" (
-        echo    - !BUCKET%%i!
-        set "ANY=1"
-    )
-)
-if "!ANY!"=="0" echo    - No bucket selected
-goto :eof
-
-:NET_CONTROL
-:: %~1 = Service Name
-:: %~2 = Action (stop or start)
-
-:: Check if the service exists
-sc query %~1 >nul 2>&1
-if !errorlevel! neq 0 (
-    echo [NOT FOUND]: %~1
-    goto :eof
-)
-
-:: Execute the action based on the requested operation (stop or start)
-if /i %~2==stop (
-    :: Check if the service is already stopped
-    sc query %~1 | find /i "STOPPED" >nul
-    if !errorlevel! equ 0 (
-        echo [ALREADY STOPPED]: %~1
-    ) else (
-        :: Try to stop the service
-        net stop %~1 >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [SUCCESS]: %~1 _ %~2 
-        ) else (
-            echo [FAILED]: %~1 _ %~2 
-        )
-    )
-) else if /i %~2==start (
-    :: Check if the service is already running
-    sc query %~1 | find /i "RUNNING" >nul
-    if !errorlevel! equ 0 (
-        echo [ALREADY RUNNING]: %~1
-    ) else (
-        :: Try to start the service
-        net start %~1 >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [SUCCESS]: %~1 _ %~2 
-        ) else (
-            echo [FAILED]: %~1 _ %~2 
-        )
-    )
-)
-goto :eof
-
-:SC_CONFIGURE
-:: %~1 = Service Name
-:: %~2 = Start Type
-sc query %~1 >nul 2>&1
-if !errorlevel! neq 0 (
-    echo [NOT FOUND]: %~1
-    goto :eof
-)
-
-sc config %~1 start= %~2 >nul 2>&1
-if !errorlevel! equ 0 (
-    echo [SUCCESS]: %~1 _ %~2
-) else (
-    echo [FAILED]: %~1 _ %~2
-)
-goto :eof
-
-:CREATE_FILE
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
-
-set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
-if exist "%TARGET_FILE%" (
-    echo. & echo %TARGET_FILE%: Already exists
-    call :CHOICE "Do you want to delete the existing file and start fresh?"
-    if errorlevel 2 exit /b 1
-
-    del /f /q "%TARGET_FILE%" >nul 2>&1
-)
-
-if exist "%TARGET_FILE%" (
-    echo. & echo Failed to delete old file
-	pause & exit /b 1
-)
-goto :eof
-
-:CREATE_FOLDER
-set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
-
-if exist "%TARGET_FOLDER%" (
-    echo. & echo %TARGET_FOLDER%: Already exists
-    call :CHOICE "Do you want to delete the existing backup folder and start fresh?"
-    if errorlevel 2 exit /b 1
-	
-    rd /s /q "%TARGET_FOLDER%" >nul 2>&1
-)
-
-if exist "%TARGET_FOLDER%" (
-    echo. & echo Failed to delete old backup folder
-	pause & exit /b 1
-) else (
-    call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
-)
-goto :eof
-
-:PATH
-:: %~1 = Subfolder name
-:: %~2 = Log filename
-
-:: Define the base directory within PROGRAMDATA for organizational consistency
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
-
-:: Set the full path for the current log file
-set "LOG_FILE=%MKDIR_DIR%\%~2.log"
-
-:: Initialize the log file with a fresh timestamp header for every session
-(echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
-goto :eof
-
-:DELETE_FILES
-if exist "%~2" (
-    echo %~1
-    if "%~3"=="" (
-        del /f /q "%~2" >nul 2>&1
-    ) else (
-        del /f /q "%~2" >> "%~3" 2>&1
-    )
-)
-goto :eof
-
-:DELETE_FOLDERS
-if exist "%~2" (
-    echo %~1
-    if "%~3"=="" (
-        rd /s /q "%~2" >nul 2>&1
-    ) else (
-        rd /s /q "%~2" >> "%~3" 2>&1
-    )
-)
-goto :eof
-
-:MKDIR_PROMPT
-set "MKDIR_DIR=%~1"
-
-:: Create the folder if it does not exist
-if not exist "%MKDIR_DIR%" (
-    mkdir "%~1" >nul 2>&1
-    if errorlevel 1 (
-        echo Failed to create: %MKDIR_DIR%
-        pause & goto MAIN_MENU
-    )
-)
-goto :eof
 
 :: This section dynamically builds a menu based on variables set before calling it
 :SUB_MENU
@@ -2882,37 +2289,4 @@ if "%choice%"=="0" goto %MENU%
 
 call :INVALID "(0-2)" "SUB_MENU"
 
-:RESTART
-echo. & call :CHOICE "Do you want to restart your computer?"
-if !errorlevel! equ 1 (
-    echo Your computer will restart after 5 seconds
-    shutdown /r /t 5
-    timeout /t 3 >nul
-    exit
-)
-goto :eof
-
-:CHOICE
-choice /C YN /N /M "%~1 (Y/N): "
-goto :eof
-
-:CONFIRM
-cls & echo %~1
-call :CHOICE "Continue anyway?"
-goto :eof
-
-:INVALID
-echo. & echo [ERROR] Invalid selection. Please choose a valid option between %~1
-pause
-goto %~2
-
-:LOG
-echo. & echo More details in: %LOG_FILE%
-echo. & echo The operation is done.
-pause
-goto :eof
-
-:GO
-echo. & echo The operation is done.
-pause
-goto :eof
+call "%F%" INVALID "(0-2)" & goto SUB_MENU
