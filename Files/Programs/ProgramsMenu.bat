@@ -117,7 +117,7 @@ if "%PKGMGR%"=="CHOCO" (call choco outdated) else (call scoop status)
 echo.
 echo --------------------------------------------------------------------------------
 echo Type ALL to update everything
-echo Or type the exact program name(s) as shown above, separated by commas (e.g. git,cmake)
+echo Or type the exact program name(s) as shown above, separated by commas
 echo Type 0 to go back
 echo --------------------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ if "%PKGMGR%"=="CHOCO" (call choco list --local-only) else (call scoop list)
 echo.
 echo --------------------------------------------------------------------------------
 echo Type ALL to remove everything.
-echo Or type the exact program name(s) as shown above, separated by commas (e.g. git,cmake)
+echo Or type the exact program name(s) as shown above, separated by commas
 echo Type 0 to go back.
 echo --------------------------------------------------------------------------------
 
