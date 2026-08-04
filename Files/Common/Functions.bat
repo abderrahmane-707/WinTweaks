@@ -461,6 +461,177 @@ if "%PKGMGR%"=="CHOCO" (
 )
 exit /b
 
+:NET_CONTROL
+:: %~1 = Service Name
+:: %~2 = Action (stop or start)
+
+:: Check if the service exists
+sc query %~1 >nul 2>&1
+if !errorlevel! neq 0 (
+    echo [NOT FOUND]: %~1
+    exit /b
+)
+
+:: Execute the action based on the requested operation (stop or start)
+if /i %~2==stop (
+    :: Check if the service is already stopped
+    sc query %~1 | find /i "STOPPED" >nul
+    if !errorlevel! equ 0 (
+        echo [ALREADY STOPPED]: %~1
+    ) else (
+        :: Try to stop the service
+        net stop %~1 >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo [SUCCESS]: %~1 _ %~2 
+        ) else (
+            echo [FAILED]: %~1 _ %~2 
+        )
+    )
+) else if /i %~2==start (
+    :: Check if the service is already running
+    sc query %~1 | find /i "RUNNING" >nul
+    if !errorlevel! equ 0 (
+        echo [ALREADY RUNNING]: %~1
+    ) else (
+        :: Try to start the service
+        net start %~1 >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo [SUCCESS]: %~1 _ %~2 
+        ) else (
+            echo [FAILED]: %~1 _ %~2 
+        )
+    )
+)
+exit /b
+
+:SC_CONFIGURE
+:: %~1 = Service Name
+:: %~2 = Start Type
+sc query %~1 >nul 2>&1
+if !errorlevel! neq 0 (
+    echo [NOT FOUND]: %~1
+    exit /b
+)
+
+sc config %~1 start= %~2 >nul 2>&1
+if !errorlevel! equ 0 (
+    echo [SUCCESS]: %~1 _ %~2
+) else (
+    echo [FAILED]: %~1 _ %~2
+)
+exit /b
+
+:CREATE_FILE
+call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
+
+set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
+if exist "%TARGET_FILE%" (
+    echo. & echo %TARGET_FILE%: Already exists
+    call "%F%" CHOICE  "Do you want to delete the existing file and start fresh?"
+    if errorlevel 2 exit /b 1
+
+    del /f /q "%TARGET_FILE%" >nul 2>&1
+)
+
+if exist "%TARGET_FILE%" (
+    echo. & echo Failed to delete old file
+    pause & exit /b 1
+)
+exit /b
+
+:CREATE_FOLDER
+set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
+
+if exist "%TARGET_FOLDER%" (
+    echo. & echo %TARGET_FOLDER%: Already exists
+    call "%F%" CHOICE  "Do you want to delete the existing backup folder and start fresh?"
+    if errorlevel 2 exit /b 1
+    
+    rd /s /q "%TARGET_FOLDER%" >nul 2>&1
+)
+
+if exist "%TARGET_FOLDER%" (
+    echo. & echo Failed to delete old backup folder
+    pause & exit /b 1
+) else (
+    call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
+)
+exit /b
+
+:PATH_DIR
+:: %~1 = Subfolder name
+:: %~2 = Log filename
+
+:: Define the base directory within PROGRAMDATA for organizational consistency
+call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
+
+:: Set the full path for the current log file
+set "LOG_FILE=%MKDIR_DIR%\%~2.log"
+
+:: Initialize the log file with a fresh timestamp header for every session
+(echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
+exit /b
+
+:DELETE_FILES
+if exist "%~2" (
+    echo %~1
+    if "%~3"=="" (
+        del /f /q "%~2" >nul 2>&1
+    ) else (
+        del /f /q "%~2" >> "%~3" 2>&1
+    )
+)
+exit /b
+
+:DELETE_FOLDERS
+if exist "%~2" (
+    echo %~1
+    if "%~3"=="" (
+        rd /s /q "%~2" >nul 2>&1
+    ) else (
+        rd /s /q "%~2" >> "%~3" 2>&1
+    )
+)
+exit /b
+
+:MKDIR_PROMPT
+set "MKDIR_DIR=%~1"
+
+:: Create the folder if it does not exist
+if not exist "%MKDIR_DIR%" (
+    mkdir "%~1" >nul 2>&1
+    if errorlevel 1 (
+        echo Failed to create: %MKDIR_DIR%
+        pause & goto MAIN_MENU
+    )
+)
+exit /b
+
+:RESTART
+echo. & call "%F%" CHOICE  "Do you want to restart your computer?"
+if !errorlevel! equ 1 (
+    echo Your computer will restart after 5 seconds
+    shutdown /r /t 5
+    timeout /t 3 >nul
+    exit
+)
+exit /b
+
+:: This section dynamically builds a menu based on variables set before calling it
+:SUB_MENU
+cls & echo. & echo.
+echo      [1] %APPLY%
+echo.
+echo      [2] %REVERT%
+echo.
+echo      [0] Back
+echo. & set "choice=" & set /p choice="Select an option: "
+
+if "%choice%"=="1" set "SUBMENU_RESULT=%ROUTINE%" & exit /b
+if "%choice%"=="2" set "SUBMENU_RESULT=%REV_ROUTINE%" & exit /b
+if "%choice%"=="0" set "SUBMENU_RESULT=%MENU%" & exit /b
+call :INVALID "(0-2)" & goto SUB_MENU
+
 :CHOICE
 choice /C YN /N /M "%~1 (Y/N): "
 exit /b
