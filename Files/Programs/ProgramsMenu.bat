@@ -6,8 +6,8 @@ set "OFF=(NO)"
 call "%F%" DEFINE_SCOOP_PROGRAMS
 call "%F%" DEFINE_CHOCO_PROGRAMS
 call "%F%" DEFINE_SCOOP_BUCKETS
-call "%F%" RESET_SELECTIONS
-call "%F%" RESET_BUCKET_SELECTIONS
+call "%F%" DESELECT_ALL OPT %MAX_PROGS%
+call "%F%" DESELECT_ALL BOPT %BUCKET_COUNT%
 call "%F%" LOAD_PKGMGR_DATA
 
 :PROGRAMS_MENU
@@ -56,7 +56,7 @@ if "%PKGMGR%"=="SCOOP" (
 )
 
 echo. & echo Selected programs:
-call "%F%" SHOW_SELECTED
+call "%F%" SHOW_SELECTED_G OPT NAME %MAX_PROGS%
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -65,8 +65,8 @@ echo. & set "choice=" & set /p "choice=--> Select option(s) and press [S] to Sta
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" exit /b 99
 if /i "%choice%"=="S" goto RUN_PROGRAMS
-if /i "%choice%"=="A" (call "%F%" SELECT_ALL & goto PROGRAMS_MENU)
-if /i "%choice%"=="D" (call "%F%" DESELECT_ALL & goto PROGRAMS_MENU)
+if /i "%choice%"=="A" (call "%F%" SELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
+if /i "%choice%"=="D" (call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
 if /i "%choice%"=="P" goto TOGGLE_AND_RETURN
 if /i "%choice%"=="U" goto UPDATE_MENU
 if /i "%choice%"=="X" goto REMOVE_MENU
@@ -87,7 +87,7 @@ for /L %%i in (1,1,%MAX_PROGS%) do (
         call "%F%" TRY_ACTION "!PKG%%i!" "!NAME%%i!"
     )
 )
-call "%F%" GO & call "%F%" RESET_SELECTIONS & goto PROGRAMS_MENU
+call "%F%" GO & call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU
 
 :UPDATE_MENU
 cls & echo Checking available updates
@@ -165,8 +165,6 @@ for %%A in (%apps%) do call "%F%" PROCESS_APP "%%A"
 call "%F%" GO & goto PROGRAMS_MENU
 
 :BUCKET_MENU_VAR
-set "BUCKET_COUNT=9"
-
 if not "%PKGMGR%"=="SCOOP" (
     echo. & echo Buckets are only available when the package manager is Scoop
     pause
@@ -190,7 +188,7 @@ echo.
 echo                             [I] Install Selected    [R] Remove Selected
 
 echo. & echo Selected buckets:
-call "%F%" SHOW_SELECTED_BUCKETS
+call "%F%" SHOW_SELECTED_G BOPT BUCKET %BUCKET_COUNT%
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -198,20 +196,12 @@ echo. & set "choice=" & set /p "choice=--> Select option(s): "
 
 if "%choice%"=="" goto BUCKET_MENU
 if "%choice%"=="0" goto PROGRAMS_MENU
-if /i "%choice%"=="A" goto BUCKET_SELECT_ALL
-if /i "%choice%"=="D" goto BUCKET_DESELECT_ALL
+if /i "%choice%"=="A" (call "%F%" SELECT_ALL BOPT %BUCKET_COUNT% & goto BUCKET_MENU)
+if /i "%choice%"=="D" (call "%F%" DESELECT_ALL BOPT %BUCKET_COUNT% & goto BUCKET_MENU)
 if /i "%choice%"=="I" goto INSTALL_BUCKETS
 if /i "%choice%"=="R" goto REMOVE_BUCKETS
 
 call "%F%" BUCKET_MULTI_INPUT
-goto BUCKET_MENU
-
-:BUCKET_SELECT_ALL
-for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%ON%"
-goto BUCKET_MENU
-
-:BUCKET_DESELECT_ALL
-for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%OFF%"
 goto BUCKET_MENU
 
 :INSTALL_BUCKETS
@@ -223,7 +213,7 @@ for /L %%i in (1,1,%BUCKET_COUNT%) do (
         call scoop bucket add !BUCKET%%i!
     )
 )
-call "%F%" GO & call "%F%" RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
+call "%F%" GO & call "%F%" DESELECT_ALL BOPT %BUCKET_COUNT% & goto BUCKET_MENU
 
 :REMOVE_BUCKETS
 cls & echo Removing Buckets
@@ -234,4 +224,4 @@ for /L %%i in (1,1,%BUCKET_COUNT%) do (
         call scoop bucket rm !BUCKET%%i!
     )
 )
-call "%F%" GO & call "%F%" RESET_BUCKET_SELECTIONS & goto BUCKET_MENU
+call "%F%" GO & call "%F%" DESELECT_ALL BOPT %BUCKET_COUNT% & goto BUCKET_MENU

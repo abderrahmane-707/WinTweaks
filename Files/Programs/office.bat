@@ -1,14 +1,12 @@
-@echo off
-
 :: Define basic variables
 set "ON=(YES)"
 set "OFF=(NO) "
+set "MAX_PROGS=12"
 
 :: Set default programs values - ALL OFF by default
-for /L %%i in (1,1,12) do set "OPT%%i=%OFF%"
+call "%F%" DESELECT_ALL OPT %MAX_PROGS%
 
-:: Define MAX_PROGS and Program Names to use the generic SHOW_SELECTED function
-set "MAX_PROGS=12"
+:: Program names to use the generic SHOW_SELECTED_G function
 set "NAME1=Word" & set "NAME2=Excel" & set "NAME3=PowerPoint" & set "NAME4=Outlook"
 set "NAME5=OneNote" & set "NAME6=Publisher" & set "NAME7=Access" & set "NAME8=Visio"
 set "NAME9=Project" & set "NAME10=Proofing Tools" & set "NAME11=Teams" & set "NAME12=OneDrive"
@@ -91,7 +89,7 @@ echo.
 echo              ---------------------------------------------------------------------------
 
 echo. & echo Selected programs for %ARCH_MSG%:
-call "%F%" SHOW_SELECTED
+call "%F%" SHOW_SELECTED_G OPT NAME %MAX_PROGS%
 
 echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -101,29 +99,19 @@ if "%choice%"=="" goto OFFICE_MENU
 :: Process single-key input
 for /l %%i in (1,1,12) do (
     if "%choice%"=="%%i" (
-        call "%F%" TOGGLE_SINGLE OPT%%i && goto OFFICE_MENU
+        call "%F%" TOGGLE_ONE OPT%%i && goto OFFICE_MENU
     )
 )
 
 if "%choice%"=="0" exit /b 99
 if /i "%choice%"=="V" call "%F%" TOGGLE_VERSION && goto OFFICE_MENU
 if /i "%choice%"=="L" call "%F%" TOGGLE_LANGUAGE && goto OFFICE_MENU
-if /i "%choice%"=="M" call "%F%" TOGGLE_SINGLE OPTM && goto OFFICE_MENU
-if /i "%choice%"=="A" goto SELECT_ALL
-if /i "%choice%"=="D" goto DESELECT_ALL
+if /i "%choice%"=="M" call "%F%" TOGGLE_ONE OPTM && goto OFFICE_MENU
+if /i "%choice%"=="A" (call "%F%" SELECT_ALL OPT %MAX_PROGS% & goto OFFICE_MENU)
+if /i "%choice%"=="D" (call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto OFFICE_MENU)
 if /i "%choice%"=="S" goto CONTINUE
 
 call "%F%" MULTI_INPUT
-goto OFFICE_MENU
-
-:: Set "ON" for all programs
-:SELECT_ALL
-for /l %%i in (1,1,12) do set "OPT%%i=%ON%"
-goto OFFICE_MENU
-
-:: Set "OFF" for all programs
-:DESELECT_ALL
-for /l %%i in (1,1,12) do set "OPT%%i=%OFF%"
 goto OFFICE_MENU
 
 :: Continue installation
@@ -141,7 +129,7 @@ if "!HASSELECTION!"=="%OFF%" (
 )
 
 echo. & echo Selected programs:
-call "%F%" SHOW_SELECTED
+call "%F%" SHOW_SELECTED_G OPT NAME %MAX_PROGS%
 
 echo.
 echo    Installation Architecture: %ARCH_MSG%

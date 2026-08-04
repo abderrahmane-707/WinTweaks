@@ -145,14 +145,141 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
 exit /b
 
 :SELECT_ALL
-for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%ON%"
+for /L %%i in (1,1,%~2) do set "%~1%%i=%ON%"
 exit /b
 
 :DESELECT_ALL
-for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%OFF%"
+for /L %%i in (1,1,%~2) do set "%~1%%i=%OFF%"
 exit /b
 
-:: Program tables (source of truth per package manager)
+:RESET_SELECTIONS
+call :DESELECT_ALL_G OPT %MAX_PROGS%
+exit /b
+
+:RESET_BUCKET_SELECTIONS
+call :DESELECT_ALL_G BOPT %BUCKET_COUNT%
+exit /b
+
+:: %1 = value var prefix (e.g. OPT), %2 = value to toggle against
+:TOGGLE_ONE
+if "!%~1!"=="%ON%" (set "%~1=%OFF%") else (set "%~1=%ON%")
+exit /b
+
+:: Office menu used TOGGLE_SINGLE / IS_ON with a plain var name (not indexed) - keep thin wrappers
+:TOGGLE_SINGLE
+call :TOGGLE_ONE %~1
+exit /b
+
+:IS_ON
+if "!%~1!"=="%ON%" exit /b 0
+exit /b 1
+
+:: %1 = OPT-prefix, %2 = NAME-prefix, %3 = max
+:SHOW_SELECTED_G
+set "ANY=0"
+for /L %%i in (1,1,%~3) do (
+    call set "cur=%%%~1%%i%%"
+    call set "lbl=%%%~2%%i%%"
+    if "!cur!"=="%ON%" (
+        echo    - !lbl!
+        set "ANY=1"
+    )
+)
+if "!ANY!"=="0" echo    - No selection
+exit /b
+
+:SHOW_SELECTED
+call :SHOW_SELECTED_G OPT NAME %MAX_PROGS%
+exit /b
+
+:SHOW_SELECTED_BUCKETS
+call :SHOW_SELECTED_G BOPT BUCKET %BUCKET_COUNT%
+exit /b
+
+:MULTI_INPUT
+set "invalid="
+set "tokens=%choice:,= %"
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+    set "noHyphen=!tok:-=!"
+
+    if not "!tok!"=="!noHyphen!" (
+        set "rangeStart=" & set "rangeEnd="
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq %MAX_PROGS% if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_ONE OPT%%N
+                set "matched=1"
+            )
+        )
+    ) else (
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq %MAX_PROGS% (
+                call :TOGGLE_ONE OPT!tok!
+                set "matched=1"
+            )
+        )
+    )
+
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
+)
+
+if defined invalid (
+    echo. & echo Invalid or out-of-range input:!invalid!
+    pause
+)
+exit /b
+
+:BUCKET_MULTI_INPUT
+set "invalid="
+set "tokens=%choice:,= %"
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+    set "noHyphen=!tok:-=!"
+
+    if not "!tok!"=="!noHyphen!" (
+        set "rangeStart=" & set "rangeEnd="
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq %BUCKET_COUNT% if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_ONE BOPT%%N
+                set "matched=1"
+            )
+        )
+    ) else (
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq %BUCKET_COUNT% (
+                call :TOGGLE_ONE BOPT!tok!
+                set "matched=1"
+            )
+        )
+    )
+
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
+)
+
+if defined invalid (
+    echo. & echo Invalid or out-of-range input:!invalid!
+    pause
+)
+exit /b
+
 :DEFINE_SCOOP_PROGRAMS
 set "SCOOP_PKG1=git"                         & set "SCOOP_NAME1=Git"
 set "SCOOP_PKG2=sourcegit"                   & set "SCOOP_NAME2=SourceGit"
@@ -207,14 +334,23 @@ for /L %%i in (1,1,%MAX_PROGS%) do (
 )
 exit /b
 
-:RESET_SELECTIONS
-for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%OFF%"
-exit /b
-
 :TOGGLE_MANAGER
 if "%PKGMGR%"=="CHOCO" (set "PKGMGR=SCOOP") else (set "PKGMGR=CHOCO")
 call :RESET_SELECTIONS
 call :LOAD_PKGMGR_DATA
+exit /b
+
+:DEFINE_SCOOP_BUCKETS
+set "BUCKET_COUNT=9"
+set "BUCKET1=extras"
+set "BUCKET2=versions"
+set "BUCKET3=java"
+set "BUCKET4=php"
+set "BUCKET5=games"
+set "BUCKET6=nerd-fonts"
+set "BUCKET7=nonportable"
+set "BUCKET8=sysinternals"
+set "BUCKET9=nirsoft"
 exit /b
 
 :ENSURE_PKGMGR
@@ -224,7 +360,7 @@ if "%PKGMGR%"=="CHOCO" (
 
     cls & call "%F%" CHOICE  "Do you want to install Chocolatey package manager"
     if errorlevel 2 goto PROGRAMS_MANAGER_MENU
-    
+
     echo. & echo Installing Chocolatey package manager
     powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
     call :REFRESH_ENV
@@ -239,7 +375,7 @@ if "%PKGMGR%"=="CHOCO" (
 
     cls & call "%F%" CHOICE  "Do you want to install Scoop package manager"
     if errorlevel 2 goto PROGRAMS_MANAGER_MENU
-    
+
     echo. & echo Installing Scoop package manager
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
     if exist "%USERPROFILE%\scoop\shims" set "PATH=%PATH%;%USERPROFILE%\scoop\shims"
@@ -270,7 +406,7 @@ if "%PKGMGR%"=="CHOCO" (
         if errorlevel 2 (
             echo The program download was ignored
         ) else (
-            echo. & echo Retrying with --ignore-checksums 
+            echo. & echo Retrying with --ignore-checksums
             choco install %~1 --ignore-checksums -y
         )
     )
@@ -325,295 +461,6 @@ if "%PKGMGR%"=="CHOCO" (
 )
 exit /b
 
-:MULTI_INPUT
-set "invalid="
-set "tokens=%choice:,= %"
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        set "rangeStart="
-        set "rangeEnd="
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq %MAX_PROGS% if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
-                    if "!OPT%%N!"=="%ON%" (set "OPT%%N=%OFF%") else (set "OPT%%N=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    ) else (
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq %MAX_PROGS% (
-                for %%T in (!tok!) do (
-                    if "!OPT%%T!"=="%ON%" (set "OPT%%T=%OFF%") else (set "OPT%%T=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input:!invalid!
-    pause
-)
-exit /b
-
-:SHOW_SELECTED
-set "ANY=0"
-for /L %%i in (1,1,%MAX_PROGS%) do (
-    if "!OPT%%i!"=="%ON%" (
-        echo    - !NAME%%i!
-        set "ANY=1"
-    )
-)
-if "!ANY!"=="0" echo    - No program selected
-exit /b
-
-:DEFINE_SCOOP_BUCKETS
-set COUNT=9
-set "BUCKET1=extras"
-set "BUCKET2=versions"
-set "BUCKET3=java"
-set "BUCKET4=php"
-set "BUCKET5=games"
-set "BUCKET6=nerd-fonts"
-set "BUCKET7=nonportable"
-set "BUCKET8=sysinternals"
-set "BUCKET9=nirsoft"
-exit /b
-
-:RESET_BUCKET_SELECTIONS
-for /L %%i in (1,1,%BUCKET_COUNT%) do set "BOPT%%i=%OFF%"
-exit /b
-
-:BUCKET_MULTI_INPUT
-set "invalid="
-set "tokens=%choice:,= %"
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        set "rangeStart="
-        set "rangeEnd="
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq %BUCKET_COUNT% if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
-                    if "!BOPT%%N!"=="%ON%" (set "BOPT%%N=%OFF%") else (set "BOPT%%N=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    ) else (
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq %BUCKET_COUNT% (
-                for %%T in (!tok!) do (
-                    if "!BOPT%%T!"=="%ON%" (set "BOPT%%T=%OFF%") else (set "BOPT%%T=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input:!invalid!
-    pause
-)
-exit /b
-
-:SHOW_SELECTED_BUCKETS
-set "ANY=0"
-for /L %%i in (1,1,%BUCKET_COUNT%) do (
-    if "!BOPT%%i!"=="%ON%" (
-        echo    - !BUCKET%%i!
-        set "ANY=1"
-    )
-)
-if "!ANY!"=="0" echo    - No bucket selected
-exit /b
-
-:NET_CONTROL
-:: %~1 = Service Name
-:: %~2 = Action (stop or start)
-
-:: Check if the service exists
-sc query %~1 >nul 2>&1
-if !errorlevel! neq 0 (
-    echo [NOT FOUND]: %~1
-    exit /b
-)
-
-:: Execute the action based on the requested operation (stop or start)
-if /i %~2==stop (
-    :: Check if the service is already stopped
-    sc query %~1 | find /i "STOPPED" >nul
-    if !errorlevel! equ 0 (
-        echo [ALREADY STOPPED]: %~1
-    ) else (
-        :: Try to stop the service
-        net stop %~1 >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [SUCCESS]: %~1 _ %~2 
-        ) else (
-            echo [FAILED]: %~1 _ %~2 
-        )
-    )
-) else if /i %~2==start (
-    :: Check if the service is already running
-    sc query %~1 | find /i "RUNNING" >nul
-    if !errorlevel! equ 0 (
-        echo [ALREADY RUNNING]: %~1
-    ) else (
-        :: Try to start the service
-        net start %~1 >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [SUCCESS]: %~1 _ %~2 
-        ) else (
-            echo [FAILED]: %~1 _ %~2 
-        )
-    )
-)
-exit /b
-
-:SC_CONFIGURE
-:: %~1 = Service Name
-:: %~2 = Start Type
-sc query %~1 >nul 2>&1
-if !errorlevel! neq 0 (
-    echo [NOT FOUND]: %~1
-    exit /b
-)
-
-sc config %~1 start= %~2 >nul 2>&1
-if !errorlevel! equ 0 (
-    echo [SUCCESS]: %~1 _ %~2
-) else (
-    echo [FAILED]: %~1 _ %~2
-)
-exit /b
-
-:CREATE_FILE
-call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
-
-set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
-if exist "%TARGET_FILE%" (
-    echo. & echo %TARGET_FILE%: Already exists
-    call "%F%" CHOICE  "Do you want to delete the existing file and start fresh?"
-    if errorlevel 2 exit /b 1
-
-    del /f /q "%TARGET_FILE%" >nul 2>&1
-)
-
-if exist "%TARGET_FILE%" (
-    echo. & echo Failed to delete old file
-    pause & exit /b 1
-)
-exit /b
-
-:CREATE_FOLDER
-set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
-
-if exist "%TARGET_FOLDER%" (
-    echo. & echo %TARGET_FOLDER%: Already exists
-    call "%F%" CHOICE  "Do you want to delete the existing backup folder and start fresh?"
-    if errorlevel 2 exit /b 1
-    
-    rd /s /q "%TARGET_FOLDER%" >nul 2>&1
-)
-
-if exist "%TARGET_FOLDER%" (
-    echo. & echo Failed to delete old backup folder
-    pause & exit /b 1
-) else (
-    call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
-)
-exit /b
-
-:PATH_DIR
-:: %~1 = Subfolder name
-:: %~2 = Log filename
-
-:: Define the base directory within PROGRAMDATA for organizational consistency
-call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
-
-:: Set the full path for the current log file
-set "LOG_FILE=%MKDIR_DIR%\%~2.log"
-
-:: Initialize the log file with a fresh timestamp header for every session
-(echo Start at %time% %date% & echo.) > "%LOG_FILE%" 2>&1
-exit /b
-
-:DELETE_FILES
-if exist "%~2" (
-    echo %~1
-    if "%~3"=="" (
-        del /f /q "%~2" >nul 2>&1
-    ) else (
-        del /f /q "%~2" >> "%~3" 2>&1
-    )
-)
-exit /b
-
-:DELETE_FOLDERS
-if exist "%~2" (
-    echo %~1
-    if "%~3"=="" (
-        rd /s /q "%~2" >nul 2>&1
-    ) else (
-        rd /s /q "%~2" >> "%~3" 2>&1
-    )
-)
-exit /b
-
-:MKDIR_PROMPT
-set "MKDIR_DIR=%~1"
-
-:: Create the folder if it does not exist
-if not exist "%MKDIR_DIR%" (
-    mkdir "%~1" >nul 2>&1
-    if errorlevel 1 (
-        echo Failed to create: %MKDIR_DIR%
-        pause & goto MAIN_MENU
-    )
-)
-exit /b
-
-:RESTART
-echo. & call "%F%" CHOICE  "Do you want to restart your computer?"
-if !errorlevel! equ 1 (
-    echo Your computer will restart after 5 seconds
-    shutdown /r /t 5
-    timeout /t 3 >nul
-    exit
-)
-exit /b
-
 :CHOICE
 choice /C YN /N /M "%~1 (Y/N): "
 exit /b
@@ -640,18 +487,6 @@ pause
 exit /b
 
 :: ----------------------------------------------------------------< OFFICE FUNCTIONS >----------------------------------------------------------------
-
-:TOGGLE_SINGLE
-if "!%1!"=="%ON%" (
-    set "%1=%OFF%"
-) else (
-    set "%1=%ON%"
-)
-goto :eof
-
-:IS_ON
-if "!%1!"=="%ON%" exit /b 0
-exit /b 1
 
 :TOGGLE_VERSION
 if "%OPTV%"=="365" (set "OPTV=2021") else if "%OPTV%"=="2021" (set "OPTV=2019") else if "%OPTV%"=="2019" (set "OPTV=2016") else (set "OPTV=365")
