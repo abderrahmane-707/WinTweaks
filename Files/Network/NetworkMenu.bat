@@ -24,7 +24,7 @@ if "%choice%"=="2" goto DNS_MENU
 if "%choice%"=="3" goto WIFI_PASSWORDS
 if "%choice%"=="4" goto NETWORK_RESET
 if "%choice%"=="5" (call "%F%" INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-5)" & goto NETWORK_MENU
 

@@ -14,7 +14,7 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto CTT
 if "%choice%"=="2" goto OO_SHUTUP
 if "%choice%"=="3" goto NET_SPEED_TEST
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-3)" & goto OTHER_MENU
 

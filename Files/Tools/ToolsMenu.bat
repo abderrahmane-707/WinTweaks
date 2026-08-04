@@ -20,7 +20,7 @@ if "%choice%"=="4" goto CHKDSK
 if "%choice%"=="5" goto MEMORY_DIAG
 if "%choice%"=="6" goto CLEAN_MGR
 if "%choice%"=="7" goto DELETE_SCRIPT_DATA
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-7)" & goto TOOLS_MENU
 

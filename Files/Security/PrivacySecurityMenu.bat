@@ -45,7 +45,7 @@ if "%choice%"=="6" (
 )
 
 if "%choice%"=="7" (call "%F%" INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-7)" & goto PRIVACY_SECURITY_MENU
 

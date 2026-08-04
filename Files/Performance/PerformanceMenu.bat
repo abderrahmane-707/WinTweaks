@@ -35,7 +35,7 @@ if "%choice%"=="3" (
 if "%choice%"=="4" goto CLEAN_UP
 if "%choice%"=="5" goto POWER_PLAN_MENU
 if "%choice%"=="6" goto HW_INFO_MENU
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-8)" & goto PERFORMANCE_MENU
 

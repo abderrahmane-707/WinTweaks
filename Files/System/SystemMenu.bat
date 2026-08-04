@@ -15,7 +15,7 @@ if "%choice%"=="1" goto RESTORE_POINT
 if "%choice%"=="2" goto REG_BACK
 if "%choice%"=="3" goto ACTIVATION_MENU
 if "%choice%"=="4" (call "%F%" INFO_SCRIPT "System" "SystemInfo"  & goto SYSTEM_MENU)
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-4)" & goto SYSTEM_MENU
 

@@ -91,7 +91,7 @@ if "%choice%"=="9" (
     goto !SUBMENU_RESULT!
 )
 if "%choice%"=="10" goto CONTEXT_MENU
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-10)" & goto CUSTOMIZATION_MENU
 

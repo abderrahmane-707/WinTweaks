@@ -11,6 +11,8 @@ if errorlevel 1 (
 
 :: Go to script's directory
 cd /d "%~dp0"
+
+:: Defined of a functions file
 set "F=Files\Common\Functions.bat"
 
 :: WinTweaks Script main menu
@@ -34,46 +36,14 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto PERFORMANCE_MENU
-if "%choice%"=="2" goto PRIVACY_SECURITY_MENU
-if "%choice%"=="3" goto NETWORK_MENU
-if "%choice%"=="4" goto PROGRAMS_MANAGER_MENU
-if "%choice%"=="5" goto CUSTOMIZATION_MENU
-if "%choice%"=="6" goto SYSTEM_MENU
-if "%choice%"=="7" goto TOOLS_MENU
-if "%choice%"=="8" goto OTHER_MENU
+if "!choice!"=="1" call "Files\Performance\PerformanceMenu.bat" & goto MAIN_MENU
+if "!choice!"=="2" call "Files\Security\PrivacySecurityMenu.bat" & goto MAIN_MENU
+if "!choice!"=="3" call "Files\Network\NetworkMenu.bat" & goto MAIN_MENU
+if "!choice!"=="4" call "Files\Programs\ProgramsMenu.bat" & goto MAIN_MENU
+if "!choice!"=="5" call "Files\Customization\CustomizationMenu.bat" & goto MAIN_MENU
+if "!choice!"=="6" call "Files\System\SystemMenu.bat" & goto MAIN_MENU
+if "!choice!"=="7" call "Files\Tools\ToolsMenu.bat" & goto MAIN_MENU
+if "!choice!"=="8" call "Files\Other\OtherMenu.bat" & goto MAIN_MENU
 if "%choice%"=="0" exit
 
 call "%F%" INVALID "(0-8)" & goto MAIN_MENU
-
-:PERFORMANCE_MENU
-call "Files\Performance\PerformanceMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:PRIVACY_SECURITY_MENU
-call "Files\Security\PrivacySecurityMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:NETWORK_MENU
-call "Files\Network\NetworkMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:PROGRAMS_MANAGER_MENU
-call "Files\Programs\ProgramsMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:CUSTOMIZATION_MENU
-call "Files\Customization\CustomizationMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:SYSTEM_MENU
-call "Files\System\SystemMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:TOOLS_MENU
-call "Files\Tools\ToolsMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
-
-:OTHER_MENU
-call "Files\Other\OtherMenu.bat"
-if %errorlevel%==99 goto MAIN_MENU
