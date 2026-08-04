@@ -4,6 +4,7 @@ if "%~1" neq "" (
     call :%*
     exit /b
 )
+exit /b 1
 
 :: ----------------------------------------------------------------< MAIN FUNCTIONS >----------------------------------------------------------------
 :SET_TASKS
@@ -99,7 +100,7 @@ for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP" "%SYSTEMROOT%\Prefetch") do (
 )
 
 :: Clear the "Recent Items" list shown in File Explorer
-call "%F%" DELETE_FILES "Clearing Recent Files" "%APPDATA%\Microsoft\Windows\Recent\*.lnk"
+call :DELETE_FILES "Clearing Recent Files" "%APPDATA%\Microsoft\Windows\Recent\*.lnk"
 
 :: Rebuild icon and thumbnail cache
 echo Rebuilding Thumbnail and Icon cache
@@ -110,9 +111,9 @@ del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
 start explorer.exe >nul 2>&1
 
 :: Delete PowerShell command history
-call "%F%" DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
+call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 
-call "%F%" CHOICE  "Run Disk Cleanup to complete the cleaning?"
+call :CHOICE "Run Disk Cleanup to complete the cleaning?"
 if !errorlevel! equ 1 (
     echo Running Disk Cleanup
     cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
@@ -152,22 +153,9 @@ exit /b
 for /L %%i in (1,1,%~2) do set "%~1%%i=%OFF%"
 exit /b
 
-:RESET_SELECTIONS
-call :DESELECT_ALL_G OPT %MAX_PROGS%
-exit /b
-
-:RESET_BUCKET_SELECTIONS
-call :DESELECT_ALL_G BOPT %BUCKET_COUNT%
-exit /b
-
 :: %1 = value var prefix (e.g. OPT), %2 = value to toggle against
-:TOGGLE_ONE
-if "!%~1!"=="%ON%" (set "%~1=%OFF%") else (set "%~1=%ON%")
-exit /b
-
-:: Office menu used TOGGLE_SINGLE / IS_ON with a plain var name (not indexed) - keep thin wrappers
 :TOGGLE_SINGLE
-call :TOGGLE_ONE %~1
+if "!%~1!"=="%ON%" (set "%~1=%OFF%") else (set "%~1=%ON%")
 exit /b
 
 :IS_ON
@@ -175,11 +163,11 @@ if "!%~1!"=="%ON%" exit /b 0
 exit /b 1
 
 :: %1 = OPT-prefix, %2 = NAME-prefix, %3 = max
-:SHOW_SELECTED_G
+:SHOW_SELECTED
 set "ANY=0"
 for /L %%i in (1,1,%~3) do (
-    call set "cur=%%%~1%%i%%"
-    call set "lbl=%%%~2%%i%%"
+    set "cur=!%~1%%i!"
+    set "lbl=!%~2%%i!"
     if "!cur!"=="%ON%" (
         echo    - !lbl!
         set "ANY=1"
@@ -188,17 +176,15 @@ for /L %%i in (1,1,%~3) do (
 if "!ANY!"=="0" echo    - No selection
 exit /b
 
-:SHOW_SELECTED
-call :SHOW_SELECTED_G OPT NAME %MAX_PROGS%
-exit /b
+:PROCESS_MULTI_INPUT
+:: %1 = Option Prefix (e.g., OPT or BOPT)
+:: %2 = Max Limit (e.g., %MAX_PROGS% or %BUCKET_COUNT%)
 
-:SHOW_SELECTED_BUCKETS
-call :SHOW_SELECTED_G BOPT BUCKET %BUCKET_COUNT%
-exit /b
-
-:MULTI_INPUT
+set "prefix=%~1"
+set "maxLimit=%~2"
 set "invalid="
 set "tokens=%choice:,= %"
+
 for %%G in (%tokens%) do (
     set "tok=%%G"
     set "matched=0"
@@ -214,58 +200,16 @@ for %%G in (%tokens%) do (
         set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
 
         if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq %MAX_PROGS% if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_ONE OPT%%N
+            if !rangeStart! geq 1 if !rangeEnd! leq !maxLimit! if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE !prefix!%%N
                 set "matched=1"
             )
         )
     ) else (
         set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
         if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq %MAX_PROGS% (
-                call :TOGGLE_ONE OPT!tok!
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input:!invalid!
-    pause
-)
-exit /b
-
-:BUCKET_MULTI_INPUT
-set "invalid="
-set "tokens=%choice:,= %"
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        set "rangeStart=" & set "rangeEnd="
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq %BUCKET_COUNT% if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_ONE BOPT%%N
-                set "matched=1"
-            )
-        )
-    ) else (
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq %BUCKET_COUNT% (
-                call :TOGGLE_ONE BOPT!tok!
+            if !tok! geq 1 if !tok! leq !maxLimit! (
+                call :TOGGLE_SINGLE !prefix!!tok!
                 set "matched=1"
             )
         )
@@ -281,24 +225,24 @@ if defined invalid (
 exit /b
 
 :DEFINE_SCOOP_PROGRAMS
-set "SCOOP_PKG1=git"                         & set "SCOOP_NAME1=Git"
-set "SCOOP_PKG2=sourcegit"                   & set "SCOOP_NAME2=SourceGit"
-set "SCOOP_PKG3=gcc"                         & set "SCOOP_NAME3=GCC"
-set "SCOOP_PKG4=llvm"                        & set "SCOOP_NAME4=LLVM / Clang"
-set "SCOOP_PKG5=gdb"                         & set "SCOOP_NAME5=GDB Debugger"
-set "SCOOP_PKG6=make"                        & set "SCOOP_NAME6=Make"
-set "SCOOP_PKG7=cmake"                       & set "SCOOP_NAME7=CMake"
-set "SCOOP_PKG8=ninja"                       & set "SCOOP_NAME8=Ninja"
-set "SCOOP_PKG9=vscode"                      & set "SCOOP_NAME9=Visual Studio Code"
-set "SCOOP_PKG10=geany"                      & set "SCOOP_NAME10=Geany IDE"
-set "SCOOP_PKG11=7zip"                       & set "SCOOP_NAME11=7-Zip"
-set "SCOOP_PKG12=curl"                       & set "SCOOP_NAME12=cURL"
-set "SCOOP_PKG13=ripgrep"                    & set "SCOOP_NAME13=ripgrep"
-set "SCOOP_PKG14=fd"                         & set "SCOOP_NAME14=fd"
-set "SCOOP_PKG15=fzf"                        & set "SCOOP_NAME15=fzf"
-set "SCOOP_PKG16=bat"                        & set "SCOOP_NAME16=bat"
-set "SCOOP_PKG17=neovim"                     & set "SCOOP_NAME17=Neovim"
-set "SCOOP_PKG18=python"                     & set "SCOOP_NAME18=Python"
+set "SCOOP_PKG1=gcc"                          & set "SCOOP_NAME1=GCC"
+set "SCOOP_PKG2=llvm"                         & set "SCOOP_NAME2=LLVM"
+set "SCOOP_PKG3=gdb"                          & set "SCOOP_NAME3=GDB Debugger"
+set "SCOOP_PKG4=make"                         & set "SCOOP_NAME4=Make"
+set "SCOOP_PKG5=cmake"                        & set "SCOOP_NAME5=CMake"
+set "SCOOP_PKG6=ninja"                        & set "SCOOP_NAME6=Ninja"
+set "SCOOP_PKG7=git"                          & set "SCOOP_NAME7=Git"
+set "SCOOP_PKG8=sourcegit"                    & set "SCOOP_NAME8=SourceGit"
+set "SCOOP_PKG9=vscode"                       & set "SCOOP_NAME9=VS Code"
+set "SCOOP_PKG10=neovim"                      & set "SCOOP_NAME10=Neovim"
+set "SCOOP_PKG11=python"                      & set "SCOOP_NAME11=Python"
+set "SCOOP_PKG12=curl"                        & set "SCOOP_NAME12=cURL"
+set "SCOOP_PKG13=ripgrep"                     & set "SCOOP_NAME13=ripgrep"
+set "SCOOP_PKG14=fd"                          & set "SCOOP_NAME14=fd"
+set "SCOOP_PKG15=fzf"                         & set "SCOOP_NAME15=fzf"
+set "SCOOP_PKG16=bat"                         & set "SCOOP_NAME16=bat"
+set "SCOOP_PKG17=duf"                         & set "SCOOP_NAME17=duf"
+set "SCOOP_PKG18=dust"                        & set "SCOOP_NAME18=dust"
 exit /b
 
 :DEFINE_CHOCO_PROGRAMS
@@ -312,7 +256,7 @@ set "CHOCO_PKG7=k-litecodecpack-standard"    & set "CHOCO_NAME7=K-Lite Codec"
 set "CHOCO_PKG8=irfanview irfanviewplugins"  & set "CHOCO_NAME8=IrfanView"
 set "CHOCO_PKG9=sumatrapdf.install"          & set "CHOCO_NAME9=Sumatra PDF"
 set "CHOCO_PKG10=notepadplusplus.install"    & set "CHOCO_NAME10=Notepad++"
-set "CHOCO_PKG11=vscode.install"             & set "CHOCO_NAME11=Visual Studio Code"
+set "CHOCO_PKG11=vscode.install"             & set "CHOCO_NAME11=VS Code"
 set "CHOCO_PKG12=git.install"                & set "CHOCO_NAME12=Git"
 set "CHOCO_PKG13=qbittorrent"                & set "CHOCO_NAME13=qbittorrent"
 set "CHOCO_PKG14=vcredist140"                & set "CHOCO_NAME14=VC++ 2015-2022"
@@ -336,7 +280,7 @@ exit /b
 
 :TOGGLE_MANAGER
 if "%PKGMGR%"=="CHOCO" (set "PKGMGR=SCOOP") else (set "PKGMGR=CHOCO")
-call :RESET_SELECTIONS
+call :DESELECT_ALL OPT %MAX_PROGS%
 call :LOAD_PKGMGR_DATA
 exit /b
 
@@ -356,9 +300,9 @@ exit /b
 :ENSURE_PKGMGR
 if "%PKGMGR%"=="CHOCO" (
     where choco >nul 2>&1
-    if !errorlevel! equ 0 exit /b
+    if !errorlevel! equ 0 exit /b 0
 
-    cls & call "%F%" CHOICE  "Do you want to install Chocolatey package manager"
+    cls & call :CHOICE "Do you want to install Chocolatey package manager"
     if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
     echo. & echo Installing Chocolatey package manager
@@ -371,9 +315,9 @@ if "%PKGMGR%"=="CHOCO" (
     )
 ) else (
     where scoop >nul 2>&1
-    if !errorlevel! equ 0 exit /b
+    if !errorlevel! equ 0 exit /b 0
 
-    cls & call "%F%" CHOICE  "Do you want to install Scoop package manager"
+    cls & call :CHOICE "Do you want to install Scoop package manager"
     if errorlevel 2 goto PROGRAMS_MANAGER_MENU
 
     echo. & echo Installing Scoop package manager
@@ -383,10 +327,10 @@ if "%PKGMGR%"=="CHOCO" (
     where scoop >nul 2>&1
     if !errorlevel! neq 0 (
         echo Scoop installation failed or not found in PATH
-        call "%F%" GO & goto PROGRAMS_MENU
+        call "%F%" GO & exit /b 1
     )
 )
-exit /b
+exit /b 0
 
 :REFRESH_ENV
 if exist "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd" (
@@ -402,7 +346,7 @@ if "%PKGMGR%"=="CHOCO" (
     choco install %~1 -y
     if !errorlevel! neq 0 (
         echo. & echo Failed to install: %~2
-        call "%F%" CHOICE  "Do you want to ignore checksum and retry?"
+        call :CHOICE "Do you want to ignore checksum and retry?"
         if errorlevel 2 (
             echo The program download was ignored
         ) else (
@@ -436,7 +380,7 @@ if "%PKGMGR%"=="CHOCO" (
     if "!found!"=="1" (
         echo.
         echo Official package found: !official_pkg! !official_version!
-        call "%F%" CHOICE  "Do you want to install !official_pkg!?"
+        call :CHOICE "Do you want to install !official_pkg!?"
         if errorlevel 2 (
             echo Installation skipped
         ) else if errorlevel 1 (
@@ -527,7 +471,7 @@ call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
 set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
 if exist "%TARGET_FILE%" (
     echo. & echo %TARGET_FILE%: Already exists
-    call "%F%" CHOICE  "Do you want to delete the existing file and start fresh?"
+    call :CHOICE "Do you want to delete the existing file and start fresh?"
     if errorlevel 2 exit /b 1
 
     del /f /q "%TARGET_FILE%" >nul 2>&1
@@ -544,7 +488,7 @@ set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
 
 if exist "%TARGET_FOLDER%" (
     echo. & echo %TARGET_FOLDER%: Already exists
-    call "%F%" CHOICE  "Do you want to delete the existing backup folder and start fresh?"
+    call :CHOICE "Do you want to delete the existing backup folder and start fresh?"
     if errorlevel 2 exit /b 1
     
     rd /s /q "%TARGET_FOLDER%" >nul 2>&1
@@ -602,13 +546,13 @@ if not exist "%MKDIR_DIR%" (
     mkdir "%~1" >nul 2>&1
     if errorlevel 1 (
         echo Failed to create: %MKDIR_DIR%
-        pause & goto MAIN_MENU
+        pause & exit
     )
 )
 exit /b
 
 :RESTART
-echo. & call "%F%" CHOICE  "Do you want to restart your computer?"
+echo. & call :CHOICE "Do you want to restart your computer?"
 if !errorlevel! equ 1 (
     echo Your computer will restart after 5 seconds
     shutdown /r /t 5
@@ -661,11 +605,11 @@ exit /b
 
 :TOGGLE_VERSION
 if "%OPTV%"=="365" (set "OPTV=2021") else if "%OPTV%"=="2021" (set "OPTV=2019") else if "%OPTV%"=="2019" (set "OPTV=2016") else (set "OPTV=365")
-goto :eof
+exit /b
 
 :TOGGLE_LANGUAGE
 if "%OPTL%"=="ar-sa" (set "OPTL=en-us") else (set "OPTL=ar-sa")
-goto :eof
+exit /b
 
 :CONFIG
 echo. & echo Creating Configuration File for Microsoft Office %OPTV%
@@ -791,7 +735,7 @@ if not exist "%CONFIG_FILE%" (
     echo Failed to create configuration file!
     exit /b 1
 )
-goto :eof
+exit /b
 
 :DEL_CONFIG
 del /f /q "%CONFIG_FILE%" >nul 2>&1

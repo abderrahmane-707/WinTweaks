@@ -15,7 +15,7 @@ if "%choice%"=="1" goto PROGRAMS_MENU_VAR
 if "%choice%"=="2" goto DOWNLOAD_MO
 if "%choice%"=="3" goto REMOVE_MS
 if "%choice%"=="4" (call "%F%" INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
-if "%choice%"=="0" exit /b 99
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-4)" & goto PROGRAMS_MANAGER_MENU
 
@@ -34,6 +34,8 @@ call "%F%" LOAD_PKGMGR_DATA
 
 :PROGRAMS_MENU
 call "%F%" ENSURE_PKGMGR
+if %errorlevel% equ 1 goto PROGRAMS_MANAGER_MENU
+
 cls & echo.
 echo [P] Package Manager: %PKGMGR%
 echo.
@@ -48,21 +50,21 @@ if "%PKGMGR%"=="CHOCO" (
     echo.
     echo                            [4] WinRAR                    [10] Notepad++                [16] IObit Unlocker
     echo.
-    echo                            [5] 7-Zip                     [11] Visual Studio Code       [17] AutoHotkey
+    echo                            [5] 7-Zip                     [11] VS Code                  [17] AutoHotkey
     echo.
     echo                            [6] VLC                       [12] Git                      [18] MEGA
 ) else (
-    echo                            [1] Git                       [7] CMake                     [13] ripgrep
+    echo                            [1] GCC                      [7] Git                       [13] ripgrep
     echo.
-    echo                            [2] SourceGit                 [8] Ninja                     [14] fd
+    echo                            [2] LLVM                     [8] SourceGit                 [14] fd
     echo.
-    echo                            [3] GCC                       [9] Visual Studio Code        [15] fzf
+    echo                            [3] GDB Debugger             [9] VS Code                   [15] fzf
     echo.
-    echo                            [4] LLVM / Clang              [10] Geany IDE                [16] bat
+    echo                            [4] Make                     [10] Neovim                   [16] bat
     echo.
-    echo                            [5] GDB Debugger              [11] 7-Zip                    [17] Neovim
+    echo                            [5] CMake                    [11] Python                   [17] duf
     echo.
-    echo                            [6] Make                      [12] cURL                     [18] Python
+    echo                            [6] Ninja                    [12] cURL                     [18] dust
 )
 
 echo.
@@ -70,7 +72,7 @@ echo                        ----------------------------------------------------
 echo.
 echo                             [A] Select All               [D] Deselect All             [M] More
 echo.
-echo                             [U] Update Programs          [X] Remove Programs          [0] Back
+echo                             [U] Update Programs          [R] Remove Programs          [0] Back
 
 if "%PKGMGR%"=="SCOOP" (
     echo.
@@ -78,7 +80,7 @@ if "%PKGMGR%"=="SCOOP" (
 )
 
 echo. & echo Selected programs:
-call "%F%" SHOW_SELECTED_G OPT NAME %MAX_PROGS%
+call "%F%" SHOW_SELECTED OPT NAME %MAX_PROGS%
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -89,17 +91,13 @@ if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 if /i "%choice%"=="S" goto RUN_PROGRAMS
 if /i "%choice%"=="A" (call "%F%" SELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
 if /i "%choice%"=="D" (call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
-if /i "%choice%"=="P" goto TOGGLE_AND_RETURN
+if /i "%choice%"=="P" (call "%F%" TOGGLE_MANAGER & call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
 if /i "%choice%"=="U" goto UPDATE_MENU
-if /i "%choice%"=="X" goto REMOVE_MENU
+if /i "%choice%"=="R" goto REMOVE_MENU
 if /i "%choice%"=="M" goto MORE_PROG
 if /I "%choice%"=="B" goto BUCKET_MENU_VAR
 
-call "%F%" MULTI_INPUT
-goto PROGRAMS_MENU
-
-:TOGGLE_AND_RETURN
-call "%F%" TOGGLE_MANAGER
+call "%F%" PROCESS_MULTI_INPUT OPT %MAX_PROGS%
 goto PROGRAMS_MENU
 
 :RUN_PROGRAMS
@@ -132,7 +130,6 @@ if /i "%choice%"=="ALL" (
     if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k *)
 ) else (
     cls
-	call scoop update -k
     for %%G in (%choice:,= %) do (
         echo. & echo Updating: %%G
         if "%PKGMGR%"=="CHOCO" (call choco upgrade %%G -y) else (call scoop update -k %%G)
@@ -189,8 +186,7 @@ call "%F%" GO & goto PROGRAMS_MENU
 :BUCKET_MENU_VAR
 if not "%PKGMGR%"=="SCOOP" (
     echo. & echo Buckets are only available when the package manager is Scoop
-    pause
-    goto PROGRAMS_MENU
+    pause & goto PROGRAMS_MENU
 )
 
 :BUCKET_MENU
@@ -210,7 +206,7 @@ echo.
 echo                             [I] Install Selected    [R] Remove Selected
 
 echo. & echo Selected buckets:
-call "%F%" SHOW_SELECTED_G BOPT BUCKET %BUCKET_COUNT%
+call "%F%" SHOW_SELECTED BOPT BUCKET %BUCKET_COUNT%
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -223,7 +219,7 @@ if /i "%choice%"=="D" (call "%F%" DESELECT_ALL BOPT %BUCKET_COUNT% & goto BUCKET
 if /i "%choice%"=="I" goto INSTALL_BUCKETS
 if /i "%choice%"=="R" goto REMOVE_BUCKETS
 
-call "%F%" BUCKET_MULTI_INPUT
+call "%F%" PROCESS_MULTI_INPUT BOPT %BUCKET_COUNT%
 goto BUCKET_MENU
 
 :INSTALL_BUCKETS
@@ -251,13 +247,13 @@ call "%F%" GO & call "%F%" DESELECT_ALL BOPT %BUCKET_COUNT% & goto BUCKET_MENU
 :DOWNLOAD_MO
 :: Define basic variables
 set "ON=(YES)"
-set "OFF=(NO) "
+set "OFF=(NO)"
 set "MAX_PROGS=12"
 
 :: Set default programs values - ALL OFF by default
 call "%F%" DESELECT_ALL OPT %MAX_PROGS%
 
-:: Program names to use the generic SHOW_SELECTED_G function
+:: Program names to use the generic SHOW_SELECTED function
 set "NAME1=Word" & set "NAME2=Excel" & set "NAME3=PowerPoint" & set "NAME4=Outlook"
 set "NAME5=OneNote" & set "NAME6=Publisher" & set "NAME7=Access" & set "NAME8=Visio"
 set "NAME9=Project" & set "NAME10=Proofing Tools" & set "NAME11=Teams" & set "NAME12=OneDrive"
@@ -340,7 +336,7 @@ echo.
 echo              ---------------------------------------------------------------------------
 
 echo. & echo Selected programs for %ARCH_MSG%:
-call "%F%" SHOW_SELECTED_G OPT NAME %MAX_PROGS%
+call "%F%" SHOW_SELECTED OPT NAME %MAX_PROGS%
 
 echo. & echo Tip: you can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -350,19 +346,19 @@ if "%choice%"=="" goto OFFICE_MENU
 :: Process single-key input
 for /l %%i in (1,1,12) do (
     if "%choice%"=="%%i" (
-        call "%F%" TOGGLE_ONE OPT%%i && goto OFFICE_MENU
+        call "%F%" TOGGLE_SINGLE OPT%%i && goto OFFICE_MENU
     )
 )
 
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 if /i "%choice%"=="V" call "%F%" TOGGLE_VERSION && goto OFFICE_MENU
 if /i "%choice%"=="L" call "%F%" TOGGLE_LANGUAGE && goto OFFICE_MENU
-if /i "%choice%"=="M" call "%F%" TOGGLE_ONE OPTM && goto OFFICE_MENU
+if /i "%choice%"=="M" call "%F%" TOGGLE_SINGLE OPTM && goto OFFICE_MENU
 if /i "%choice%"=="A" (call "%F%" SELECT_ALL OPT %MAX_PROGS% & goto OFFICE_MENU)
 if /i "%choice%"=="D" (call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto OFFICE_MENU)
 if /i "%choice%"=="S" goto CONTINUE
 
-call "%F%" MULTI_INPUT
+call "%F%" PROCESS_MULTI_INPUT OPT %MAX_PROGS%
 goto OFFICE_MENU
 
 :: Continue installation
@@ -380,7 +376,7 @@ if "!HASSELECTION!"=="%OFF%" (
 )
 
 echo. & echo Selected programs:
-call "%F%" SHOW_SELECTED_G OPT NAME %MAX_PROGS%
+call "%F%" SHOW_SELECTED OPT NAME %MAX_PROGS%
 
 echo.
 echo    Installation Architecture: %ARCH_MSG%
