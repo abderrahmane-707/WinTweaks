@@ -384,8 +384,7 @@ if "%PKGMGR%"=="CHOCO" (
         if errorlevel 2 (
             echo Installation skipped
         ) else if errorlevel 1 (
-            echo Installing !official_pkg!
-            choco install "!official_pkg!" -y
+            call :TRY_ACTION "!official_pkg!" "!official_pkg!"
         )
     ) else (
         echo No exact match for "%app%" was found
@@ -402,6 +401,39 @@ if "%PKGMGR%"=="CHOCO" (
     set "installName="
     set /p "installName=Enter the exact package name to install (or leave blank to skip): "
     if not "!installName!"=="" call scoop install -k "!installName!"
+)
+exit /b
+
+:PKG_BULK_ACTION
+set "bulkAction=%~1"
+
+if /i "%choice%"=="ALL" (
+    cls
+    if /i "%bulkAction%"=="upgrade" (
+        echo Updating all programs
+        if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k *)
+    ) else (
+        echo Removing all programs
+        if "%PKGMGR%"=="CHOCO" (
+            for /f "tokens=1 delims=|" %%P in ('call choco list --local-only -r 2^>nul') do (
+                if not "%%P"=="" call choco uninstall %%P -y
+            )
+        ) else (
+            for /f "skip=1 tokens=1" %%P in ('call scoop list 2^>nul') do (
+                if not "%%P"=="" call scoop uninstall %%P
+            )
+        )
+    )
+) else (
+    cls
+    for %%G in (%choice:,= %) do (
+        echo. & echo Processing: %%G
+        if "%PKGMGR%"=="CHOCO" (
+            call choco %bulkAction% %%G -y
+        ) else (
+            if /i "%bulkAction%"=="upgrade" (call scoop update -k %%G) else (call scoop uninstall %%G)
+        )
+    )
 )
 exit /b
 
@@ -739,4 +771,4 @@ exit /b
 
 :DEL_CONFIG
 del /f /q "%CONFIG_FILE%" >nul 2>&1
-goto :eof
+exit /b

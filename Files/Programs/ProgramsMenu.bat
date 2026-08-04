@@ -125,17 +125,7 @@ set "choice=" & set /p "choice=--> "
 if "%choice%"=="0" goto PROGRAMS_MENU
 if "%choice%"=="" goto UPDATE_MENU
 
-if /i "%choice%"=="ALL" (
-    cls & echo Updating all programs
-    if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k *)
-) else (
-    cls
-    for %%G in (%choice:,= %) do (
-        echo. & echo Updating: %%G
-        if "%PKGMGR%"=="CHOCO" (call choco upgrade %%G -y) else (call scoop update -k %%G)
-    )
-)
-
+call "%F%" PKG_BULK_ACTION "upgrade"
 call "%F%" GO & goto PROGRAMS_MENU
 
 :REMOVE_MENU
@@ -154,26 +144,7 @@ set "choice=" & set /p "choice=--> "
 if "%choice%"=="0" goto PROGRAMS_MENU
 if "%choice%"=="" goto REMOVE_MENU
 
-if /i "%choice%"=="ALL" (
-    cls & echo Removing all programs
-    if "%PKGMGR%"=="CHOCO" (
-        rem -r prints "name|version" with no header, so no skip needed and it's stable across choco versions
-        for /f "tokens=1 delims=|" %%P in ('call choco list --local-only -r 2^>nul') do (
-            if not "%%P"=="" call choco uninstall %%P -y
-        )
-    ) else (
-        for /f "skip=1 tokens=1" %%P in ('call scoop list 2^>nul') do (
-            if not "%%P"=="" call scoop uninstall %%P
-        )
-    )
-) else (
-    cls
-    for %%G in (%choice:,= %) do (
-        echo. & echo Removing: %%G
-        if "%PKGMGR%"=="CHOCO" (call choco uninstall %%G -y) else (call scoop uninstall %%G)
-    )
-)
-
+call "%F%" PKG_BULK_ACTION "uninstall"
 call "%F%" GO & goto PROGRAMS_MENU
 
 :MORE_PROG
