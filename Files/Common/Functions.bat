@@ -303,7 +303,7 @@ if "%PKGMGR%"=="CHOCO" (
     if !errorlevel! equ 0 exit /b 0
 
     cls & call :CHOICE "Do you want to install Chocolatey package manager"
-    if errorlevel 2 goto PROGRAMS_MANAGER_MENU
+    if errorlevel 2 exit /b 1
 
     echo. & echo Installing Chocolatey package manager
     powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
@@ -311,14 +311,14 @@ if "%PKGMGR%"=="CHOCO" (
     where choco >nul 2>&1
     if !errorlevel! neq 0 (
         echo Chocolatey installation failed or not found in PATH
-        call "%F%" GO & goto PROGRAMS_MENU
+		call "%F%" GO & exit /b 1
     )
 ) else (
     where scoop >nul 2>&1
     if !errorlevel! equ 0 exit /b 0
 
     cls & call :CHOICE "Do you want to install Scoop package manager"
-    if errorlevel 2 goto PROGRAMS_MANAGER_MENU
+    if errorlevel 2 exit /b 1
 
     echo. & echo Installing Scoop package manager
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
