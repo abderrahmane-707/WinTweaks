@@ -58,25 +58,25 @@ if "%PKGMGR%"=="CHOCO" (
     echo.
     echo                            [2] LLVM                     [8] SourceGit                 [14] fd
     echo.
-    echo                            [3] GDB Debugger             [9] VS Code                   [15] fzf
+    echo                            [3] GDB Debugger             [9] VS Code                   [15] fastfetch
     echo.
-    echo                            [4] Make                     [10] Neovim                   [16] bat
+    echo                            [4] Make                     [10] Neovim                   [16] micro
     echo.
-    echo                            [5] CMake                    [11] Python                   [17] duf
+    echo                            [5] CMake                    [11] Python                   [17] yazi
     echo.
-    echo                            [6] Ninja                    [12] cURL                     [18] dust
+    echo                            [6] Ninja                    [12] cURL                     [18] btop
 )
 
 echo.
 echo                        --------------------------------------------------------------------------------
 echo.
-echo                             [A] Select All               [D] Deselect All             [M] More
+echo                            [A] Select All               [D] Deselect All               [M] More
 echo.
-echo                             [U] Update Programs          [R] Remove Programs          [0] Back
+echo                            [U] Update Programs          [R] Remove Programs            [0] Back
 
 if "%PKGMGR%"=="SCOOP" (
     echo.
-	echo                             [B] Manage Buckets
+	echo                            [B] Manage Buckets
 )
 
 echo. & echo Selected programs:
@@ -137,10 +137,7 @@ call "%F%" PKG_BULK_ACTION "upgrade"
 call "%F%" GO & goto PROGRAMS_MENU
 
 :REMOVE_MENU
-cls & echo Installed programs
-echo.
-if "%PKGMGR%"=="CHOCO" (call choco list --local-only) else (call scoop list)
-
+cls & if "%PKGMGR%"=="CHOCO" (call choco list) else (call scoop list)
 echo.
 echo --------------------------------------------------------------------------------
 echo Type ALL to remove everything.

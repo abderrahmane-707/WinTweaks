@@ -239,10 +239,10 @@ set "SCOOP_PKG11=python"                      & set "SCOOP_NAME11=Python"
 set "SCOOP_PKG12=curl"                        & set "SCOOP_NAME12=cURL"
 set "SCOOP_PKG13=ripgrep"                     & set "SCOOP_NAME13=ripgrep"
 set "SCOOP_PKG14=fd"                          & set "SCOOP_NAME14=fd"
-set "SCOOP_PKG15=fzf"                         & set "SCOOP_NAME15=fzf"
-set "SCOOP_PKG16=bat"                         & set "SCOOP_NAME16=bat"
-set "SCOOP_PKG17=duf"                         & set "SCOOP_NAME17=duf"
-set "SCOOP_PKG18=dust"                        & set "SCOOP_NAME18=dust"
+set "SCOOP_PKG15=fastfetch"                         & set "SCOOP_NAME15=fastfetch"
+set "SCOOP_PKG16=micro"                         & set "SCOOP_NAME16=micro"
+set "SCOOP_PKG17=yazi"                         & set "SCOOP_NAME17=yazi"
+set "SCOOP_PKG18=btop"                        & set "SCOOP_NAME18=btop"
 exit /b
 
 :DEFINE_CHOCO_PROGRAMS
@@ -416,7 +416,7 @@ if /i "%choice%"=="ALL" (
     ) else (
         echo Removing all programs
         if "%PKGMGR%"=="CHOCO" (
-            for /f "tokens=1 delims=|" %%P in ('call choco list --local-only -r 2^>nul') do (
+            for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
                 if not "%%P"=="" call choco uninstall %%P -y
             )
         ) else (
@@ -440,9 +440,9 @@ exit /b
 
 :WHERE_7Z
 where 7z.exe >nul 2>&1 && (
-    call scoop config 7ZIPEXTRACT_USE_EXTERNAL true >nul 2>&1
+    call scoop config use_external_7zip true >nul 2>&1
 ) || (
-    call scoop config 7ZIPEXTRACT_USE_EXTERNAL false >nul 2>&1
+    call scoop config use_external_7zip false >nul 2>&1
 )
 exit /b
 	
