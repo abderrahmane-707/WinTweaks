@@ -409,7 +409,6 @@ exit /b
 set "bulkAction=%~1"
 
 if /i "%choice%"=="ALL" (
-    cls
     if /i "%bulkAction%"=="upgrade" (
         echo Updating all programs
         if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k * && call scoop cleanup *)
@@ -417,7 +416,10 @@ if /i "%choice%"=="ALL" (
         echo Removing all programs
         if "%PKGMGR%"=="CHOCO" (
             for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
-                if not "%%P"=="" call choco uninstall %%P -y
+                if not "%%P"=="" (
+                    echo %%P | findstr /i "chocolatey" >nul
+                    if !errorlevel! neq 0 call choco uninstall %%P -y
+                )
             )
         ) else (
             for /f "skip=1 tokens=1" %%P in ('call scoop list 2^>nul') do (
@@ -426,7 +428,6 @@ if /i "%choice%"=="ALL" (
         )
     )
 ) else (
-    cls
     for %%G in (%choice:,= %) do (
         echo. & echo Processing: %%G
         if "%PKGMGR%"=="CHOCO" (
