@@ -323,12 +323,13 @@ if "%PKGMGR%"=="CHOCO" (
     echo. & echo Installing Scoop package manager
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
     if exist "%USERPROFILE%\scoop\shims" set "PATH=%PATH%;%USERPROFILE%\scoop\shims"
-    call scoop config auto_cleanup true >nul 2>&1
     where scoop >nul 2>&1
     if !errorlevel! neq 0 (
         echo Scoop installation failed or not found in PATH
         call "%F%" GO & exit /b 1
     )
+	call scoop config auto_cleanup true >nul 2>&1
+	call "%F%" WHERE_7Z
 )
 exit /b 0
 
@@ -400,7 +401,7 @@ if "%PKGMGR%"=="CHOCO" (
     echo.
     set "installName="
     set /p "installName=Enter the exact package name to install (or leave blank to skip): "
-    if not "!installName!"=="" call scoop install -k "!installName!"
+    if not "!installName!"=="" call :TRY_ACTION "!installName!" "!installName!"
 )
 exit /b
 
@@ -431,12 +432,20 @@ if /i "%choice%"=="ALL" (
         if "%PKGMGR%"=="CHOCO" (
             call choco %bulkAction% %%G -y
         ) else (
-            if /i "%bulkAction%"=="upgrade" (call scoop update -k %%G) else (call scoop uninstall %%G)
+            if /i "%bulkAction%"=="upgrade" (call scoop update -k %%G && call scoop cleanup %%G) else (call scoop uninstall %%G)
         )
     )
 )
 exit /b
 
+:WHERE_7Z
+where 7z.exe >nul 2>&1 && (
+    call scoop config 7ZIPEXTRACT_USE_EXTERNAL true >nul 2>&1
+) || (
+    call scoop config 7ZIPEXTRACT_USE_EXTERNAL false >nul 2>&1
+)
+exit /b
+	
 :NET_CONTROL
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)

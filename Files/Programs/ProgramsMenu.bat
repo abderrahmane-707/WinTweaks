@@ -102,6 +102,7 @@ goto PROGRAMS_MENU
 
 :RUN_PROGRAMS
 cls
+if "%PKGMGR%"=="SCOOP" call "%F%" WHERE_7Z
 for /L %%i in (1,1,%MAX_PROGS%) do (
     if "!OPT%%i!"=="%ON%" (
         call "%F%" TRY_ACTION "!PKG%%i!" "!NAME%%i!"
@@ -113,7 +114,14 @@ call "%F%" GO & call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU
 cls & echo Checking available updates
 
 echo.
-if "%PKGMGR%"=="CHOCO" (call choco outdated) else (call scoop status)
+if "%PKGMGR%"=="CHOCO" (
+    call choco outdated
+) else (
+    call "%F%" WHERE_7Z
+    call scoop update
+    call scoop status
+)
+
 echo.
 echo --------------------------------------------------------------------------------
 echo Type ALL to update everything
@@ -151,6 +159,7 @@ call "%F%" GO & goto PROGRAMS_MENU
 cls & set "apps=" & set /p apps="Enter app name(s) separated by spaces: "
 if "%apps%"=="" goto MORE_PROG
 
+if "%PKGMGR%"=="SCOOP" call "%F%" WHERE_7Z
 for %%A in (%apps%) do call "%F%" PROCESS_APP "%%A"
 call "%F%" GO & goto PROGRAMS_MENU
 
