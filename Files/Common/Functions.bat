@@ -412,7 +412,7 @@ if /i "%choice%"=="ALL" (
     cls
     if /i "%bulkAction%"=="upgrade" (
         echo Updating all programs
-        if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k *)
+        if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k * && call scoop cleanup *)
     ) else (
         echo Removing all programs
         if "%PKGMGR%"=="CHOCO" (
