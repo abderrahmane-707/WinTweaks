@@ -423,7 +423,7 @@ if /i "%choice%"=="ALL" (
             )
         ) else (
             for /f "skip=1 tokens=1" %%P in ('call scoop list 2^>nul') do (
-                if not "%%P"=="" call scoop uninstall %%P
+                if not "%%P"=="" call scoop uninstall %%P --purge
             )
         )
     )
@@ -433,7 +433,7 @@ if /i "%choice%"=="ALL" (
         if "%PKGMGR%"=="CHOCO" (
             call choco %bulkAction% %%G -y
         ) else (
-            if /i "%bulkAction%"=="upgrade" (call scoop update -k %%G && call scoop cleanup %%G) else (call scoop uninstall %%G)
+            if /i "%bulkAction%"=="upgrade" (call scoop update -k %%G && call scoop cleanup %%G) else (call scoop uninstall %%G --purge)
         )
     )
 )
