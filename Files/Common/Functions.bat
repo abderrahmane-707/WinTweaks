@@ -225,24 +225,24 @@ if defined invalid (
 exit /b
 
 :DEFINE_SCOOP_PROGRAMS
-set "SCOOP_PKG1=gcc"                          & set "SCOOP_NAME1=GCC"
-set "SCOOP_PKG2=llvm"                         & set "SCOOP_NAME2=LLVM"
-set "SCOOP_PKG3=gdb"                          & set "SCOOP_NAME3=GDB Debugger"
-set "SCOOP_PKG4=make"                         & set "SCOOP_NAME4=Make"
-set "SCOOP_PKG5=cmake"                        & set "SCOOP_NAME5=CMake"
-set "SCOOP_PKG6=ninja"                        & set "SCOOP_NAME6=Ninja"
-set "SCOOP_PKG7=git"                          & set "SCOOP_NAME7=Git"
-set "SCOOP_PKG8=sourcegit"                    & set "SCOOP_NAME8=SourceGit"
-set "SCOOP_PKG9=vscode"                       & set "SCOOP_NAME9=VS Code"
-set "SCOOP_PKG10=neovim"                      & set "SCOOP_NAME10=Neovim"
-set "SCOOP_PKG11=python"                      & set "SCOOP_NAME11=Python"
-set "SCOOP_PKG12=curl"                        & set "SCOOP_NAME12=cURL"
-set "SCOOP_PKG13=ripgrep"                     & set "SCOOP_NAME13=ripgrep"
-set "SCOOP_PKG14=fd"                          & set "SCOOP_NAME14=fd"
-set "SCOOP_PKG15=fastfetch"                         & set "SCOOP_NAME15=fastfetch"
-set "SCOOP_PKG16=micro"                         & set "SCOOP_NAME16=micro"
-set "SCOOP_PKG17=yazi"                         & set "SCOOP_NAME17=yazi"
-set "SCOOP_PKG18=btop"                        & set "SCOOP_NAME18=btop"
+set "SCOOP_PKG1=gcc"                           & set "SCOOP_NAME1=GCC"
+set "SCOOP_PKG2=gdb"                           & set "SCOOP_NAME2=GDB Debugger"
+set "SCOOP_PKG3=cppcheck"                      & set "SCOOP_NAME3=cppcheck"
+set "SCOOP_PKG4=cmake"                         & set "SCOOP_NAME4=CMake"
+set "SCOOP_PKG5=make"                          & set "SCOOP_NAME5=Make"
+set "SCOOP_PKG6=ninja"                         & set "SCOOP_NAME6=Ninja"
+set "SCOOP_PKG7=git"                           & set "SCOOP_NAME7=Git"
+set "SCOOP_PKG8=sourcegit"                     & set "SCOOP_NAME8=SourceGit"
+set "SCOOP_PKG9=vscode"                        & set "SCOOP_NAME9=VS Code"
+set "SCOOP_PKG10=neovim"                       & set "SCOOP_NAME10=Neovim"
+set "SCOOP_PKG11=micro"                        & set "SCOOP_NAME11=micro"
+set "SCOOP_PKG12=yazi"                         & set "SCOOP_NAME12=yazi"
+set "SCOOP_PKG13=yt-dlp"                       & set "SCOOP_NAME13=yt-dlp"
+set "SCOOP_PKG14=curl"                         & set "SCOOP_NAME14=cURL"
+set "SCOOP_PKG15=aria2"                        & set "SCOOP_NAME15=aria2"
+set "SCOOP_PKG16=ripgrep"                      & set "SCOOP_NAME16=ripgrep"
+set "SCOOP_PKG17=fd"                           & set "SCOOP_NAME17=fd"
+set "SCOOP_PKG18=btop"                         & set "SCOOP_NAME18=btop"
 exit /b
 
 :DEFINE_CHOCO_PROGRAMS
@@ -298,7 +298,6 @@ set "BUCKET9=nirsoft"
 exit /b
 
 :ENSURE_PKGMGR
-if "%PKGMGR%"=="CHOCO" (
     where choco >nul 2>&1
     if !errorlevel! equ 0 exit /b 0
 
@@ -313,24 +312,6 @@ if "%PKGMGR%"=="CHOCO" (
         echo Chocolatey installation failed or not found in PATH
 		call "%F%" GO & exit /b 1
     )
-) else (
-    where scoop >nul 2>&1
-    if !errorlevel! equ 0 exit /b 0
-
-    cls & call :CHOICE "Do you want to install Scoop package manager"
-    if errorlevel 2 exit /b 1
-
-    echo. & echo Installing Scoop package manager
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')"
-    if exist "%USERPROFILE%\scoop\shims" set "PATH=%PATH%;%USERPROFILE%\scoop\shims"
-    where scoop >nul 2>&1
-    if !errorlevel! neq 0 (
-        echo Scoop installation failed or not found in PATH
-        call "%F%" GO & exit /b 1
-    )
-	call scoop config auto_cleanup true >nul 2>&1
-	call "%F%" WHERE_7Z
-)
 exit /b 0
 
 :REFRESH_ENV
