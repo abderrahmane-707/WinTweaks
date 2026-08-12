@@ -11,9 +11,8 @@
 * Disable unnecessary background tasks
 * Disable Windows telemetry
 * Disable Windows Update
-* Download Microsoft Office Suite
 * Improve startup performance
-* Install common software packages using Chocolatey & Scoop (Package Manager)
+* Install common software packages using Chocolatey
 * Remove temporary files
 * Safely disable unnecessary Windows services
 * Show Hardware Information
