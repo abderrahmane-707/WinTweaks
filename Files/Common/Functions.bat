@@ -6,7 +6,6 @@ if "%~1" neq "" (
 )
 exit /b 1
 
-:: ----------------------------------------------------------------< MAIN FUNCTIONS >----------------------------------------------------------------
 :SET_TASKS
 :: %~1 = Action (Enable/Disable)
 :: %~2 = Path to text file containing task names
@@ -224,27 +223,6 @@ if defined invalid (
 )
 exit /b
 
-:DEFINE_SCOOP_PROGRAMS
-set "SCOOP_PKG1=gcc"                           & set "SCOOP_NAME1=GCC"
-set "SCOOP_PKG2=gdb"                           & set "SCOOP_NAME2=GDB Debugger"
-set "SCOOP_PKG3=cppcheck"                      & set "SCOOP_NAME3=cppcheck"
-set "SCOOP_PKG4=cmake"                         & set "SCOOP_NAME4=CMake"
-set "SCOOP_PKG5=make"                          & set "SCOOP_NAME5=Make"
-set "SCOOP_PKG6=ninja"                         & set "SCOOP_NAME6=Ninja"
-set "SCOOP_PKG7=git"                           & set "SCOOP_NAME7=Git"
-set "SCOOP_PKG8=sourcegit"                     & set "SCOOP_NAME8=SourceGit"
-set "SCOOP_PKG9=vscode"                        & set "SCOOP_NAME9=VS Code"
-set "SCOOP_PKG10=neovim"                       & set "SCOOP_NAME10=Neovim"
-set "SCOOP_PKG11=micro"                        & set "SCOOP_NAME11=micro"
-set "SCOOP_PKG12=yazi"                         & set "SCOOP_NAME12=yazi"
-set "SCOOP_PKG13=yt-dlp"                       & set "SCOOP_NAME13=yt-dlp"
-set "SCOOP_PKG14=curl"                         & set "SCOOP_NAME14=cURL"
-set "SCOOP_PKG15=aria2"                        & set "SCOOP_NAME15=aria2"
-set "SCOOP_PKG16=ripgrep"                      & set "SCOOP_NAME16=ripgrep"
-set "SCOOP_PKG17=fd"                           & set "SCOOP_NAME17=fd"
-set "SCOOP_PKG18=btop"                         & set "SCOOP_NAME18=btop"
-exit /b
-
 :DEFINE_CHOCO_PROGRAMS
 set "CHOCO_PKG1=googlechrome"                & set "CHOCO_NAME1=Google Chrome"
 set "CHOCO_PKG2=brave"                       & set "CHOCO_NAME2=Brave"
@@ -266,124 +244,73 @@ set "CHOCO_PKG17=autohotkey.install"         & set "CHOCO_NAME17=AutoHotkey"
 set "CHOCO_PKG18=megasync"                   & set "CHOCO_NAME18=MEGA"
 exit /b
 
-:LOAD_PKGMGR_DATA
-for /L %%i in (1,1,%MAX_PROGS%) do (
-    if "%PKGMGR%"=="CHOCO" (
-        set "PKG%%i=!CHOCO_PKG%%i!"
-        set "NAME%%i=!CHOCO_NAME%%i!"
-    ) else (
-        set "PKG%%i=!SCOOP_PKG%%i!"
-        set "NAME%%i=!SCOOP_NAME%%i!"
-    )
-)
-exit /b
-
-:TOGGLE_MANAGER
-if "%PKGMGR%"=="CHOCO" (set "PKGMGR=SCOOP") else (set "PKGMGR=CHOCO")
-call :DESELECT_ALL OPT %MAX_PROGS%
-call :LOAD_PKGMGR_DATA
-exit /b
-
-:DEFINE_SCOOP_BUCKETS
-set "BUCKET_COUNT=9"
-set "BUCKET1=extras"
-set "BUCKET2=versions"
-set "BUCKET3=java"
-set "BUCKET4=php"
-set "BUCKET5=games"
-set "BUCKET6=nerd-fonts"
-set "BUCKET7=nonportable"
-set "BUCKET8=sysinternals"
-set "BUCKET9=nirsoft"
-exit /b
-
 :ENSURE_PKGMGR
-    where choco >nul 2>&1
-    if !errorlevel! equ 0 exit /b 0
+where choco >nul 2>&1
+if !errorlevel! equ 0 exit /b 0
 
-    cls & call :CHOICE "Do you want to install Chocolatey package manager"
-    if errorlevel 2 exit /b 1
+cls & call :CHOICE "Do you want to install Chocolatey package manager"
+if errorlevel 2 exit /b 1
 
-    echo. & echo Installing Chocolatey package manager
-    powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
-    call :REFRESH_ENV
-    where choco >nul 2>&1
-    if !errorlevel! neq 0 (
-        echo Chocolatey installation failed or not found in PATH
-		call "%F%" GO & exit /b 1
-    )
-exit /b 0
-
-:REFRESH_ENV
-if exist "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd" (
-    call "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd" >nul 2>&1
-) else (
-    if exist "%ALLUSERSPROFILE%\chocolatey\bin" set "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+echo. & echo Installing Chocolatey package manager
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
+call "%ALLUSERSPROFILE%\chocolatey\bin\RefreshEnv.cmd" >nul
+where choco >nul 2>&1
+if !errorlevel! neq 0 (
+    echo Chocolatey installation failed or not found in PATH
+	call "%F%" GO & exit /b 1
 )
-exit /b
+exit /b 0
 
 :TRY_ACTION
 echo. & echo Installing: %~2
-if "%PKGMGR%"=="CHOCO" (
-    choco install %~1 -y
-    if !errorlevel! neq 0 (
-        echo. & echo Failed to install: %~2
-        call :CHOICE "Do you want to ignore checksum and retry?"
-        if errorlevel 2 (
-            echo The program download was ignored
-        ) else (
-            echo. & echo Retrying with --ignore-checksums
-            choco install %~1 --ignore-checksums -y
-        )
-    )
-) else (
-    call scoop install -k %~1
-    if !errorlevel! neq 0 (
-        echo. & echo Failed to install: %~2
+choco install %~1 -y
+if !errorlevel! neq 0 (
+    echo. & echo Failed to install: %~2
+    call :CHOICE "Do you want to ignore checksum and retry?"
+    if errorlevel 2 (
+        echo The program download was ignored
+    ) else (
+        echo. & echo Retrying with --ignore-checksums
+        choco install %~1 --ignore-checksums -y
     )
 )
 exit /b
 
 :PROCESS_APP
 set "app=%~1"
-echo. & echo Searching for: %app%
-if "%PKGMGR%"=="CHOCO" (
-    choco search "%app%" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
+echo.
+echo Searching for: %app%
 
-    set "found=0"
-    set "official_pkg="
-    set "official_version="
-    for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do (
-        set "found=1"
-        set "official_pkg=%%L"
-        set "official_version=%%M"
-    )
+choco search "%app%" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
+set "found=0"
+set "official_pkg="
+set "official_version="
 
-    if "!found!"=="1" (
-        echo.
-        echo Official package found: !official_pkg! !official_version!
-        call :CHOICE "Do you want to install !official_pkg!?"
-        if errorlevel 2 (
-            echo Installation skipped
-        ) else if errorlevel 1 (
-            call :TRY_ACTION "!official_pkg!" "!official_pkg!"
-        )
-    ) else (
-        echo No exact match for "%app%" was found
-        echo Similar packages available in Chocolatey:
-        echo.
-        choco search "%app%" --limit-output
-        echo.
-        echo No package was installed automatically. Check the list above and pick the correct name if available
-    )
-    del "%temp%\choco_result.txt" >nul 2>&1
-) else (
-    scoop search "%app%"
-    echo.
-    set "installName="
-    set /p "installName=Enter the exact package name to install (or leave blank to skip): "
-    if not "!installName!"=="" call :TRY_ACTION "!installName!" "!installName!"
+for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do (
+    set "found=1"
+    set "official_pkg=%%L"
+    set "official_version=%%M"
 )
+
+if "!found!"=="1" (
+    echo.
+    echo Official package found: !official_pkg! !official_version!
+    call :CHOICE "Do you want to install !official_pkg!?"
+    if errorlevel 2 (
+        echo Installation skipped.
+    ) else if errorlevel 1 (
+        call :TRY_ACTION "!official_pkg!" "!official_pkg!"
+    )
+) else (
+    echo No exact match for "%app%" was found.
+    echo Similar packages available in Chocolatey:
+    echo.
+    choco search "%app%" --limit-output
+    echo.
+    echo No package was installed automatically. Check the list above and pick the correct name if available.
+)
+
+del "%temp%\choco_result.txt" >nul 2>&1
 exit /b
 
 :PKG_BULK_ACTION
@@ -391,40 +318,23 @@ set "bulkAction=%~1"
 
 if /i "%choice%"=="ALL" (
     if /i "%bulkAction%"=="upgrade" (
-        echo Updating all programs
-        if "%PKGMGR%"=="CHOCO" (call choco upgrade all -y) else (call scoop update -k * && call scoop cleanup *)
+        echo Updating all programs...
+        call choco upgrade all -y
     ) else (
-        echo Removing all programs
-        if "%PKGMGR%"=="CHOCO" (
-            for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
-                if not "%%P"=="" (
-                    echo %%P | findstr /i "chocolatey" >nul
-                    if !errorlevel! neq 0 call choco uninstall %%P -y
-                )
-            )
-        ) else (
-            for /f "skip=1 tokens=1" %%P in ('call scoop list 2^>nul') do (
-                if not "%%P"=="" call scoop uninstall %%P --purge
+        echo Removing all programs...
+        for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
+            if not "%%P"=="" (
+                echo %%P | findstr /i "chocolatey" >nul
+                if !errorlevel! neq 0 call choco uninstall %%P -y
             )
         )
     )
 ) else (
     for %%G in (%choice:,= %) do (
-        echo. & echo Processing: %%G
-        if "%PKGMGR%"=="CHOCO" (
-            call choco %bulkAction% %%G -y
-        ) else (
-            if /i "%bulkAction%"=="upgrade" (call scoop update -k %%G && call scoop cleanup %%G) else (call scoop uninstall %%G --purge)
-        )
+        echo.
+        echo Processing: %%G
+        call choco %bulkAction% %%G -y
     )
-)
-exit /b
-
-:WHERE_7Z
-where 7z.exe >nul 2>&1 && (
-    call scoop config use_external_7zip true >nul 2>&1
-) || (
-    call scoop config use_external_7zip false >nul 2>&1
 )
 exit /b
 	
