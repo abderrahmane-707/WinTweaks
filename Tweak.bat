@@ -1123,7 +1123,7 @@ set "ON=(YES)"
 set "OFF=(NO)"
 
 call "%F%" DEFINE_CHOCO_PROGRAMS
-call "%F%" DESELECT_ALL OPT %MAX_PROGS%
+call "%F%" DESELECT_ALL
 
 :PROGRAMS_MENU
 call "%F%" ENSURE_PKGMGR
@@ -1151,7 +1151,7 @@ echo.
 echo                            [U] Update Programs          [R] Remove Programs            [0] Back
 
 echo. & echo Selected programs:
-call "%F%" SHOW_SELECTED OPT NAME %MAX_PROGS%
+call "%F%" SHOW_SELECTED
 
 echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 
@@ -1160,14 +1160,14 @@ echo. & set "choice=" & set /p "choice=--> Select option(s) and press [S] to Sta
 if "%choice%"=="" goto PROGRAMS_MENU
 if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
 if /i "%choice%"=="S" goto RUN_PROGRAMS
-if /i "%choice%"=="A" (call "%F%" SELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
-if /i "%choice%"=="D" (call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU)
+if /i "%choice%"=="A" (call "%F%" SELECT_ALL & goto PROGRAMS_MENU)
+if /i "%choice%"=="D" (call "%F%" DESELECT_ALL & goto PROGRAMS_MENU)
 if /i "%choice%"=="U" goto UPDATE_MENU
 if /i "%choice%"=="R" goto REMOVE_MENU
 if /i "%choice%"=="M" goto MORE_PROG
 if /I "%choice%"=="B" goto BUCKET_MENU_VAR
 
-call "%F%" PROCESS_MULTI_INPUT OPT %MAX_PROGS%
+call "%F%" MULTI_INPUT
 goto PROGRAMS_MENU
 
 :RUN_PROGRAMS
@@ -1177,7 +1177,7 @@ for /L %%i in (1,1,%MAX_PROGS%) do (
         call "%F%" TRY_ACTION "!PKG%%i!" "!NAME%%i!"
     )
 )
-call "%F%" GO & call "%F%" DESELECT_ALL OPT %MAX_PROGS% & goto PROGRAMS_MENU
+call "%F%" GO & call "%F%" DESELECT_ALL & goto PROGRAMS_MENU
 
 :UPDATE_MENU
 cls & echo Checking available updates
@@ -1219,7 +1219,7 @@ call "%F%" GO & goto PROGRAMS_MENU
 cls & set "apps=" & set /p apps="Enter app name(s) separated by spaces: "
 if "%apps%"=="" goto MORE_PROG
 
-for %%A in (%apps%) do call "%F%" PROCESS_APP "%%A"
+for %%A in (%apps%) do call "%F%" PROCESS_APP
 call "%F%" GO & goto PROGRAMS_MENU
 
 :REMOVE_MS

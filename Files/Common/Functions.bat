@@ -145,28 +145,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
 exit /b
 
 :SELECT_ALL
-for /L %%i in (1,1,%~2) do set "%~1%%i=%ON%"
+for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%ON%"
 exit /b
 
 :DESELECT_ALL
-for /L %%i in (1,1,%~2) do set "%~1%%i=%OFF%"
-exit /b
-
-:: %1 = value var prefix (e.g. OPT), %2 = value to toggle against
-:TOGGLE_SINGLE
-if "!%~1!"=="%ON%" (set "%~1=%OFF%") else (set "%~1=%ON%")
+for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%OFF%"
 exit /b
 
 :IS_ON
 if "!%~1!"=="%ON%" exit /b 0
 exit /b 1
 
-:: %1 = OPT-prefix, %2 = NAME-prefix, %3 = max
 :SHOW_SELECTED
 set "ANY=0"
-for /L %%i in (1,1,%~3) do (
-    set "cur=!%~1%%i!"
-    set "lbl=!%~2%%i!"
+for /L %%i in (1,1,%MAX_PROGS%) do (
+    set "cur=!OPT%%i!"
+    set "lbl=!NAME%%i!"
     if "!cur!"=="%ON%" (
         echo    - !lbl!
         set "ANY=1"
@@ -175,12 +169,7 @@ for /L %%i in (1,1,%~3) do (
 if "!ANY!"=="0" echo    - No selection
 exit /b
 
-:PROCESS_MULTI_INPUT
-:: %1 = Option Prefix (e.g., OPT or BOPT)
-:: %2 = Max Limit (e.g., %MAX_PROGS% or %BUCKET_COUNT%)
-
-set "prefix=%~1"
-set "maxLimit=%~2"
+:MULTI_INPUT
 set "invalid="
 set "tokens=%choice:,= %"
 
@@ -199,16 +188,16 @@ for %%G in (%tokens%) do (
         set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
 
         if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq !maxLimit! if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE !prefix!%%N
+            if !rangeStart! geq 1 if !rangeEnd! leq !MAX_PROGS! if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE !OPT!%%N
                 set "matched=1"
             )
         )
     ) else (
         set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
         if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq !maxLimit! (
-                call :TOGGLE_SINGLE !prefix!!tok!
+            if !tok! geq 1 if !tok! leq !MAX_PROGS! (
+                call :TOGGLE_SINGLE !OPT!!tok!
                 set "matched=1"
             )
         )
@@ -277,11 +266,9 @@ if !errorlevel! neq 0 (
 exit /b
 
 :PROCESS_APP
-set "app=%~1"
-echo.
-echo Searching for: %app%
+echo. & echo Searching for: %%A
+choco search "%%A" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
 
-choco search "%app%" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
 set "found=0"
 set "official_pkg="
 set "official_version="
@@ -302,10 +289,10 @@ if "!found!"=="1" (
         call :TRY_ACTION "!official_pkg!" "!official_pkg!"
     )
 ) else (
-    echo No exact match for "%app%" was found.
+    echo No exact match for "%%A" was found.
     echo Similar packages available in Chocolatey:
     echo.
-    choco search "%app%" --limit-output
+    choco search "%%A" --limit-output
     echo.
     echo No package was installed automatically. Check the list above and pick the correct name if available.
 )
@@ -318,7 +305,7 @@ set "bulkAction=%~1"
 
 if /i "%choice%"=="ALL" (
     if /i "%bulkAction%"=="upgrade" (
-        echo Updating all programs...
+        echo Updating all programs
         call choco upgrade all -y
     ) else (
         echo Removing all programs...
