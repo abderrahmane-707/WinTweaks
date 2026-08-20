@@ -289,7 +289,7 @@ call :CHOICE "Do you want to install Chocolatey package manager"
 if errorlevel 2 exit /b 1
 
 echo. & echo Installing Chocolatey package manager
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Packages\InstallChoco.ps1"
 call "%ALLUSERSPROFILE%\chocolatey\bin\RefreshEnv.cmd" >nul
 
 where choco >nul 2>&1

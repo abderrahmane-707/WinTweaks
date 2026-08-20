@@ -1111,7 +1111,7 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto CHOCO_INITIAL
 if "%choice%"=="2" goto REMOVE_MS
-if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PACKAGES_MANAGER_MENU)
+if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PACKAGES_MANAGER_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
 call "%F%" INVALID "(0-3)" & goto PACKAGES_MANAGER_MENU
@@ -1246,7 +1246,7 @@ call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
 call "%F%" CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
 if errorlevel 2 goto PACKAGES_MANAGER_MENU
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Packages\Remove_All_MS.ps1"
 call "%F%" GO & goto PACKAGES_MANAGER_MENU
 
 :CUSTOMIZATION_MENU
