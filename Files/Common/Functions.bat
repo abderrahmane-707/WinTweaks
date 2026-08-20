@@ -144,34 +144,66 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
 
 exit /b
 
-:SELECT_ALL
-for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%ON%"
+:INIT_PACKAGES
+:: Browsers
+set "ITEM1=googlechrome|Google Chrome"
+set "ITEM2=brave|Brave"
+set "ITEM3=firefox|Firefox"
+
+:: Archivers
+set "ITEM4=winrar|WinRAR"
+set "ITEM5=7zip.install|7-Zip"
+
+:: Media
+set "ITEM6=vlc.install|VLC"
+set "ITEM7=k-litecodecpack-standard|K-Lite Codec"
+set "ITEM8=irfanview irfanviewplugins|IrfanView"
+
+:: Documents
+set "ITEM9=sumatrapdf.install|Sumatra PDF"
+
+:: Text Editors / Dev Tools
+set "ITEM10=notepadplusplus.install|Notepad++"
+set "ITEM11=vscode.install|VS Code"
+set "ITEM12=git.install|Git"
+
+:: Utilities
+set "ITEM13=qbittorrent|qbittorrent"
+set "ITEM14=vcredist140|VC++ 2015-2022"
+set "ITEM15=virtualbox|VirtualBox"
+set "ITEM16=io-unlocker|IObit Unlocker"
+set "ITEM17=autohotkey.install|AutoHotkey"
+set "ITEM18=megasync|MEGA"
+
+call :DESELECT_ALL_PKG
 exit /b
 
-:DESELECT_ALL
-for /L %%i in (1,1,%MAX_PROGS%) do set "OPT%%i=%OFF%"
-exit /b
-
-:IS_ON
-if "!%~1!"=="%ON%" exit /b 0
-exit /b 1
-
-:SHOW_SELECTED
-set "ANY=0"
-for /L %%i in (1,1,%MAX_PROGS%) do (
-    set "cur=!OPT%%i!"
-    set "lbl=!NAME%%i!"
-    if "!cur!"=="%ON%" (
-        echo    - !lbl!
-        set "ANY=1"
+:RENDER_COLUMNS
+set /a "ROWS=(MAX_PKG+2)/3"
+for /L %%r in (1,1,%ROWS%) do (
+    set "line="
+    for %%x in (1 2 3) do (
+        set /a "idx=%%r+ROWS*(%%x-1)"
+        set "cell=                         "
+        if !idx! leq !MAX_PKG! (
+            for %%V in (ITEM!idx!) do for %%W in (OPT!idx!) do (
+                for /f "tokens=1,2 delims=|" %%A in ("!%%V!") do (
+                    set "cell=  [!idx!] %%B"
+                    if "!%%W!"=="!ON!" set "cell=* [!idx!] %%B"
+                )
+            )
+        )
+        set "cell=!cell!                          "
+        set "cell=!cell:~0,25!"
+        set "line=!line!!cell!"
     )
+    echo                  !line!
 )
-if "!ANY!"=="0" echo    - No selection
 exit /b
 
 :MULTI_INPUT
 set "invalid="
-set "tokens=%choice:,= %"
+set "tokens=!choice:,= !"
 
 for %%G in (%tokens%) do (
     set "tok=%%G"
@@ -188,16 +220,22 @@ for %%G in (%tokens%) do (
         set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
 
         if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq !MAX_PROGS! if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do call :TOGGLE_SINGLE !OPT!%%N
+            if !rangeStart! geq 1 if !rangeEnd! leq !MAX_PKG! if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
+                    for %%V in (OPT%%N) do (
+                        if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
+                    )
+                )
                 set "matched=1"
             )
         )
     ) else (
         set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
         if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq !MAX_PROGS! (
-                call :TOGGLE_SINGLE !OPT!!tok!
+            if !tok! geq 1 if !tok! leq !MAX_PKG! (
+                for %%V in (OPT!tok!) do (
+                    if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
+                )
                 set "matched=1"
             )
         )
@@ -212,62 +250,74 @@ if defined invalid (
 )
 exit /b
 
-:DEFINE_CHOCO_PROGRAMS
-set "CHOCO_PKG1=googlechrome"                & set "CHOCO_NAME1=Google Chrome"
-set "CHOCO_PKG2=brave"                       & set "CHOCO_NAME2=Brave"
-set "CHOCO_PKG3=firefox"                     & set "CHOCO_NAME3=Firefox"
-set "CHOCO_PKG4=winrar"                      & set "CHOCO_NAME4=WinRAR"
-set "CHOCO_PKG5=7zip.install"                & set "CHOCO_NAME5=7-Zip"
-set "CHOCO_PKG6=vlc.install"                 & set "CHOCO_NAME6=VLC"
-set "CHOCO_PKG7=k-litecodecpack-standard"    & set "CHOCO_NAME7=K-Lite Codec"
-set "CHOCO_PKG8=irfanview irfanviewplugins"  & set "CHOCO_NAME8=IrfanView"
-set "CHOCO_PKG9=sumatrapdf.install"          & set "CHOCO_NAME9=Sumatra PDF"
-set "CHOCO_PKG10=notepadplusplus.install"    & set "CHOCO_NAME10=Notepad++"
-set "CHOCO_PKG11=vscode.install"             & set "CHOCO_NAME11=VS Code"
-set "CHOCO_PKG12=git.install"                & set "CHOCO_NAME12=Git"
-set "CHOCO_PKG13=qbittorrent"                & set "CHOCO_NAME13=qbittorrent"
-set "CHOCO_PKG14=vcredist140"                & set "CHOCO_NAME14=VC++ 2015-2022"
-set "CHOCO_PKG15=virtualbox"                 & set "CHOCO_NAME15=VirtualBox"
-set "CHOCO_PKG16=io-unlocker"                & set "CHOCO_NAME16=IObit Unlocker"
-set "CHOCO_PKG17=autohotkey.install"         & set "CHOCO_NAME17=AutoHotkey"
-set "CHOCO_PKG18=megasync"                   & set "CHOCO_NAME18=MEGA"
+:UNINSTALL_ACTION
+if /i "!choice!"=="ALL" (
+    echo Removing all packages...
+    for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
+        if not "%%P"=="" (
+            echo %%P | findstr /i /x "chocolatey" >nul || call choco uninstall %%P -y
+        )
+    )
+) else (
+    set "targets=!choice:,= !"
+    echo. & echo Removing: !targets!
+    call choco uninstall !targets! -y
+)
 exit /b
 
-:ENSURE_PKGMGR
-where choco >nul 2>&1
-if !errorlevel! equ 0 exit /b 0
+:SELECT_ALL_PKG
+for /L %%i in (1,1,%MAX_PKG%) do set "OPT%%i=%ON%"
+exit /b
 
-cls & call :CHOICE "Do you want to install Chocolatey package manager"
+:DESELECT_ALL_PKG
+for /L %%i in (1,1,%MAX_PKG%) do set "OPT%%i=%OFF%"
+exit /b
+
+:PRINT_ACTION_PROMPT
+echo.
+echo --------------------------------------------------------------------------------
+echo Type ALL to %~1 everything
+echo Or type the exact name(s) as shown above, separated by spaces
+echo Type 0 to go back
+echo --------------------------------------------------------------------------------
+exit /b
+
+:WHERE_CHOCO
+where choco >nul 2>&1 && exit /b 0
+
+call :CHOICE "Do you want to install Chocolatey package manager"
 if errorlevel 2 exit /b 1
 
 echo. & echo Installing Chocolatey package manager
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\InstallChoco.ps1"
 call "%ALLUSERSPROFILE%\chocolatey\bin\RefreshEnv.cmd" >nul
+
 where choco >nul 2>&1
 if !errorlevel! neq 0 (
     echo Chocolatey installation failed or not found in PATH
-	call "%F%" GO & exit /b 1
+    call :GO & exit /b 1
 )
 exit /b 0
 
 :TRY_ACTION
 echo. & echo Installing: %~2
-choco install %~1 -y
+call choco install %~1 -y
 if !errorlevel! neq 0 (
     echo. & echo Failed to install: %~2
-    call :CHOICE "Do you want to ignore checksum and retry?"
+	call :CHOICE "Do you want to ignore checksum and retry"
     if errorlevel 2 (
-        echo The program download was ignored
+        echo The packages installation was skipped
     ) else (
         echo. & echo Retrying with --ignore-checksums
-        choco install %~1 --ignore-checksums -y
+        call choco install %~1 --ignore-checksums -y
     )
 )
 exit /b
 
-:PROCESS_APP
-echo. & echo Searching for: %%A
-choco search "%%A" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
+:PROCESS_PKG
+set "query=%~1"
+echo. & echo Searching for: !query!
+call choco search "!query!" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
 
 set "found=0"
 set "official_pkg="
@@ -280,51 +330,23 @@ for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do
 )
 
 if "!found!"=="1" (
-    echo.
-    echo Official package found: !official_pkg! !official_version!
-    call :CHOICE "Do you want to install !official_pkg!?"
+    echo. & echo Official package found: !official_pkg! !official_version!
+    choice /C YN /M "Do you want to install !official_pkg!?"
     if errorlevel 2 (
-        echo Installation skipped.
-    ) else if errorlevel 1 (
+        echo Installation skipped
+    ) else (
         call :TRY_ACTION "!official_pkg!" "!official_pkg!"
     )
 ) else (
-    echo No exact match for "%%A" was found.
+    echo No exact match for "!query!" was found
     echo Similar packages available in Chocolatey:
-    echo.
-    choco search "%%A" --limit-output
-    echo.
-    echo No package was installed automatically. Check the list above and pick the correct name if available.
+    echo. & call choco search "!query!" --limit-output
+    echo. & echo No package was installed automatically. Check the list above and pick the correct name if available
 )
 
 del "%temp%\choco_result.txt" >nul 2>&1
 exit /b
 
-:PKG_BULK_ACTION
-set "bulkAction=%~1"
-
-if /i "%choice%"=="ALL" (
-    if /i "%bulkAction%"=="upgrade" (
-        echo Updating all programs
-        call choco upgrade all -y
-    ) else (
-        echo Removing all programs...
-        for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
-            if not "%%P"=="" (
-                echo %%P | findstr /i "chocolatey" >nul
-                if !errorlevel! neq 0 call choco uninstall %%P -y
-            )
-        )
-    )
-) else (
-    for %%G in (%choice:,= %) do (
-        echo.
-        echo Processing: %%G
-        call choco %bulkAction% %%G -y
-    )
-)
-exit /b
-	
 :NET_CONTROL
 :: %~1 = Service Name
 :: %~2 = Action (stop or start)
@@ -497,7 +519,7 @@ if "%choice%"=="0" set "SUBMENU_RESULT=%MENU%" & exit /b
 call :INVALID "(0-2)" & goto SUB_MENU
 
 :CHOICE
-choice /C YN /N /M "%~1 (Y/N): "
+choice /C YN /N /M "%~1 [Y/n]: "
 exit /b
 
 :CONFIRM

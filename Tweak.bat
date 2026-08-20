@@ -25,7 +25,7 @@ echo                        -------------------------------oOOo-(_)-oOOo--------
 echo.
 echo                            [1] Performance                                        [2] Security
 echo.
-echo                            [3] Network                                            [4] Programs
+echo                            [3] Network                                            [4] Packages
 echo.
 echo                            [5] Customization                                      [6] System
 echo.
@@ -36,14 +36,14 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "!choice!"=="1" goto PERFORMANCE_MENU
-if "!choice!"=="2" goto PRIVACY_SECURITY_MENU
-if "!choice!"=="3" goto NETWORK_MENU
-if "!choice!"=="4" goto PROGRAMS_MANAGER_MENU
-if "!choice!"=="5" goto CUSTOMIZATION_MENU
-if "!choice!"=="6" goto SYSTEM_MENU
-if "!choice!"=="7" goto TOOLS_MENU
-if "!choice!"=="8" goto OTHER_MENU
+if "%choice%"=="1" goto PERFORMANCE_MENU
+if "%choice%"=="2" goto PRIVACY_SECURITY_MENU
+if "%choice%"=="3" goto NETWORK_MENU
+if "%choice%"=="4" goto PACKAGES_MANAGER_MENU
+if "%choice%"=="5" goto CUSTOMIZATION_MENU
+if "%choice%"=="6" goto SYSTEM_MENU
+if "%choice%"=="7" goto TOOLS_MENU
+if "%choice%"=="8" goto OTHER_MENU
 if "%choice%"=="0" exit
 
 call "%F%" INVALID "(0-8)" & goto MAIN_MENU
@@ -1098,136 +1098,156 @@ netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
 
 call "%F%" LOG & goto NETWORK_MENU
 
-:PROGRAMS_MANAGER_MENU
+:PACKAGES_MANAGER_MENU
 cls & echo. & echo.
-echo                        ------------------------------ Programs Manager ---------------------------
+echo                        ------------------------------ Packages Manager ---------------------------
 echo.
-echo                         [1] Download Programs                                 [2] Remove ALL MS Apps
+echo                         [1] Download Packages                                 [2] Remove ALL MS Apps
 echo.
-echo                         [3] Programs Info                                     [0] Back
+echo                         [3] Packages Info                                     [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto PROGRAMS_MENU_VAR
+if "%choice%"=="1" goto CHOCO_INITIAL
 if "%choice%"=="2" goto REMOVE_MS
-if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PROGRAMS_MANAGER_MENU)
+if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Programs" "ProgramsInfo"  & goto PACKAGES_MANAGER_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call "%F%" INVALID "(0-4)" & goto PROGRAMS_MANAGER_MENU
+call "%F%" INVALID "(0-3)" & goto PACKAGES_MANAGER_MENU
 
-:PROGRAMS_MENU_VAR
-set "MAX_PROGS=18"
-set "PKGMGR=CHOCO"
+:CHOCO_INITIAL
+call "%F%" WHERE_CHOCO
+if %errorlevel% equ 1 goto PACKAGES_MANAGER_MENU
+
+set "MAX_PKG=18"
 set "ON=(YES)"
 set "OFF=(NO)"
 
-call "%F%" DEFINE_CHOCO_PROGRAMS
-call "%F%" DESELECT_ALL
+call "%F%" INIT_PACKAGES
 
-:PROGRAMS_MENU
-call "%F%" ENSURE_PKGMGR
-if %errorlevel% equ 1 goto PROGRAMS_MANAGER_MENU
+:CHOCO_MENU
+cls
+echo.
+echo                                                 \\!//
+echo                                                 (o o)
+echo              -------------------------------oOOo-(_)-oOOo-------------------------------
+echo                                       Chocolatey Package Manager
+echo              ---------------------------------------------------------------------------
+echo.
+call "%F%" RENDER_COLUMNS
 
-cls & echo.
-echo                        ----------------------------------- Programs -----------------------------------
 echo.
-echo                            [1] Google Chrome             [7] K-Lite Codec              [13] qbittorrent
+echo    [U] Update Packages
+echo    [R] Remove Packages
+echo    [M] More
 echo.
-echo                            [2] Brave                     [8] IrfanView                 [14] VC++ 2015-2022
+echo              ---------------------------------------------------------------------------
 echo.
-echo                            [3] Firefox                   [9] Sumatra PDF               [15] VirtualBox
+echo                    [A] Select All            [D] Deselect All            [0] Back
 echo.
-echo                            [4] WinRAR                    [10] Notepad++                [16] IObit Unlocker
-echo.
-echo                            [5] 7-Zip                     [11] VS Code                  [17] AutoHotkey
-echo.
-echo                            [6] VLC                       [12] Git                      [18] MEGA
-echo.
-echo                        --------------------------------------------------------------------------------
-echo.
-echo                            [A] Select All               [D] Deselect All               [M] More
-echo.
-echo                            [U] Update Programs          [R] Remove Programs            [0] Back
 
-echo. & echo Selected programs:
-call "%F%" SHOW_SELECTED
-
-echo. & echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
-
+echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 echo. & set "choice=" & set /p "choice=--> Select option(s) and press [S] to Start: "
 
-if "%choice%"=="" goto PROGRAMS_MENU
-if "%choice%"=="0" goto PROGRAMS_MANAGER_MENU
-if /i "%choice%"=="S" goto RUN_PROGRAMS
-if /i "%choice%"=="A" (call "%F%" SELECT_ALL & goto PROGRAMS_MENU)
-if /i "%choice%"=="D" (call "%F%" DESELECT_ALL & goto PROGRAMS_MENU)
+if "%choice%"=="" goto CHOCO_MENU
+if "%choice%"=="0" goto PACKAGES_MANAGER_MENU
+if /i "%choice%"=="S" goto RUN_PKG
+if /i "%choice%"=="A" (call "%F%" SELECT_ALL_PKG & goto CHOCO_MENU)
+if /i "%choice%"=="D" (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
 if /i "%choice%"=="U" goto UPDATE_MENU
 if /i "%choice%"=="R" goto REMOVE_MENU
-if /i "%choice%"=="M" goto MORE_PROG
-if /I "%choice%"=="B" goto BUCKET_MENU_VAR
+if /i "%choice%"=="M" goto MORE_PKG
 
-call "%F%" MULTI_INPUT
-goto PROGRAMS_MENU
+call "%F%" MULTI_INPUT OPT %MAX_PKG%
+goto CHOCO_MENU
 
-:RUN_PROGRAMS
+:RUN_PKG
 cls
-for /L %%i in (1,1,%MAX_PROGS%) do (
+:: Collect every selected package into a single list, then process it in one call
+set "toInstall="
+for /L %%i in (1,1,%MAX_PKG%) do (
     if "!OPT%%i!"=="%ON%" (
-        call "%F%" TRY_ACTION "!PKG%%i!" "!NAME%%i!"
+        for %%V in (ITEM%%i) do for /f "tokens=1 delims=|" %%A in ("!%%V!") do set "toInstall=!toInstall! %%A"
     )
 )
-call "%F%" GO & call "%F%" DESELECT_ALL & goto PROGRAMS_MENU
+
+if not defined toInstall (
+    echo. & echo No packages selected
+    call "%F%" GO & goto CHOCO_MENU
+)
+
+echo Installing the following packages:
+for %%P in (!toInstall!) do echo     - %%P
+
+echo. & call choco install !toInstall! -y
+if !errorlevel! neq 0 (
+    echo. & echo One or more packages failed to install
+    call :CHOICE "Do you want to retry ignoring checksum errors"
+    if errorlevel 2 (
+        echo The retry was skipped
+    ) else (
+        echo. & echo Retrying with --ignore-checksums
+        call choco install !toInstall! --ignore-checksums -y
+    )
+)
+
+call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
 
 :UPDATE_MENU
 cls & echo Checking available updates
-
-echo.
 call choco outdated
 
-echo.
-echo --------------------------------------------------------------------------------
-echo Type ALL to update everything
-echo Or type the exact program name(s) as shown above, separated by commas
-echo Type 0 to go back
-echo --------------------------------------------------------------------------------
+call "%F%" PRINT_ACTION_PROMPT "update"
 
 set "choice=" & set /p "choice=--> "
-if "%choice%"=="0" goto PROGRAMS_MENU
 if "%choice%"=="" goto UPDATE_MENU
+if "%choice%"=="0" (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
 
-call "%F%" PKG_BULK_ACTION "upgrade"
-call "%F%" GO & goto PROGRAMS_MENU
+:: Collect every requested package into a single list, then process it in one call
+if /i "!choice!"=="ALL" (
+    set "toUpdate=all"
+) else (
+    set "toUpdate=!choice:,= !"
+)
+
+echo Updating the following packages:
+for %%P in (!toUpdate!) do echo     - %%P
+
+echo. & call choco upgrade !toUpdate! -y
+call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
 
 :REMOVE_MENU
+cls & echo Installed packages
 call choco list
-echo.
-echo --------------------------------------------------------------------------------
-echo Type ALL to remove everything.
-echo Or type the exact program name(s) as shown above, separated by commas
-echo Type 0 to go back.
-echo --------------------------------------------------------------------------------
+
+call "%F%" PRINT_ACTION_PROMPT "remove"
 
 set "choice=" & set /p "choice=--> "
-if "%choice%"=="0" goto PROGRAMS_MENU
 if "%choice%"=="" goto REMOVE_MENU
+if "%choice%"=="0" goto (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
 
-call "%F%" PKG_BULK_ACTION "uninstall"
-call "%F%" GO & goto PROGRAMS_MENU
+call "%F%" UNINSTALL_ACTION "uninstall"
+call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
 
-:MORE_PROG
-cls & set "apps=" & set /p apps="Enter app name(s) separated by spaces: "
-if "%apps%"=="" goto MORE_PROG
+:MORE_PKG
+cls
+echo Enter package name(s) separated by spaces
+echo Type 0 to go back
 
-for %%A in (%apps%) do call "%F%" PROCESS_APP
-call "%F%" GO & goto PROGRAMS_MENU
+echo. & set "choice=" & set /p "choice=--> "
+if "%choice%"=="" goto MORE_PKG
+if "%choice%"=="0" (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
+
+for %%A in (%choice%) do call "%F%" PROCESS_PKG "%%A"
+call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
 
 :REMOVE_MS
 call "%F%" CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
-if errorlevel 2 goto PROGRAMS_MANAGER_MENU
+if errorlevel 2 goto PACKAGES_MANAGER_MENU
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Programs\Remove_All_MS.ps1"
-call "%F%" GO & goto PROGRAMS_MANAGER_MENU
+call "%F%" GO & goto PACKAGES_MANAGER_MENU
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
