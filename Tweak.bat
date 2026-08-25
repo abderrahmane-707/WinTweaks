@@ -1059,7 +1059,7 @@ for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call "%F%" SC_CONFIGURE 
 
 echo Starting Network Services
 for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call "%F%" NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
-
+pause
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
 
@@ -1100,9 +1100,9 @@ call "%F%" LOG & goto NETWORK_MENU
 
 :PACKAGES_MANAGER_MENU
 cls & echo. & echo.
-echo                        ------------------------------ Packages Manager ---------------------------
+echo                        -------------------------------- Packages ---------------------------------
 echo.
-echo                         [1] Download Packages                                 [2] Remove ALL MS Apps
+echo                         [1] Chocolatey                                        [2] Remove ALL MS Apps
 echo.
 echo                         [3] Packages Info                                     [0] Back
 echo.
@@ -1115,17 +1115,18 @@ if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PAC
 if "%choice%"=="0" goto MAIN_MENU
 
 call "%F%" INVALID "(0-3)" & goto PACKAGES_MANAGER_MENU
-
 :CHOCO_INITIAL
 call "%F%" WHERE_CHOCO
-if %errorlevel% equ 1 goto PACKAGES_MANAGER_MENU
+if errorlevel 1 goto PACKAGES_MANAGER_MENU
 
-set "MAX_PKG=18"
+:: Initialize
 set "ON=(YES)"
 set "OFF=(NO)"
 
 call "%F%" INIT_PACKAGES
+call "%F%" TOGGLE_ALL OFF
 
+:: Main interface
 :CHOCO_MENU
 cls
 echo.
@@ -1148,13 +1149,13 @@ echo                    [A] Select All            [D] Deselect All            [0
 echo.
 
 echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
-echo. & set "choice=" & set /p "choice=--> Select option(s) and press [S] to Start: "
+set "choice=" & set /p "choice=--> Select option(s) and press [S] to Start: "
 
 if "%choice%"=="" goto CHOCO_MENU
 if "%choice%"=="0" goto PACKAGES_MANAGER_MENU
-if /i "%choice%"=="S" goto RUN_PKG
-if /i "%choice%"=="A" (call "%F%" SELECT_ALL_PKG & goto CHOCO_MENU)
-if /i "%choice%"=="D" (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
+if /i "%choice%"=="S" goto RUN_PACKAGES
+if /i "%choice%"=="A" (call "%F%" TOGGLE_ALL ON & goto CHOCO_MENU)
+if /i "%choice%"=="D" (call "%F%" TOGGLE_ALL OFF & goto CHOCO_MENU)
 if /i "%choice%"=="U" goto UPDATE_MENU
 if /i "%choice%"=="R" goto REMOVE_MENU
 if /i "%choice%"=="M" goto MORE_PKG
@@ -1162,85 +1163,37 @@ if /i "%choice%"=="M" goto MORE_PKG
 call "%F%" MULTI_INPUT OPT %MAX_PKG%
 goto CHOCO_MENU
 
-:RUN_PKG
-cls
-:: Collect every selected package into a single list, then process it in one call
-set "toInstall="
-for /L %%i in (1,1,%MAX_PKG%) do (
-    if "!OPT%%i!"=="%ON%" (
-        for %%V in (ITEM%%i) do for /f "tokens=1 delims=|" %%A in ("!%%V!") do set "toInstall=!toInstall! %%A"
-    )
-)
+:RUN_PACKAGES
+call "%F%" COLLECT_SELECTED toInstall
 
-if not defined toInstall (
-    echo. & echo No packages selected
-    call "%F%" GO & goto CHOCO_MENU
-)
+call "%F%" INSTALL_PKG_LIST
+if errorlevel 1 (pause & goto CHOCO_MENU)
 
-echo Installing the following packages:
-for %%P in (!toInstall!) do echo     - %%P
-
-echo. & call choco install !toInstall! -y
-if !errorlevel! neq 0 (
-    echo. & echo One or more packages failed to install
-    call :CHOICE "Do you want to retry ignoring checksum errors"
-    if errorlevel 2 (
-        echo The retry was skipped
-    ) else (
-        echo. & echo Retrying with --ignore-checksums
-        call choco install !toInstall! --ignore-checksums -y
-    )
-)
-
-call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
+call "%F%" GO & call "%F%" TOGGLE_ALL OFF & goto CHOCO_MENU
 
 :UPDATE_MENU
-cls & echo Checking available updates
-call choco outdated
-
-call "%F%" PRINT_ACTION_PROMPT "update"
-
-set "choice=" & set /p "choice=--> "
-if "%choice%"=="" goto UPDATE_MENU
-if "%choice%"=="0" (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
-
-:: Collect every requested package into a single list, then process it in one call
-if /i "!choice!"=="ALL" (
-    set "toUpdate=all"
-) else (
-    set "toUpdate=!choice:,= !"
-)
-
-echo Updating the following packages:
-for %%P in (!toUpdate!) do echo     - %%P
-
-echo. & call choco upgrade !toUpdate! -y
-call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
+call "%F%" LIST_MENU "update" "Checking for available updates" "outdated" "upgrade"
+if errorlevel 2 goto CHOCO_MENU
+if errorlevel 1 (pause & goto CHOCO_MENU)
+call "%F%" GO & goto CHOCO_MENU
 
 :REMOVE_MENU
-cls & echo Installed packages
-call choco list
-
-call "%F%" PRINT_ACTION_PROMPT "remove"
-
-set "choice=" & set /p "choice=--> "
-if "%choice%"=="" goto REMOVE_MENU
-if "%choice%"=="0" goto (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
-
-call "%F%" UNINSTALL_ACTION "uninstall"
-call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
+call "%F%" LIST_MENU "remove" "Installed packages" "list" "uninstall"
+if errorlevel 2 goto CHOCO_MENU
+if errorlevel 1 (pause & goto CHOCO_MENU)
+call "%F%" GO & goto CHOCO_MENU
 
 :MORE_PKG
 cls
 echo Enter package name(s) separated by spaces
 echo Type 0 to go back
 
-echo. & set "choice=" & set /p "choice=--> "
+set "choice=" & set /p "choice=--> "
 if "%choice%"=="" goto MORE_PKG
-if "%choice%"=="0" (call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU)
+if "%choice%"=="0" goto CHOCO_MENU
 
 for %%A in (%choice%) do call "%F%" PROCESS_PKG "%%A"
-call "%F%" GO & call "%F%" DESELECT_ALL_PKG & goto CHOCO_MENU
+call "%F%" GO & goto CHOCO_MENU
 
 :REMOVE_MS
 call "%F%" CONFIRM "WARNING: This will remove ALL Microsoft Store apps"

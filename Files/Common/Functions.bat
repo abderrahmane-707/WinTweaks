@@ -145,173 +145,199 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
 exit /b
 
 :INIT_PACKAGES
+set "PKG_COUNT=0"
+
 :: Browsers
-set "ITEM1=googlechrome|Google Chrome"
-set "ITEM2=brave|Brave"
-set "ITEM3=firefox|Firefox"
+call :ADD_ITEM "googlechrome"                "Google Chrome"
+call :ADD_ITEM "brave"                       "Brave"
+call :ADD_ITEM "firefox"                     "Firefox"
 
 :: Archivers
-set "ITEM4=winrar|WinRAR"
-set "ITEM5=7zip.install|7-Zip"
+call :ADD_ITEM "winrar"                      "WinRAR"
+call :ADD_ITEM "7zip.install"                "7-Zip"
 
 :: Media
-set "ITEM6=vlc.install|VLC"
-set "ITEM7=k-litecodecpack-standard|K-Lite Codec"
-set "ITEM8=irfanview irfanviewplugins|IrfanView"
+call :ADD_ITEM "vlc.install"                 "VLC"
+call :ADD_ITEM "k-litecodecpack-standard"    "K-Lite Codec"
+call :ADD_ITEM "irfanview irfanviewplugins"  "IrfanView"
 
 :: Documents
-set "ITEM9=sumatrapdf.install|Sumatra PDF"
+call :ADD_ITEM "sumatrapdf.install"          "Sumatra PDF"
 
 :: Text Editors / Dev Tools
-set "ITEM10=notepadplusplus.install|Notepad++"
-set "ITEM11=vscode.install|VS Code"
-set "ITEM12=git.install|Git"
+call :ADD_ITEM "notepadplusplus.install"      "Notepad++"
+call :ADD_ITEM "vscode.install"               "VS Code"
+call :ADD_ITEM "git.install"                  "Git"
 
 :: Utilities
-set "ITEM13=qbittorrent|qbittorrent"
-set "ITEM14=vcredist140|VC++ 2015-2022"
-set "ITEM15=virtualbox|VirtualBox"
-set "ITEM16=io-unlocker|IObit Unlocker"
-set "ITEM17=autohotkey.install|AutoHotkey"
-set "ITEM18=megasync|MEGA"
+call :ADD_ITEM "qbittorrent"                  "qbittorrent"
+call :ADD_ITEM "vcredist140"                  "VC++ 2015-2022"
+call :ADD_ITEM "virtualbox"                   "VirtualBox"
+call :ADD_ITEM "io-unlocker"                  "IObit Unlocker"
+call :ADD_ITEM "autohotke1y.install"          "AutoHotkey"
+call :ADD_ITEM "megasync"                     "MEGA"
 
-call :DESELECT_ALL_PKG
-exit /b
-
-:RENDER_COLUMNS
-set /a "ROWS=(MAX_PKG+2)/3"
-for /L %%r in (1,1,%ROWS%) do (
-    set "line="
-    for %%x in (1 2 3) do (
-        set /a "idx=%%r+ROWS*(%%x-1)"
-        set "cell=                         "
-        if !idx! leq !MAX_PKG! (
-            for %%V in (ITEM!idx!) do for %%W in (OPT!idx!) do (
-                for /f "tokens=1,2 delims=|" %%A in ("!%%V!") do (
-                    set "cell=  [!idx!] %%B"
-                    if "!%%W!"=="!ON!" set "cell=* [!idx!] %%B"
-                )
-            )
-        )
-        set "cell=!cell!                          "
-        set "cell=!cell:~0,25!"
-        set "line=!line!!cell!"
-    )
-    echo                  !line!
-)
-exit /b
-
-:MULTI_INPUT
-set "invalid="
-set "tokens=!choice:,= !"
-
-for %%G in (%tokens%) do (
-    set "tok=%%G"
-    set "matched=0"
-    set "noHyphen=!tok:-=!"
-
-    if not "!tok!"=="!noHyphen!" (
-        set "rangeStart=" & set "rangeEnd="
-        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
-            set "rangeStart=%%X"
-            set "rangeEnd=%%Y"
-        )
-        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
-        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
-
-        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq !MAX_PKG! if !rangeStart! leq !rangeEnd! (
-                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
-                    for %%V in (OPT%%N) do (
-                        if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
-                    )
-                )
-                set "matched=1"
-            )
-        )
-    ) else (
-        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
-        if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq !MAX_PKG! (
-                for %%V in (OPT!tok!) do (
-                    if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
-                )
-                set "matched=1"
-            )
-        )
-    )
-
-    if "!matched!"=="0" set "invalid=!invalid! !tok!"
-)
-
-if defined invalid (
-    echo. & echo Invalid or out-of-range input:!invalid!
-    pause
-)
-exit /b
-
-:UNINSTALL_ACTION
-if /i "!choice!"=="ALL" (
-    echo Removing all packages...
-    for /f "tokens=1 delims=|" %%P in ('call choco list -r 2^>nul') do (
-        if not "%%P"=="" (
-            echo %%P | findstr /i /x "chocolatey" >nul || call choco uninstall %%P -y
-        )
-    )
-) else (
-    set "targets=!choice:,= !"
-    echo. & echo Removing: !targets!
-    call choco uninstall !targets! -y
-)
-exit /b
-
-:SELECT_ALL_PKG
-for /L %%i in (1,1,%MAX_PKG%) do set "OPT%%i=%ON%"
-exit /b
-
-:DESELECT_ALL_PKG
-for /L %%i in (1,1,%MAX_PKG%) do set "OPT%%i=%OFF%"
-exit /b
-
-:PRINT_ACTION_PROMPT
-echo.
-echo --------------------------------------------------------------------------------
-echo Type ALL to %~1 everything
-echo Or type the exact name(s) as shown above, separated by spaces
-echo Type 0 to go back
-echo --------------------------------------------------------------------------------
+set "MAX_PKG=%PKG_COUNT%"
 exit /b
 
 :WHERE_CHOCO
 where choco >nul 2>&1 && exit /b 0
 
-call :CHOICE "Do you want to install Chocolatey package manager"
+call :CHOICE "choco not found in PATH. Do you want to install Chocolatey package manager"
 if errorlevel 2 exit /b 1
 
-echo. & echo Installing Chocolatey package manager
+echo. & echo Installing Chocolatey
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Packages\InstallChoco.ps1"
 call "%ALLUSERSPROFILE%\chocolatey\bin\RefreshEnv.cmd" >nul
 
 where choco >nul 2>&1
-if !errorlevel! neq 0 (
-    echo Chocolatey installation failed or not found in PATH
-    call :GO & exit /b 1
+if errorlevel 1 (
+    echo. & echo Chocolatey installation failed or not found in PATH
+    pause & exit /b 1
 )
 exit /b 0
 
-:TRY_ACTION
-echo. & echo Installing: %~2
-call choco install %~1 -y
-if !errorlevel! neq 0 (
-    echo. & echo Failed to install: %~2
-	call :CHOICE "Do you want to ignore checksum and retry"
-    if errorlevel 2 (
-        echo The packages installation was skipped
+:INSTALL_PKG_LIST
+if not defined toInstall (
+    echo. & echo No packages selected
+    exit /b 1
+)
+
+cls & echo Selected packages:
+for %%P in (!toInstall!) do echo     - %%P
+
+echo. & call :CHOICE "Do you want to continue?"
+if errorlevel 2 (
+    echo. & echo The operation was cancelled
+    exit /b 2
+)
+
+call :TRY_ACTION "!toInstall!"
+exit /b 0
+
+:LIST_MENU
+cls
+set "listfile=%temp%\choco_%~3.txt"
+del "%listfile%" >nul 2>&1
+
+echo %~2
+echo. & call choco %~3 > "%listfile%" 2>&1
+type "%listfile%"
+
+call "%F%" PRINT_ACTION_PROMPT "%~1"
+
+set "choice=" & set /p "choice=--> "
+if "%choice%"=="0" (del "%listfile%" >nul 2>&1 & exit /b 2)
+
+call "%F%" PKG_BULK_ACTION "%~4" "%listfile%"
+if errorlevel 1 (del "%listfile%" >nul 2>&1 & exit /b 1)
+
+del "%listfile%" >nul 2>&1
+exit /b 0
+
+:PKG_BULK_ACTION
+echo. & if not defined choice (
+    echo No package selected
+    exit /b 1
+)
+set "action=%~1"
+if /i "!action!"=="upgrade" (set "verb=Updating") else (set "verb=Removing")
+
+set "listfile=%~2"
+set "hasupdate= "
+set "installed= "
+if /i "!action!"=="upgrade" (
+    call :COLLECT_NAMES "!listfile!" hasupdate
+) else (
+    call :COLLECT_NAMES "!listfile!" installed
+)
+
+set "cmd_targets="
+if /i "!choice!"=="ALL" (
+    if /i "!action!"=="upgrade" (
+        if "!hasupdate!"==" " (
+            echo No updates are available
+            exit /b 1
+        )
+        set "targets=!hasupdate!"
+        set "cmd_targets=all"
     ) else (
-        echo. & echo Retrying with --ignore-checksums
-        call choco install %~1 --ignore-checksums -y
+        if "!installed!"==" " (
+            echo No packages are currently installed
+            exit /b 1
+        )
+        set "targets=!installed!"
+        set "cmd_targets=!installed!"
+    )
+    echo !verb! all packages:
+    for %%P in (!targets!) do echo     - %%P
+) else (
+    set "requested=!choice:,= !"
+    set "targets="
+    set "missing="
+    set "noupdate="
+    for %%P in (!requested!) do (
+        if /i "!action!"=="upgrade" (
+            set "hasupd="
+            for %%X in (!hasupdate!) do if /i "%%X"=="%%P" set "hasupd=1"
+            if not defined hasupd (
+                set "noupdate=!noupdate! %%P"
+            ) else (
+                set "targets=!targets! %%P"
+            )
+        ) else (
+            set "isinstalled="
+            for %%X in (!installed!) do if /i "%%X"=="%%P" set "isinstalled=1"
+            if not defined isinstalled (
+                set "missing=!missing! %%P"
+            ) else (
+                set "targets=!targets! %%P"
+            )
+        )
+    )
+    if defined missing (
+        echo The following packages are not installed and will be skipped:
+        for %%M in (!missing!) do echo     - %%M
+    )
+    if defined noupdate (
+        echo The following packages are already up to date and will be skipped:
+        for %%N in (!noupdate!) do echo     - %%N
+    )
+    if not defined targets (
+        echo. & echo None of the selected packages need action
+        exit /b 1
+    )
+    echo !verb! the following packages:
+    for %%P in (!targets!) do echo     - %%P
+    set "cmd_targets=!targets!"
+)
+
+echo. & call :CHOICE "Do you want to continue?"
+if errorlevel 2 (echo. & echo The operation was cancelled & exit /b 2)
+if /i "!action!"=="upgrade" (
+    echo. & call choco upgrade !cmd_targets! -y
+) else (
+    echo. & call choco uninstall !cmd_targets! -y
+)
+exit /b 0
+
+:COLLECT_NAMES
+set "src_file=%~1"
+set "names= "
+for /f "usebackq delims=" %%P in ("!src_file!") do (
+    set "ln=%%P"
+    set "skip=0"
+    if "!ln!"=="" set "skip=1"
+    echo(!ln!| findstr /i /c:"Chocolatey v" /c:"Output is" /c:"packages installed" /c:"package(s) are outdated" /c:"Did you know" >nul && set "skip=1"
+    if "!skip!"=="0" (
+        if not "!ln:|=!"=="!ln!" (
+            for /f "tokens=1 delims=|" %%A in ("!ln!") do set "names=!names!%%A "
+        ) else (
+            for /f "tokens=1" %%A in ("!ln!") do set "names=!names!%%A "
+        )
     )
 )
+set "%~2=!names!"
 exit /b
 
 :PROCESS_PKG
@@ -331,11 +357,11 @@ for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do
 
 if "!found!"=="1" (
     echo. & echo Official package found: !official_pkg! !official_version!
-    choice /C YN /M "Do you want to install !official_pkg!?"
+    call :CHOICE "Do you want to install !official_pkg!"
     if errorlevel 2 (
         echo Installation skipped
     ) else (
-        call :TRY_ACTION "!official_pkg!" "!official_pkg!"
+        call :TRY_ACTION "!official_pkg!"
     )
 ) else (
     echo No exact match for "!query!" was found
@@ -347,10 +373,116 @@ if "!found!"=="1" (
 del "%temp%\choco_result.txt" >nul 2>&1
 exit /b
 
-:NET_CONTROL
-:: %~1 = Service Name
-:: %~2 = Action (stop or start)
+:: %1 = package id to install (also used as the display name, so it no longer needs to be passed twice)
+:TRY_ACTION
+echo. & call choco install %~1 -y
+if !errorlevel! neq 0 (
+    echo. & echo One or more packages failed to install
+    call :CHOICE "Do you want to ignore checksum and retry"
+    if errorlevel 2 (
+        echo The retry was skipped
+    ) else (
+        echo. & echo Retrying with --ignore-checksums
+        call choco install %~1 --ignore-checksums -y
+    )
+)
+exit /b
 
+:PRINT_ACTION_PROMPT
+echo.
+echo --------------------------------------------------------------------------------
+echo Type ALL to %~1 everything
+echo Or type the exact name(s) as shown above, separated by spaces
+echo Type 0 to go back
+echo --------------------------------------------------------------------------------
+exit /b
+
+:RENDER_COLUMNS
+set /a "ROWS=(MAX_PKG+2)/3"
+for /L %%r in (1,1,!ROWS!) do (
+    set "line="
+    for %%x in (1 2 3) do (
+        set /a "idx=%%r+ROWS*(%%x-1)"
+        set "cell=                          "
+        if !idx! leq !MAX_PKG! (
+            for %%V in (ITEM!idx!) do for %%W in (OPT!idx!) do (
+                for /f "tokens=1,2 delims=|" %%A in ("!%%V!") do (
+                    set "cell=  [!idx!] %%B"
+                    if "!%%W!"=="!ON!" set "cell=* [!idx!] %%B"
+                )
+            )
+        )
+        set "cell=!cell!                          "
+        set "cell=!cell:~0,25!"
+        set "line=!line!!cell!"
+    )
+    echo                   !line!
+)
+exit /b
+
+:TOGGLE_ALL
+set "val=!OFF!"
+if /i "%~1"=="ON" set "val=!ON!"
+for /L %%i in (1,1,%MAX_PKG%) do set "OPT%%i=!val!"
+exit /b
+
+:ADD_ITEM
+set /a "PKG_COUNT+=1"
+set "ITEM%PKG_COUNT%=%~1|%~2"
+exit /b
+
+:MULTI_INPUT
+set "prefix=%~1"
+set "max_count=%~2"
+set "invalid="
+set "tokens=!choice:,= !"
+
+for %%G in (%tokens%) do (
+    set "tok=%%G"
+    set "matched=0"
+    set "noHyphen=!tok:-=!"
+
+    if not "!tok!"=="!noHyphen!" (
+        set "rangeStart=" & set "rangeEnd="
+        for /f "tokens=1,2 delims=-" %%X in ("!tok!") do (
+            set "rangeStart=%%X"
+            set "rangeEnd=%%Y"
+        )
+        set "isNum1=1" & for /f "delims=0123456789" %%C in ("!rangeStart!") do set "isNum1=0"
+        set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
+
+        if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
+            if !rangeStart! geq 1 if !rangeEnd! leq !max_count! if !rangeStart! leq !rangeEnd! (
+                for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
+                    for %%V in (%prefix%%%N) do (
+                        if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
+                    )
+                )
+                set "matched=1"
+            )
+        )
+    ) else (
+        set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
+        if "!isNum!"=="1" if defined tok (
+            if !tok! geq 1 if !tok! leq !max_count! (
+                for %%V in (%prefix%!tok!) do (
+                    if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
+                )
+                set "matched=1"
+            )
+        )
+    )
+
+    if "!matched!"=="0" set "invalid=!invalid! !tok!"
+)
+
+if defined invalid (
+    echo. & echo Invalid or out-of-range input:!invalid!
+    pause
+)
+exit /b
+
+:NET_CONTROL
 :: Check if the service exists
 sc query %~1 >nul 2>&1
 if !errorlevel! neq 0 (
