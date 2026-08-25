@@ -39,7 +39,7 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto PERFORMANCE_MENU
 if "%choice%"=="2" goto PRIVACY_SECURITY_MENU
 if "%choice%"=="3" goto NETWORK_MENU
-if "%choice%"=="4" goto PACKAGES_MANAGER_MENU
+if "%choice%"=="4" goto PACKAGES_MENU
 if "%choice%"=="5" goto CUSTOMIZATION_MENU
 if "%choice%"=="6" goto SYSTEM_MENU
 if "%choice%"=="7" goto TOOLS_MENU
@@ -1091,7 +1091,7 @@ netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
 
 call "%F%" LOG & goto NETWORK_MENU
 
-:PACKAGES_MANAGER_MENU
+:PACKAGES_MENU
 cls & echo. & echo.
 echo                        -------------------------------- Packages ---------------------------------
 echo.
@@ -1104,13 +1104,13 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto CHOCO_INITIAL
 if "%choice%"=="2" goto REMOVE_MS
-if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PACKAGES_MANAGER_MENU)
+if "%choice%"=="3" (call "%F%" INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PACKAGES_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call "%F%" INVALID "(0-3)" & goto PACKAGES_MANAGER_MENU
+call "%F%" INVALID "(0-3)" & goto PACKAGES_MENU
 :CHOCO_INITIAL
 call "%F%" WHERE_CHOCO
-if errorlevel 1 goto PACKAGES_MANAGER_MENU
+if errorlevel 1 goto PACKAGES_MENU
 
 :: Initialize
 set "ON=(YES)"
@@ -1145,7 +1145,7 @@ echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 set "choice=" & set /p "choice=--> Select option(s) and press [S] to Start: "
 
 if "%choice%"=="" goto CHOCO_MENU
-if "%choice%"=="0" goto PACKAGES_MANAGER_MENU
+if "%choice%"=="0" goto PACKAGES_MENU
 if /i "%choice%"=="S" goto RUN_PACKAGES
 if /i "%choice%"=="A" (call "%F%" TOGGLE_ALL ON & goto CHOCO_MENU)
 if /i "%choice%"=="D" (call "%F%" TOGGLE_ALL OFF & goto CHOCO_MENU)
@@ -1190,10 +1190,10 @@ call "%F%" GO & goto CHOCO_MENU
 
 :REMOVE_MS
 call "%F%" CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
-if errorlevel 2 goto PACKAGES_MANAGER_MENU
+if errorlevel 2 goto PACKAGES_MENU
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Packages\Remove_All_MS.ps1"
-call "%F%" GO & goto PACKAGES_MANAGER_MENU
+call "%F%" GO & goto PACKAGES_MENU
 
 :CUSTOMIZATION_MENU
 cls & echo. & echo.
