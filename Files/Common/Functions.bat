@@ -172,7 +172,7 @@ if exist "%HKLM_RUN_BACKUP%" (
     reg import "%HKLM_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
 )
 
-echo. & call "%F%" CHOICE "Do you want to delete existing backup folder"
+echo. & call :CHOICE "Do you want to delete existing backup folder"
 if !errorlevel! equ 1 (
     echo deleting: %TARGET_FOLDER%
     rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
@@ -196,7 +196,7 @@ exit /b
 
 :CLEAN_BROWSER
 if "!BROWSERS_OPEN!"=="1" (
-    call "%F%" CHOICE "Close browsers to clean them?"
+    call :CHOICE "Close browsers to clean them?"
     echo.
     if errorlevel 2 (
         echo Skipping cleaning browsers

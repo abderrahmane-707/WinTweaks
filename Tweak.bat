@@ -44,7 +44,7 @@ if "%choice%"=="5" goto CUSTOMIZATION_MENU
 if "%choice%"=="6" goto SYSTEM_MENU
 if "%choice%"=="7" goto TOOLS_MENU
 if "%choice%"=="8" goto OTHER_MENU
-if "%choice%"=="0" exit
+if "%choice%"=="0" exit /b
 
 call "%F%" INVALID "(0-8)" & goto MAIN_MENU
 
@@ -87,7 +87,7 @@ if "%choice%"=="5" goto POWER_PLAN_MENU
 if "%choice%"=="6" goto HW_INFO_MENU
 if "%choice%"=="0" goto MAIN_MENU
 
-call "%F%" INVALID "(0-8)" & goto PERFORMANCE_MENU
+call "%F%" INVALID "(0-6)" & goto PERFORMANCE_MENU
 
 :SERVICES_MENU
 cls & echo. & echo.
@@ -134,13 +134,13 @@ call "%F%" LOG & goto SERVICES_MENU
 
 :EXPORT_SERVICES
 call "%F%" CREATE_FILE "Performance" "ServiceStartupStatus.log"
-if errorlevel 1 goto PERFORMANCE_MENU
+if errorlevel 1 goto SERVICES_MENU
 
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
 
 echo. & echo Service Startup Status file saved in: %TARGET_FILE%
-call "%F%" GO & goto PERFORMANCE_MENU
+call "%F%" GO & goto SERVICES_MENU
 
 :DISABLE_TASKS
 call "%F%" PATH_DIR "Performance" "DisableScheduledTasks"
@@ -174,7 +174,6 @@ call "%F%" LOG & goto PERFORMANCE_MENU
 cls
 call "%F%" RUNNING_BROWSERS
 call "%F%" CLEAN_BROWSER
-call "%F%" CLEANING_FUNCTION
 call "%F%" GO & goto PERFORMANCE_MENU
 
 :POWER_PLAN_MENU
