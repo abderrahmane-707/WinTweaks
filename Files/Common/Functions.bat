@@ -195,6 +195,22 @@ for %%A in (%BROWSERS%) do (
 exit /b
 
 :CLEAN_BROWSER
+if "!BROWSERS_OPEN!"=="1" (
+    call "%F%" CHOICE "Close browsers to clean them?"
+    echo.
+    if errorlevel 2 (
+        echo Skipping cleaning browsers
+		call "%F%" CLEANING_FUNCTION
+		exit /b
+    ) else (
+        echo Closing browsers
+        for %%B in (%BROWSERS%) do (
+            taskkill /IM "%%B" /F /T >nul 2>&1
+        )
+        timeout /t 2 >nul     
+    )
+)
+
 ::  Chromium-based browsers (Chrome, Edge, Brave)
 for %%X in (
     "Google\Chrome\User Data|Google Chrome"
@@ -669,8 +685,6 @@ if /i %~2==stop (
 exit /b
 
 :SC_CONFIGURE
-:: %~1 = Service Name
-:: %~2 = Start Type
 sc query %~1 >nul 2>&1
 if !errorlevel! neq 0 (
     echo [NOT FOUND]: %~1

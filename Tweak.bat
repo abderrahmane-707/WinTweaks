@@ -173,22 +173,6 @@ call "%F%" LOG & goto PERFORMANCE_MENU
 :CLEAN_UP
 cls
 call "%F%" RUNNING_BROWSERS
-
-if "!BROWSERS_OPEN!"=="1" (
-    call "%F%" CHOICE "Close browsers to clean them?"
-    echo.
-    if errorlevel 2 (
-        echo Skipping cleaning browsers
-		call "%F%" CLEANING_FUNCTION
-    ) else (
-        echo Closing browsers
-        for %%B in (%BROWSERS%) do (
-            taskkill /IM "%%B" /F /T >nul 2>&1
-        )
-        timeout /t 2 >nul     
-    )
-)
-
 call "%F%" CLEAN_BROWSER
 call "%F%" CLEANING_FUNCTION
 call "%F%" GO & goto PERFORMANCE_MENU
