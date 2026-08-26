@@ -134,7 +134,7 @@ call "%F%" LOG & goto SERVICES_MENU
 
 :EXPORT_SERVICES
 call "%F%" CREATE_FILE "Performance" "ServiceStartupStatus.log"
-if !errorlevel! equ 1 goto PERFORMANCE_MENU
+if errorlevel 1 goto PERFORMANCE_MENU
 
 echo. & echo Exporting service startup status
 powershell -Command "Get-Service | Sort-Object Name | ForEach-Object { Write-Output ($_.Name + ',' + $_.StartType) }" >> "%TARGET_FILE%" 2>&1
@@ -328,7 +328,7 @@ call "%F%" INVALID "(0-7)" & goto PRIVACY_SECURITY_MENU
 :DISABLE_TELEMETRY
 call "%F%" PATH_DIR "Security" "DisableTelemetry"
 call "%F%" CREATE_FILE "Security" "HostsOriginal"
-if !errorlevel! equ 1 goto PRIVACY_SECURITY_MENU
+if errorlevel 1 goto PRIVACY_SECURITY_MENU
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
 
@@ -885,7 +885,7 @@ call "%F%" GO & goto DNS_MENU
 
 :WIFI_PASSWORDS
 call "%F%" CREATE_FILE "Network" "WifiPassword.log"
-if !errorlevel! equ 1 goto NETWORK_MENU
+if errorlevel 1 goto NETWORK_MENU
 
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
 echo. & echo Wifi Password file saved in: %TARGET_FILE%

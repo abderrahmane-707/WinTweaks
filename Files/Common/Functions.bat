@@ -692,7 +692,7 @@ set "TARGET_FILE=%PROGRAMDATA%\WinTweaks\%~1\%~2"
 if exist "%TARGET_FILE%" (
     echo. & echo %TARGET_FILE%: Already exists
     call :CHOICE "Do you want to delete the existing file and start fresh?"
-    if errorlevel 2 exit /b 1
+    if errorlevel 2 exit /b 2
 
     del /f /q "%TARGET_FILE%" >nul 2>&1
 )
