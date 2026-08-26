@@ -132,22 +132,14 @@ echo. & echo %MESSAGE%
 for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
     set "SERVICE_NAME=%%A"
     set "SERVICE_STATUS=%%B"
-    set "SC_PARAM="
 
-    if /i "!SERVICE_STATUS!"=="Disabled"               set "SC_PARAM=disabled"
-    if /i "!SERVICE_STATUS!"=="Manual"                 set "SC_PARAM=demand"
-    if /i "!SERVICE_STATUS!"=="Automatic"               set "SC_PARAM=auto"
-    if /i "!SERVICE_STATUS!"=="AutomaticDelayedStart"   set "SC_PARAM=delayed-auto"
-
-    if defined SC_PARAM (
-        sc config "!SERVICE_NAME!" start= !SC_PARAM! >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [SUCCESS]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
-        ) else if !errorlevel! equ 1060 (
-            echo [NOT FOUND]: !SERVICE_NAME! >> "%LOG_FILE%"
-        ) else (
-            echo [FAILED]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
-        )
+    sc config "!SERVICE_NAME!" start= !SERVICE_STATUS! >nul 2>&1
+    if !errorlevel! equ 0 (
+        echo [SUCCESS]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
+    ) else if !errorlevel! equ 1060 (
+        echo [NOT FOUND]: !SERVICE_NAME! >> "%LOG_FILE%"
+    ) else (
+        echo [FAILED]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
     )
 )
 
