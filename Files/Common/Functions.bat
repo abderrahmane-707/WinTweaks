@@ -576,7 +576,7 @@ set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
 if exist "%TARGET_FOLDER%" (
     echo. & echo %TARGET_FOLDER%: Already exists
     call :CHOICE "Do you want to delete the existing backup folder and start fresh?"
-    if errorlevel 2 exit /b 1
+    if errorlevel 2 exit /b 2
     
     rd /s /q "%TARGET_FOLDER%" >nul 2>&1
 )
@@ -590,9 +590,6 @@ if exist "%TARGET_FOLDER%" (
 exit /b
 
 :PATH_DIR
-:: %~1 = Subfolder name
-:: %~2 = Log filename
-
 :: Define the base directory within PROGRAMDATA for organizational consistency
 call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1"
 
@@ -633,7 +630,7 @@ if not exist "%MKDIR_DIR%" (
     mkdir "%~1" >nul 2>&1
     if errorlevel 1 (
         echo Failed to create: %MKDIR_DIR%
-        pause & exit
+        pause & goto MAIN_MENU
     )
 )
 exit /b

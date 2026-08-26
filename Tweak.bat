@@ -156,7 +156,7 @@ call "%F%" LOG & goto PERFORMANCE_MENU
 
 :BOOT_TWEAKS
 call "%F%" CREATE_FOLDER "Performance" "StartupBackup"
-if !errorlevel! equ 1 goto PERFORMANCE_MENU
+if errorlevel 1 goto PERFORMANCE_MENU
 
 call "%F%" PATH_DIR "Performance" "BootTweaks"
 
@@ -732,7 +732,7 @@ call "%F%" CONFIRM "WARNING: This script will RESET all Group Policy settings to
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call "%F%" CREATE_FOLDER "Security" "GroupPolicyBackup"
-if !errorlevel! equ 1 goto PRIVACY_SECURITY_MENU
+if errorlevel 1 goto PRIVACY_SECURITY_MENU
 
 call "%F%" PATH_DIR "Security" "RemoveAllPolicies"
 
@@ -1621,7 +1621,7 @@ call "%F%" LOG & goto SYSTEM_MENU
 :REG_BACK
 cls
 call "%F%" CREATE_FOLDER "System" "FullRegistryBackup"
-if !errorlevel! equ 1 goto SYSTEM_MENU
+if errorlevel 1 goto SYSTEM_MENU
 
 call "%F%" PATH_DIR "System" "FullRegistryBackup"
 
