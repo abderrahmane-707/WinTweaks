@@ -6,10 +6,23 @@ if "%~1" neq "" (
 )
 exit /b 1
 
-:SET_TASKS
-:: %~1 = Action (Enable/Disable)
-:: %~2 = Path to text file containing task names
+:SET_SERVICES
+for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
+    set "SERVICE_NAME=%%A"
+    set "SERVICE_STATUS=%%B"
 
+    sc config "!SERVICE_NAME!" start= !SERVICE_STATUS! >nul 2>&1
+    if !errorlevel! equ 0 (
+        echo [SUCCESS]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
+    ) else if !errorlevel! equ 1060 (
+        echo [NOT FOUND]: !SERVICE_NAME! >> "%LOG_FILE%"
+    ) else (
+        echo [FAILED]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
+    )
+)
+exit /b
+
+:SET_TASKS
 for /f "usebackq delims=" %%i in ("%~2") do (
     set "TASK_NAME=%%i"
     set "TASK_RESULT=[SUCCESS]"

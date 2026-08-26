@@ -104,45 +104,32 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set FILE=Files\Performance\ServicesTweaks.txt
-    set MESSAGE=Tweaking Windows services
+    set MSG=Tweaking Windows services
     set LOG=ServicesTweaks
-    goto SET_SERVICES
+    goto SERVICES
 )
 if "%choice%"=="2" (
     set FILE=Files\Performance\SafeServicesTweaks.txt
-    set MESSAGE=Tweaking Windows services in safe mode
+    set MSG=Tweaking Windows services in safe mode
     set LOG=SafeServicesTweaks
-    goto SET_SERVICES
+    goto SERVICES
 )
 if "%choice%"=="3" (
     set FILE=Files\Performance\DefaultServicesSettings.txt
-    set MESSAGE=Restore most Windows services to default startup
+    set MSG=Restore most Windows services to default startup
     set LOG=DefaultServicesSettings
-    goto SET_SERVICES
+    goto SERVICES
 )
 if "%choice%"=="4" goto EXPORT_SERVICES
 if "%choice%"=="0" goto PERFORMANCE_MENU
 
 call "%F%" INVALID "(0-4)" & goto SERVICES_MENU
 
-:SET_SERVICES
+:SERVICES
 call "%F%" PATH_DIR "Performance" "%LOG%"
-echo. & echo %MESSAGE%
+echo. & echo %MSG%
 
-for /f "usebackq tokens=1,2 delims=," %%A in ("%FILE%") do (
-    set "SERVICE_NAME=%%A"
-    set "SERVICE_STATUS=%%B"
-
-    sc config "!SERVICE_NAME!" start= !SERVICE_STATUS! >nul 2>&1
-    if !errorlevel! equ 0 (
-        echo [SUCCESS]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
-    ) else if !errorlevel! equ 1060 (
-        echo [NOT FOUND]: !SERVICE_NAME! >> "%LOG_FILE%"
-    ) else (
-        echo [FAILED]: !SERVICE_NAME! _ !SERVICE_STATUS! >> "%LOG_FILE%"
-    )
-)
-
+call "%F%" SET_SERVICES
 call "%F%" LOG & goto SERVICES_MENU
 
 :EXPORT_SERVICES
