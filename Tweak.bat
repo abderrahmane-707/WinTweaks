@@ -249,13 +249,7 @@ call "%F%" MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Performance"
 set "BATTERY_REPORT=%MKDIR_DIR%\BatteryReport.html"
 
 cls & echo Creating battery report
-powercfg /batteryreport /output "%BATTERY_REPORT%"
-
-if %errorlevel% equ 0 (
-    start "" "%BATTERY_REPORT%"
-) else (
-    echo Failed to create battery report
-)
+call "%F%" CREATE_BATTERY_REPORT
 
 call "%F%" GO & goto HW_INFO_MENU
 

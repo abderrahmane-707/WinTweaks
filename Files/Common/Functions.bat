@@ -291,6 +291,16 @@ powercfg /setactive %~1 >nul
 call :GO
 exit /b
 
+:CREATE_BATTERY_REPORT
+powercfg /batteryreport /output "%BATTERY_REPORT%"
+
+if %errorlevel% equ 0 (
+    start "" "%BATTERY_REPORT%"
+) else (
+    echo Failed to create battery report
+)
+exit /b
+
 :INFO_SCRIPT
 call "%F%" PATH_DIR "%~1" "%~2"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\%~1\%~2.ps1" "%LOG_FILE%"
