@@ -46,6 +46,139 @@ for /f "usebackq delims=" %%i in ("%~2") do (
 )
 exit /b
 
+:BOOT_TWEAKS
+set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+
+set "REG_HKCU_RUN=HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
+set "REG_HKLM_RUN=HKLM\Software\Microsoft\Windows\CurrentVersion\Run"
+
+set "HKCU_STARTUP=1"
+set "HKLM_STARTUP=1"
+
+set "HKCU_BACKUP_SUCCESS=1"
+set "HKLM_BACKUP_SUCCESS=1"
+
+echo. & echo Importing Boot up tweaks registry settings
+reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
+
+reg query "%REG_HKCU_RUN%" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "HKCU_STARTUP=0"
+    echo Backing up HKCU Startup registry key
+    reg export "%REG_HKCU_RUN%" "%TARGET_FOLDER%\HKCURunBackup.reg" /y >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        set "HKCU_BACKUP_SUCCESS=0"
+        echo Failed to backup: %REG_HKCU_RUN%
+        echo Skipping deletion for this key
+        echo.
+    )
+)
+
+reg query "%REG_HKLM_RUN%" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "HKLM_STARTUP=0"
+    echo Backing up HKLM Startup registry key
+    reg export "%REG_HKLM_RUN%" "%TARGET_FOLDER%\HKLMRunBackup.reg" /y >> "%LOG_FILE%" 2>&1
+    if !errorlevel! neq 0 (
+        set "HKLM_BACKUP_SUCCESS=0"
+        echo Failed to backup: %REG_HKLM_RUN%
+        echo Skipping deletion for this key
+        echo.
+    )
+)
+
+if exist "%START_MENU_DIR%\*.lnk" (
+    echo Moving and Backing up current user's Startup shortcuts
+    robocopy "%START_MENU_DIR%" "%TARGET_FOLDER%\CurrentUser" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo Failed to backup: %START_MENU_DIR%
+        echo Skipping shortcut movement
+        echo.
+    )
+)
+
+if exist "%ALL_START_MENU_DIR%\*.lnk" (
+    echo Moving and Backing up all users Startup shortcuts
+    robocopy "%ALL_START_MENU_DIR%" "%TARGET_FOLDER%\AllUsers" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo Failed to backup: %ALL_START_MENU_DIR%
+        echo Skipping shortcut movement
+        echo.
+    )
+)
+
+if "!HKCU_STARTUP!"=="0" if "!HKCU_BACKUP_SUCCESS!"=="1" (
+    echo Clearing HKCU Startup registry key
+    reg delete "%REG_HKCU_RUN%" /f >> "%LOG_FILE%" 2>&1
+    reg add "%REG_HKCU_RUN%" /f >> "%LOG_FILE%" 2>&1
+)
+
+if "!HKLM_STARTUP!"=="0" if "!HKLM_BACKUP_SUCCESS!"=="1" (
+    echo Clearing HKLM Startup registry key
+    reg delete "%REG_HKLM_RUN%" /f >> "%LOG_FILE%" 2>&1
+    reg add "%REG_HKLM_RUN%" /f >> "%LOG_FILE%" 2>&1
+)
+exit /b
+
+:REV_BOOT_TWEAKS
+set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
+
+set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+
+set "BACKUP_USER=%TARGET_FOLDER%\CurrentUser"
+set "BACKUP_ALL=%TARGET_FOLDER%\AllUsers"
+
+set "HKCU_RUN_BACKUP=%TARGET_FOLDER%\HKCURunBackup.reg"
+set "HKLM_RUN_BACKUP=%TARGET_FOLDER%\HKLMRunBackup.reg"
+
+echo. & echo Import default Boot up registry settings
+reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
+
+for %%F in (
+    "%BACKUP_USER%\*.lnk"
+    "%BACKUP_ALL%\*.lnk"
+    "%HKCU_RUN_BACKUP%"
+    "%HKLM_RUN_BACKUP%"
+) do (
+    if exist "%%~F" goto :FOUND_BACKUP
+)
+
+echo No backup files found to restore
+exit /b
+
+:FOUND_BACKUP
+echo. & call :CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
+if errorlevel 2 exit /b
+
+if exist "%BACKUP_USER%\*.lnk" (
+    echo Restoring current user's Startup folder
+    robocopy "%BACKUP_USER%" "%START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%BACKUP_ALL%\*.lnk" (
+    echo Restoring all users Startup folder
+    robocopy "%BACKUP_ALL%" "%ALL_START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%HKCU_RUN_BACKUP%" (
+    echo Restoring HKCU Startup registry keys
+    reg import "%HKCU_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
+)
+
+if exist "%HKLM_RUN_BACKUP%" (
+    echo Restoring HKLM Startup registry keys
+    reg import "%HKLM_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
+)
+
+echo. & call "%F%" CHOICE "Do you want to delete existing backup folder"
+if !errorlevel! equ 1 (
+    echo deleting: %TARGET_FOLDER%
+    rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
+)
+exit /b
+
 :RUNNING_BROWSERS
 :: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
