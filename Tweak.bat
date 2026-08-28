@@ -67,8 +67,7 @@ if "%choice%"=="2" (
     set APPLY=Disable unnecessary scheduled tasks
     set REVERT=Re-enable disabled scheduled tasks
     set MENU=PERFORMANCE_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="3" (
     set ROUTINE=BOOT_TWEAKS
@@ -76,8 +75,7 @@ if "%choice%"=="3" (
     set APPLY=Enhance boot-up settings
     set REVERT=Set boot-up settings to default
     set MENU=PERFORMANCE_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="4" goto CLEAN_UP
 if "%choice%"=="5" goto POWER_PLAN_MENU
@@ -163,11 +161,11 @@ call :SET_TASKS "enable" "Files\Performance\TasksList.txt"
 call :LOG & goto PERFORMANCE_MENU
 
 :BOOT_TWEAKS
-call "%F%" CREATE_FOLDER "Performance" "StartupBackup"
+call :CREATE_FOLDER "Performance" "StartupBackup"
 if errorlevel 1 goto PERFORMANCE_MENU
 
 set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
-call "%F%" PATH_DIR "Performance" "BootTweaks"
+call :PATH_DIR "Performance" "BootTweaks"
 
 set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
@@ -243,10 +241,10 @@ if "!HKLM_STARTUP!"=="0" if "!HKLM_BACKUP_SUCCESS!"=="1" (
 )
 
 echo Backup files saved in: %TARGET_FOLDER%
-call "%F%" LOG & goto PERFORMANCE_MENU
+call :LOG & goto PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
-call "%F%" PATH_DIR "Performance" "DefaultBootSettings"
+call :PATH_DIR "Performance" "DefaultBootSettings"
 
 set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
 
@@ -274,10 +272,10 @@ for %%F in (
 
 if "!HAS_BACKUP!"=="0" (
     echo No backup files found to restore
-    call "%F%" LOG & goto PERFORMANCE_MENU
+    call :LOG & goto PERFORMANCE_MENU
 )
 
-echo. & call "%F%" CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
+echo. & call :CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
 if errorlevel 2 goto PERFORMANCE_MENU
 
 if exist "%BACKUP_USER%\*.lnk" (
@@ -300,13 +298,13 @@ if exist "%HKLM_RUN_BACKUP%" (
     reg import "%HKLM_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
 )
 
-echo. & call "%F%" CHOICE "Do you want to delete existing backup folder"
+echo. & call :CHOICE "Do you want to delete existing backup folder"
 if !errorlevel! equ 1 (
     echo deleting: %TARGET_FOLDER%
     rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 )
 
-call "%F%" LOG & goto PERFORMANCE_MENU
+call :LOG & goto PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
@@ -333,8 +331,7 @@ if "%choice%"=="1" (
     set APPLY=Add Ultimate Performance plan
     set REVERT=Remove Ultimate Performance plan
     set MENU=POWER_PLAN_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="2" call :SET_POWER_PLAN "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" "high performance"  & goto POWER_PLAN_MENU
 if "%choice%"=="3" call :SET_POWER_PLAN "381b4222-f694-41f0-9685-ff5bb260df2e" "balanced"          & goto POWER_PLAN_MENU
@@ -416,8 +413,7 @@ if "%choice%"=="1" (
     set APPLY=Disable Windows telemetry
     set REVERT=Default Windows telemetry
     set MENU=PRIVACY_SECURITY_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="2" goto PRIVACY_CLEANUP
 if "%choice%"=="3" goto WINDOWS_UPDATES_MENU
@@ -428,8 +424,7 @@ if "%choice%"=="5" (
     set APPLY=Enhance system security
     set REVERT=Default system security
     set MENU=PRIVACY_SECURITY_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="6" (
     set ROUTINE=REMOVE_POLICIES
@@ -437,8 +432,7 @@ if "%choice%"=="6" (
     set APPLY=Remove all policies setting
     set REVERT=Restore all policies setting
     set MENU=PRIVACY_SECURITY_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="7" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
 if "%choice%"=="0" goto MAIN_MENU
@@ -522,7 +516,7 @@ reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 echo Cleaning system log files
 for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
     if exist "%%~F" (
-        "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q "%%~F\*""
+        "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q \"%%~F\*\""
             for /d %%D in ("%%~F\*") do (
             "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q "%%~D""
         )
@@ -905,8 +899,7 @@ if "%choice%"=="1" (
     set APPLY=Improve Network settings
     set REVERT=Default Network settings
     set MENU=NETWORK_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="2" goto DNS_MENU
 if "%choice%"=="3" goto WIFI_PASSWORDS
@@ -1025,7 +1018,7 @@ for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call :SC_CONFIGURE "%%S"
 
 echo Starting Network Services
 for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
-pause
+
 echo Reset TCP/IP Stack
 netsh int ip reset >> "%LOG_FILE%" 2>&1
 
@@ -1081,6 +1074,7 @@ if "%choice%"=="3" (call :INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PACKAGES
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-3)" & goto PACKAGES_MENU
+
 :CHOCO_INITIAL
 call :WHERE_CHOCO
 if errorlevel 1 goto PACKAGES_MENU
@@ -1194,8 +1188,7 @@ if "%choice%"=="2" (
     set APPLY=Activate dark mode
     set REVERT=Activate light mode
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="3" (
     set ROUTINE=DIS_NOTIFICATION
@@ -1203,8 +1196,7 @@ if "%choice%"=="3" (
     set APPLY=Disable notification center
     set REVERT=Enable notification center
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="4" (
     set ROUTINE=HIDE_SHORTCUT_ARROW
@@ -1212,8 +1204,7 @@ if "%choice%"=="4" (
     set APPLY=Remove shortcut arrow
     set REVERT=Show shortcut arrow
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="5" (
     set ROUTINE=NUM_LOCK_OFF
@@ -1221,8 +1212,7 @@ if "%choice%"=="5" (
     set APPLY=Disable num lock when logging in
     set REVERT=Enable num lock when logging in
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="6" (
     set ROUTINE=UTC
@@ -1230,8 +1220,7 @@ if "%choice%"=="6" (
     set APPLY=Setting hardware clock to UTC
     set REVERT=Setting hardware clock to Local Time
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="7" (
     set ROUTINE=POWER_SETTINGS
@@ -1239,8 +1228,7 @@ if "%choice%"=="7" (
     set APPLY=Creating 'Powerful settings' folder on your Desktop
     set REVERT=Removing 'Powerful settings' folder from your Desktop
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="8" (
     set ROUTINE=TRASH
@@ -1248,8 +1236,7 @@ if "%choice%"=="8" (
     set APPLY=Disable unnecessary Windows features
     set REVERT=Default unnecessary Windows features
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="9" (
     set ROUTINE=PHOTO_VIEWER
@@ -1257,8 +1244,7 @@ if "%choice%"=="9" (
     set APPLY=Restore classic Windows photo viewer
     set REVERT=Remove classic Windows photo viewer
     set MENU=CUSTOMIZATION_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="10" goto CONTEXT_MENU
 if "%choice%"=="0" goto MAIN_MENU
@@ -1284,8 +1270,7 @@ if "%choice%"=="1" (
     set APPLY=Show files extensions
     set REVERT=Hide file extensions
     set MENU=FILE_EXPLORER_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="2" (
     set ROUTINE=SHOW_HIDDEN
@@ -1293,8 +1278,7 @@ if "%choice%"=="2" (
     set APPLY=Show hidden files
     set REVERT=Hide hidden files
     set MENU=FILE_EXPLORER_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="3" (
     set ROUTINE=HIDE_RECENT
@@ -1302,8 +1286,7 @@ if "%choice%"=="3" (
     set APPLY=Hide recent files
     set REVERT=Show recent files
     set MENU=FILE_EXPLORER_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="4" (
     set ROUTINE=ON_THIS_PC
@@ -1311,8 +1294,7 @@ if "%choice%"=="4" (
     set APPLY=Open file explorer on: This PC
     set REVERT=Open file explorer on: Quick Access
     set MENU=FILE_EXPLORER_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
@@ -1459,8 +1441,7 @@ if "%choice%"=="1" (
     set APPLY=Add "Open CMD Here" options to context menu
     set REVERT=Remove option
     set MENU=CONTEXT_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="2" (
     set ROUTINE=CMD_CONTEXT_ADMIN
@@ -1468,8 +1449,7 @@ if "%choice%"=="2" (
     set APPLY=Add "Open CMD Here (Admin)" options to context menu
     set REVERT=Remove option
     set MENU=CONTEXT_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="3" (
     set ROUTINE=RESTART_EXPLORER
@@ -1477,8 +1457,7 @@ if "%choice%"=="3" (
     set APPLY=Add "Restart Explorer" option to context menu
     set REVERT=Remove option
     set MENU=CONTEXT_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="4" (
     set ROUTINE=KILL_FROZEN
@@ -1486,8 +1465,7 @@ if "%choice%"=="4" (
     set APPLY=Add "Kill frozen process" option to context menu
     set REVERT=Remove option
     set MENU=CONTEXT_MENU
-    call :SUB_MENU
-    goto !SUBMENU_RESULT!
+    goto SUB_MENU
 )
 if "%choice%"=="0" goto CUSTOMIZATION_MENU
 
@@ -2063,6 +2041,18 @@ if errorlevel 1 (
 )
 exit /b 0
 
+:COLLECT_SELECTED
+set "sel="
+for /L %%i in (1,1,%MAX_PKG%) do (
+    if "!OPT%%i!"=="!ON!" (
+        for %%V in (ITEM%%i) do (
+            for /f "tokens=1 delims=|" %%A in ("!%%V!") do set "sel=!sel! %%A"
+        )
+    )
+)
+set "%~1=!sel!"
+exit /b
+
 :INSTALL_PKG_LIST
 if not defined toInstall (
     echo. & echo No packages selected
@@ -2506,9 +2496,9 @@ echo.
 echo      [0] Back
 echo. & set "choice=" & set /p choice="Select an option: "
 
-if "%choice%"=="1" set "SUBMENU_RESULT=%ROUTINE%" & exit /b
-if "%choice%"=="2" set "SUBMENU_RESULT=%REV_ROUTINE%" & exit /b
-if "%choice%"=="0" set "SUBMENU_RESULT=%MENU%" & exit /b
+if "%choice%"=="1" goto %ROUTINE%
+if "%choice%"=="2" goto %REV_ROUTINE%
+if "%choice%"=="0" goto %MENU%
 call :INVALID "(0-2)" & goto SUB_MENU
 
 :CHOICE
