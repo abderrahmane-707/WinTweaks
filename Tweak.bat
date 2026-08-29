@@ -110,9 +110,9 @@ if "%choice%"=="2" (
     goto SET_SERVICES
 )
 if "%choice%"=="3" (
-    set FILE=Files\Performance\DefaultServicesSettings.txt
+    set FILE=Files\Performance\DefaultServices.txt
     set MSG=Restore Windows services to default startup
-    set LOG=DefaultServicesSettings
+    set LOG=DefaultServices
     goto SET_SERVICES
 )
 if "%choice%"=="4" goto EXPORT_SERVICES
@@ -164,111 +164,37 @@ call :LOG & goto PERFORMANCE_MENU
 call :CREATE_FOLDER "Performance" "StartupBackup"
 if errorlevel 1 goto PERFORMANCE_MENU
 
-set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
 call :PATH_DIR "Performance" "BootTweaks"
-
-set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-
-set "REG_HKCU_RUN=HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
-set "REG_HKLM_RUN=HKLM\Software\Microsoft\Windows\CurrentVersion\Run"
-
-set "HKCU_STARTUP=1"
-set "HKLM_STARTUP=1"
-
-set "HKCU_BACKUP_SUCCESS=1"
-set "HKLM_BACKUP_SUCCESS=1"
+call :SET_STARTUP_PATHS
 
 echo. & echo Importing Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
-reg query "%REG_HKCU_RUN%" >nul 2>&1
-if !errorlevel! equ 0 (
-    set "HKCU_STARTUP=0"
-    echo Backing up HKCU Startup registry key
-    reg export "%REG_HKCU_RUN%" "%TARGET_FOLDER%\HKCURunBackup.reg" /y >> "%LOG_FILE%" 2>&1
-    if !errorlevel! neq 0 (
-        set "HKCU_BACKUP_SUCCESS=0"
-        echo Failed to backup: %REG_HKCU_RUN%
-        echo Skipping deletion for this key
-        echo.
-    )
-)
+for %%K in (
+    "HKCU\Software\Microsoft\Windows\CurrentVersion\Run|%TARGET_FOLDER%\HKCURunBackup.reg"
+    "HKLM\Software\Microsoft\Windows\CurrentVersion\Run|%TARGET_FOLDER%\HKLMRunBackup.reg"
+) do for /f "tokens=1,2 delims=|" %%A in ("%%~K") do call :BACKUP_AND_CLEAR_KEY "%%A" "%%B"
 
-reg query "%REG_HKLM_RUN%" >nul 2>&1
-if !errorlevel! equ 0 (
-    set "HKLM_STARTUP=0"
-    echo Backing up HKLM Startup registry key
-    reg export "%REG_HKLM_RUN%" "%TARGET_FOLDER%\HKLMRunBackup.reg" /y >> "%LOG_FILE%" 2>&1
-    if !errorlevel! neq 0 (
-        set "HKLM_BACKUP_SUCCESS=0"
-        echo Failed to backup: %REG_HKLM_RUN%
-        echo Skipping deletion for this key
-        echo.
-    )
-)
-
-if exist "%START_MENU_DIR%\*.lnk" (
-    echo Moving and Backing up current user's Startup shortcuts
-    robocopy "%START_MENU_DIR%" "%TARGET_FOLDER%\CurrentUser" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo Failed to backup: %START_MENU_DIR%
-        echo Skipping shortcut movement
-        echo.
-    )
-)
-
-if exist "%ALL_START_MENU_DIR%\*.lnk" (
-    echo Moving and Backing up all users Startup shortcuts
-    robocopy "%ALL_START_MENU_DIR%" "%TARGET_FOLDER%\AllUsers" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo Failed to backup: %ALL_START_MENU_DIR%
-        echo Skipping shortcut movement
-        echo.
-    )
-)
-
-if "!HKCU_STARTUP!"=="0" if "!HKCU_BACKUP_SUCCESS!"=="1" (
-    echo Clearing HKCU Startup registry key
-    reg delete "%REG_HKCU_RUN%" /f >> "%LOG_FILE%" 2>&1
-    reg add "%REG_HKCU_RUN%" /f >> "%LOG_FILE%" 2>&1
-)
-
-if "!HKLM_STARTUP!"=="0" if "!HKLM_BACKUP_SUCCESS!"=="1" (
-    echo Clearing HKLM Startup registry key
-    reg delete "%REG_HKLM_RUN%" /f >> "%LOG_FILE%" 2>&1
-    reg add "%REG_HKLM_RUN%" /f >> "%LOG_FILE%" 2>&1
-)
+for %%S in (
+    "%START_MENU_DIR%|%TARGET_FOLDER%\CurrentUser"
+    "%ALL_START_MENU_DIR%|%TARGET_FOLDER%\AllUsers"
+) do for /f "tokens=1,2 delims=|" %%A in ("%%~S") do call :BACKUP_SHORTCUTS "%%A" "%%B"
 
 echo Backup files saved in: %TARGET_FOLDER%
 call :LOG & goto PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
 call :PATH_DIR "Performance" "DefaultBootSettings"
-
 set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
-
-set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-
-set "BACKUP_USER=%TARGET_FOLDER%\CurrentUser"
-set "BACKUP_ALL=%TARGET_FOLDER%\AllUsers"
-
-set "HKCU_RUN_BACKUP=%TARGET_FOLDER%\HKCURunBackup.reg"
-set "HKLM_RUN_BACKUP=%TARGET_FOLDER%\HKLMRunBackup.reg"
-
-echo. & echo Import default Boot up registry settings
-reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
+call :SET_STARTUP_PATHS
 
 set "HAS_BACKUP=0"
 for %%F in (
-    "%BACKUP_USER%\*.lnk"
-    "%BACKUP_ALL%\*.lnk"
-    "%HKCU_RUN_BACKUP%"
-    "%HKLM_RUN_BACKUP%"
-) do (
-    if exist "%%~F" set "HAS_BACKUP=1"
-)
+    "%TARGET_FOLDER%\CurrentUser\*.lnk"
+    "%TARGET_FOLDER%\AllUsers\*.lnk"
+    "%TARGET_FOLDER%\HKCURunBackup.reg"
+    "%TARGET_FOLDER%\HKLMRunBackup.reg"
+) do if exist "%%~F" set "HAS_BACKUP=1"
 
 if "!HAS_BACKUP!"=="0" (
     echo No backup files found to restore
@@ -278,38 +204,38 @@ if "!HAS_BACKUP!"=="0" (
 echo. & call :CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
 if errorlevel 2 goto PERFORMANCE_MENU
 
-if exist "%BACKUP_USER%\*.lnk" (
-    echo Restoring current user's Startup folder
-    robocopy "%BACKUP_USER%" "%START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-)
+echo. & echo Import default Boot up registry settings
+reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
 
-if exist "%BACKUP_ALL%\*.lnk" (
-    echo Restoring all users Startup folder
-    robocopy "%BACKUP_ALL%" "%ALL_START_MENU_DIR%" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-)
+call :RESTORE_SHORTCUTS "%TARGET_FOLDER%\CurrentUser" "%START_MENU_DIR%"
+call :RESTORE_SHORTCUTS "%TARGET_FOLDER%\AllUsers" "%ALL_START_MENU_DIR%"
+call :RESTORE_REG "%TARGET_FOLDER%\HKCURunBackup.reg"
+call :RESTORE_REG "%TARGET_FOLDER%\HKLMRunBackup.reg"
 
-if exist "%HKCU_RUN_BACKUP%" (
-    echo Restoring HKCU Startup registry keys
-    reg import "%HKCU_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
-)
-
-if exist "%HKLM_RUN_BACKUP%" (
-    echo Restoring HKLM Startup registry keys
-    reg import "%HKLM_RUN_BACKUP%" >> "%LOG_FILE%" 2>&1
-)
-
-echo. & call :CHOICE "Do you want to delete existing backup folder"
-if !errorlevel! equ 1 (
-    echo deleting: %TARGET_FOLDER%
-    rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
-)
+echo. & call :CHOICE "Do you want to delete existing backup folder: %TARGET_FOLDER%"
+if !errorlevel! equ 1 rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto PERFORMANCE_MENU
 
 :CLEAN_UP
 cls
 call :RUNNING_BROWSERS
-call :CLEAN_BROWSER
+if "!BROWSERS_OPEN!"=="1" (
+    call :CHOICE "Closing browsers to clean them?"
+    echo.
+    if errorlevel 2 (
+        echo Skipping cleaning browsers
+    ) else (
+        echo Closing browsers
+        for %%B in (%BROWSERS%) do (
+            taskkill /IM "%%B" /F /T >nul 2>&1
+        )
+        timeout /t 2 >nul     
+    )
+)
+
+call :CLEAN_BROWSER_CACHES
+call :CLEANING_FUNCTION
 call :GO & goto PERFORMANCE_MENU
 
 :POWER_PLAN_MENU
@@ -384,11 +310,10 @@ set "BATTERY_REPORT=%MKDIR_DIR%\BatteryReport.html"
 
 cls & echo Creating battery report
 powercfg /batteryreport /output "%BATTERY_REPORT%"
-if %errorlevel% equ 0 (
-    start "" "%BATTERY_REPORT%"
-) else (
-    echo Failed to create battery report
-)
+if %errorlevel% neq 0 echo Failed to create battery report
+
+call :CHOICE "Do you want to open battery report file in your default html viewer?"
+if !errorlevel! equ 1 start "" "%BATTERY_REPORT%"
 
 call :GO & goto HW_INFO_MENU
 
@@ -1862,39 +1787,68 @@ for /f "usebackq delims=" %%A in ("%~2") do (
 )
 exit /b
 
+:SET_STARTUP_PATHS
+set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+exit /b
+
+:BACKUP_AND_CLEAR_KEY
+reg query "%~1" >nul 2>&1
+if errorlevel 1 exit /b
+echo Backing up: %~1
+reg export "%~1" "%~2" /y >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo Failed to backup: %~1 - Skipping deletion
+    exit /b
+)
+:: Delete all values inside the key without deleting the key structure
+reg delete "%~1" /va /f >> "%LOG_FILE%" 2>&1
+exit /b
+
+:BACKUP_SHORTCUTS
+:: %1=source dir  %2=destination backup dir
+if exist "%~1\*.lnk" (
+    echo Moving and backing up shortcuts from: %~1
+    robocopy "%~1" "%~2" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 echo Failed to backup: %~1
+)
+exit /b
+
+:RESTORE_SHORTCUTS
+:: %1=backup dir  %2=destination Startup dir
+if exist "%~1\*.lnk" (
+    echo Restoring shortcuts to: %~2
+    robocopy "%~1" "%~2" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+)
+exit /b
+
+:RESTORE_REG
+:: %1=backup .reg file
+if exist "%~1" (
+    echo Restoring: %~1
+    reg import "%~1" >> "%LOG_FILE%" 2>&1
+)
+exit /b
+
 :RUNNING_BROWSERS
-:: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set "BROWSERS_OPEN=0"
 
-:: Check if any browser is currently running
-for %%A in (%BROWSERS%) do (
-    tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
-    if not errorlevel 1 (
-        echo %%A is currently running
-        set "BROWSERS_OPEN=1"
+for /f "tokens=1" %%A in ('tasklist /NH 2^>nul') do (
+    for %%B in (%BROWSERS%) do (
+        if /I "%%A"=="%%B" (
+            echo %%B is currently running
+            set "BROWSERS_OPEN=1"
+        )
     )
 )
 exit /b
 
-:CLEAN_BROWSER
-if "!BROWSERS_OPEN!"=="1" (
-    call :CHOICE "Close browsers to clean them?"
-    echo.
-    if errorlevel 2 (
-        echo Skipping cleaning browsers
-		call :CLEANING_FUNCTION
-		exit /b
-    ) else (
-        echo Closing browsers
-        for %%B in (%BROWSERS%) do (
-            taskkill /IM "%%B" /F /T >nul 2>&1
-        )
-        timeout /t 2 >nul     
-    )
-)
+:CLEAN_BROWSER_CACHES
+set "EMPTY=%TEMP%\__empty_%RANDOM%"
+md "%EMPTY%" >nul 2>&1
 
-::  Chromium-based browsers (Chrome, Edge, Brave)
+:: Chromium-based browsers (Chrome, Edge, Brave)
 for %%X in (
     "Google\Chrome\User Data|Google Chrome"
     "Microsoft\Edge\User Data|Microsoft Edge"
@@ -1913,35 +1867,35 @@ for %%X in (
 )
 
 :: Mozilla Firefox
-for %%X in (
-    "Mozilla\Firefox|Mozilla Firefox"
-) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-        if exist "%APPDATA%\%%A" (
-            echo Cleaning %%B
-            if exist "%LOCALAPPDATA%\%%A\Profiles" (
-                for /d %%P in ("%LOCALAPPDATA%\%%A\Profiles\*") do (
-                    for %%D in ("cache2" "thumbnails" "jumpListCache" "startupCache") do (
-                        rd /s /q "%%P\%%~D" >nul 2>&1
-                    )
-                )
+if exist "%APPDATA%\Mozilla\Firefox" (
+    echo Cleaning Mozilla Firefox
+    if exist "%LOCALAPPDATA%\Mozilla\Firefox\Profiles" (
+        for /d %%P in ("%LOCALAPPDATA%\Mozilla\Firefox\Profiles\*") do (
+            for %%D in (cache2 thumbnails jumpListCache startupCache) do (
+                call :CLEAN_DIR "%%P\%%~D"
             )
-            rd /s /q "%APPDATA%\%%A\Crash Reports" >nul 2>&1
         )
     )
+    call :CLEAN_DIR "%APPDATA%\Mozilla\Firefox\Crash Reports"
 )
+
+rd /s /q "%EMPTY%" >nul 2>&1
+exit /b
+
+:CLEAN_DIR
+if exist "%~1" robocopy "%EMPTY%" "%~1" /MIR /R:0 /W:0 /NFL /NDL /NJH /NJS /NC /NS /NP >nul 2>&1
 exit /b
 
 :CLEANING_FUNCTION
-echo Cleaning Temp and prefetch folders
+set "EMPTY=%TEMP%\__empty_%RANDOM%"
+md "%EMPTY%" >nul 2>&1
+
+echo Cleaning Temp and Prefetch folders
 for %%F in ("%TEMP%" "%SYSTEMROOT%\TEMP" "%SYSTEMROOT%\Prefetch") do (
-    if exist "%%~F" (
-        del /f /q "%%~F\*" >nul 2>&1
-        for /d %%D in ("%%~F\*") do (
-            rd /s /q "%%D" >nul 2>&1
-        )
-    )
+    call :CLEAN_DIR "%%~F"
 )
+
+rd /s /q "%EMPTY%" >nul 2>&1
 
 :: Clear the "Recent Items" list shown in File Explorer
 call :DELETE_FILES "Clearing Recent Files" "%APPDATA%\Microsoft\Windows\Recent\*.lnk"
@@ -1950,8 +1904,8 @@ call :DELETE_FILES "Clearing Recent Files" "%APPDATA%\Microsoft\Windows\Recent\*
 echo Rebuilding Thumbnail and Icon cache
 taskkill /F /IM explorer.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
-del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
-del /f /q "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
+del /f /q /a "%LOCALAPPDATA%\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
+del /f /q /a "%LOCALAPPDATA%\Microsoft\Windows\Explorer\iconcache*.db" >nul 2>&1
 start explorer.exe >nul 2>&1
 
 :: Delete PowerShell command history
