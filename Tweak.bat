@@ -161,59 +161,17 @@ call :SET_TASKS "enable" "Files\Performance\TasksList.txt"
 call :LOG & goto PERFORMANCE_MENU
 
 :BOOT_TWEAKS
-call :CREATE_FOLDER "Performance" "StartupBackup"
-if errorlevel 1 goto PERFORMANCE_MENU
-
 call :PATH_DIR "Performance" "BootTweaks"
-call :SET_STARTUP_PATHS
 
 echo. & echo Importing Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
-for %%K in (
-    "HKCU\Software\Microsoft\Windows\CurrentVersion\Run|%TARGET_FOLDER%\HKCURunBackup.reg"
-    "HKLM\Software\Microsoft\Windows\CurrentVersion\Run|%TARGET_FOLDER%\HKLMRunBackup.reg"
-) do for /f "tokens=1,2 delims=|" %%A in ("%%~K") do call :BACKUP_AND_CLEAR_KEY "%%A" "%%B"
-
-for %%S in (
-    "%START_MENU_DIR%|%TARGET_FOLDER%\CurrentUser"
-    "%ALL_START_MENU_DIR%|%TARGET_FOLDER%\AllUsers"
-) do for /f "tokens=1,2 delims=|" %%A in ("%%~S") do call :BACKUP_SHORTCUTS "%%A" "%%B"
-
-echo Backup files saved in: %TARGET_FOLDER%
 call :LOG & goto PERFORMANCE_MENU
 
 :REV_BOOT_TWEAKS
 call :PATH_DIR "Performance" "DefaultBootSettings"
-set "TARGET_FOLDER=%MKDIR_DIR%\StartupBackup"
-call :SET_STARTUP_PATHS
-
-set "HAS_BACKUP=0"
-for %%F in (
-    "%TARGET_FOLDER%\CurrentUser\*.lnk"
-    "%TARGET_FOLDER%\AllUsers\*.lnk"
-    "%TARGET_FOLDER%\HKCURunBackup.reg"
-    "%TARGET_FOLDER%\HKLMRunBackup.reg"
-) do if exist "%%~F" set "HAS_BACKUP=1"
-
-if "!HAS_BACKUP!"=="0" (
-    echo No backup files found to restore
-    call :LOG & goto PERFORMANCE_MENU
-)
-
-echo. & call :CHOICE "WARNING: Restoring previous startup settings is NOT recommended. Press (N) if you are unsure"
-if errorlevel 2 goto PERFORMANCE_MENU
-
 echo. & echo Import default Boot up registry settings
 reg import "Files\Performance\DefaultBootSettings.reg" >> "%LOG_FILE%" 2>&1
-
-call :RESTORE_SHORTCUTS "%TARGET_FOLDER%\CurrentUser" "%START_MENU_DIR%"
-call :RESTORE_SHORTCUTS "%TARGET_FOLDER%\AllUsers" "%ALL_START_MENU_DIR%"
-call :RESTORE_REG "%TARGET_FOLDER%\HKCURunBackup.reg"
-call :RESTORE_REG "%TARGET_FOLDER%\HKLMRunBackup.reg"
-
-echo. & call :CHOICE "Do you want to delete existing backup folder: %TARGET_FOLDER%"
-if !errorlevel! equ 1 rd /s /q "%TARGET_FOLDER%" >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto PERFORMANCE_MENU
 
@@ -416,7 +374,6 @@ call :LOG & goto PRIVACY_SECURITY_MENU
 :PRIVACY_CLEANUP
 call :CONFIRM "WARNING: This will PERMANENTLY DELETE browser data, logs, and privacy-related information"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
-
 
 echo.
 call :RUNNING_BROWSERS
@@ -1784,49 +1741,6 @@ for /f "usebackq delims=" %%A in ("%~2") do (
             echo [FAILED]: !TASK_NAME! _ !TASK_ACTION! >> "%LOG_FILE%"
         )
     )
-)
-exit /b
-
-:SET_STARTUP_PATHS
-set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-set "ALL_START_MENU_DIR=%PROGRAMDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-exit /b
-
-:BACKUP_AND_CLEAR_KEY
-reg query "%~1" >nul 2>&1
-if errorlevel 1 exit /b
-echo Backing up: %~1
-reg export "%~1" "%~2" /y >> "%LOG_FILE%" 2>&1
-if errorlevel 1 (
-    echo Failed to backup: %~1 - Skipping deletion
-    exit /b
-)
-:: Delete all values inside the key without deleting the key structure
-reg delete "%~1" /va /f >> "%LOG_FILE%" 2>&1
-exit /b
-
-:BACKUP_SHORTCUTS
-:: %1=source dir  %2=destination backup dir
-if exist "%~1\*.lnk" (
-    echo Moving and backing up shortcuts from: %~1
-    robocopy "%~1" "%~2" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 echo Failed to backup: %~1
-)
-exit /b
-
-:RESTORE_SHORTCUTS
-:: %1=backup dir  %2=destination Startup dir
-if exist "%~1\*.lnk" (
-    echo Restoring shortcuts to: %~2
-    robocopy "%~1" "%~2" "*.lnk" /MOV /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-)
-exit /b
-
-:RESTORE_REG
-:: %1=backup .reg file
-if exist "%~1" (
-    echo Restoring: %~1
-    reg import "%~1" >> "%LOG_FILE%" 2>&1
 )
 exit /b
 
