@@ -275,15 +275,16 @@ if !errorlevel! equ 1 start "" "%BATTERY_REPORT%"
 
 call :GO & goto HW_INFO_MENU
 
+
 :PRIVACY_SECURITY_MENU
 cls & echo. & echo.
 echo                        --------------------------- Privacy and Security --------------------------
 echo.
-echo                          [1] Telemetry                                       [2] Privacy Cleanup
+echo                          [1] Windows Telemetry                               [2] Privacy Cleanup
 echo.
 echo                          [3] Windows Updates                                 [4] Windows Defender
 echo.
-echo                          [5] Enhance Security                                [6] Policies
+echo                          [5] Enhance Security                                [6] Group Policies
 echo.
 echo                          [7] Security Info                                   [0] Back
 echo.
@@ -292,7 +293,7 @@ echo                        ----------------------------------------------------
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" (
     set ROUTINE=DISABLE_TELEMETRY
-    set REV_ROUTINE=REV_DISABLE_TELEMETRY
+    set REV_ROUTINE=DEFAULT_TELEMETRY
     set APPLY=Disable Windows telemetry
     set REVERT=Default Windows telemetry
     set MENU=PRIVACY_SECURITY_MENU
@@ -303,7 +304,7 @@ if "%choice%"=="3" goto WINDOWS_UPDATES_MENU
 if "%choice%"=="4" goto WINDOWS_DEFENDER_MENU
 if "%choice%"=="5" (
     set ROUTINE=ENHANCE_SECURITY
-    set REV_ROUTINE=REV_ENHANCE_SECURITY
+    set REV_ROUTINE=DEFAULT_SECURITY
     set APPLY=Enhance system security
     set REVERT=Default system security
     set MENU=PRIVACY_SECURITY_MENU
@@ -311,7 +312,7 @@ if "%choice%"=="5" (
 )
 if "%choice%"=="6" (
     set ROUTINE=REMOVE_POLICIES
-    set REV_ROUTINE=REV_REMOVE_POLICIES
+    set REV_ROUTINE=RESTORE_POLICIES
     set APPLY=Remove all policies setting
     set REVERT=Restore all policies setting
     set MENU=PRIVACY_SECURITY_MENU
@@ -350,7 +351,7 @@ echo Flushing DNS cache
 ipconfig /flushdns >> "%LOG_FILE%" 2>&1
 call :LOG & goto PRIVACY_SECURITY_MENU
 
-:REV_DISABLE_TELEMETRY
+:DEFAULT_TELEMETRY
 call :PATH_DIR "Security" "DefaultTelemetry"
 
 set "HOSTS_PATH=%SYSTEMROOT%\System32\drivers\etc\hosts"
@@ -377,7 +378,6 @@ if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 echo.
 call :RUNNING_BROWSERS
-
 if "!BROWSERS_OPEN!"=="1" (
     echo Closing open browsers
     for %%B in (%BROWSERS%) do (
@@ -392,21 +392,28 @@ call :DELETE_FOLDERS "Cleaning Microsoft Edge data" "%LOCALAPPDATA%\Microsoft\Ed
 call :DELETE_FOLDERS "Cleaning Firefox roaming user data" "%APPDATA%\Mozilla\Firefox"
 call :DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\Firefox"
 
+call :CLEANING_FUNCTION
+
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
 echo Cleaning system log files
 for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
-    if exist "%%~F" (
+    if exist "%%~F\" (
         "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q \"%%~F\*\""
-            for /d %%D in ("%%~F\*") do (
-            "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q "%%~D""
+        for /d %%D in ("%%~F\*") do (
+            "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q \"%%~D\""
         )
     )
 )
 
-echo Cleaning Windows Event Logs
-for %%L in ("Application" "Security" "System" "Setup") do wevtutil clear-log %%L >nul 2>&1
+echo Cleaning all Windows Event Logs
+for /f "tokens=*" %%L in ('wevtutil el 2^>nul') do (
+    wevtutil clear-log "%%L" >nul 2>&1
+)
+
+echo Deleting NTFS Change Journal (USN Journal)
+fsutil usn deletejournal /D %SystemDrive% >nul 2>&1
 
 echo Clearing clipboard content
 echo. | clip >nul
@@ -414,7 +421,6 @@ echo. | clip >nul
 echo Flushing DNS cache
 ipconfig /flushdns >nul 2>&1
 
-call :CLEANING_FUNCTION
 call :GO & goto PRIVACY_SECURITY_MENU
 
 :WINDOWS_UPDATES_MENU
@@ -493,7 +499,7 @@ echo Clearing all BITS download jobs
 bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
 echo Setting Windows Update services to default startup
-call :SC_CONFIGURE "CryptSvc" "auto"
+call :SC_CONFIGURE "CryptSvc" "auto" >> "%LOG_FILE%" 2>&1
 for %%S in ("UsoSvc" "DoSvc") do call :SC_CONFIGURE "%%S" "delayed-auto" >> "%LOG_FILE%" 2>&1
 for %%S in ("BITS" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
@@ -591,7 +597,7 @@ net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto PRIVACY_SECURITY_MENU
 
-:REV_ENHANCE_SECURITY
+:DEFAULT_SECURITY
 echo. & echo Restoring default Windows security registry settings
 reg import "Files\Security\DefaultSecurity.reg"
 
@@ -629,9 +635,9 @@ if !errorlevel! equ 0 (
     set "HKLM_POLICIES=0"
     echo Backing up HKLM Policies registry key
     reg export "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
-    if !errorlevel! neq 0 (
+    if errorlevel 1 (
 	    set "HKLM_POL_SUCCESS=0"
-        echo Failed to backup: %GP_KEY%
+        echo [ERROR] Failed to backup: %GP_KEY%
         echo Skipping deletion for this key
         echo.
     )
@@ -642,9 +648,9 @@ if !errorlevel! equ 0 (
     set "HKCU_POLICIES=0"
     echo Backing up HKCU Policies registry key
     reg export "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
-    if !errorlevel! neq 0 (
+    if errorlevel 1 (
 	    set "HKCU_POL_SUCCESS=0"
-        echo Failed to backup: %GPU_KEY%
+        echo [ERROR] Failed to backup: %GPU_KEY%
         echo Skipping deletion for this key
         echo.
     )
@@ -654,9 +660,9 @@ if exist "%INF_FILE%" (
     set "DEFLTBASE_INF=0"
     echo Backing up current security policies
     secedit /export /cfg "%SEC_BACKUP%" >> "%LOG_FILE%" 2>&1
-    if !errorlevel! neq 0 (
+    if errorlevel 1 (
 	    set "SEC_POL_SUCCESS=0"
-        echo Failed to backup: %INF_FILE%
+        echo [ERROR] Failed to backup: %INF_FILE%
         echo Skipping baseline security reset
 		echo.
     )
@@ -666,7 +672,7 @@ if exist "%GP_DIR%" (
     echo Moving and Backing up GroupPolicy folder
     robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
-        echo Failed to move: %GP_DIR%
+        echo [ERROR] Failed to move: %GP_DIR%
         echo Skipping folder movement
     )
 )
@@ -675,7 +681,7 @@ if exist "%GPU_DIR%" (
     echo Moving and Backing up GroupPolicyUsers folder
     robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
     if !errorlevel! geq 8 (
-        echo Failed to move: %GPU_DIR%
+        echo [ERROR] Failed to move: %GPU_DIR%
         echo Skipping folder movement
     )
 )
@@ -683,16 +689,25 @@ if exist "%GPU_DIR%" (
 if "!HKLM_POLICIES!"=="0" if "!HKLM_POL_SUCCESS!"=="1" (
     echo Deleting HKLM Policies registry key
     reg delete "%GP_KEY%" /f >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to delete: %GP_KEY%
+    )
 )
 
 if "!HKCU_POLICIES!"=="0" if "!HKCU_POL_SUCCESS!"=="1" (
     echo Deleting HKCU Policies registry key
     reg delete "%GPU_KEY%" /f >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to delete: %GPU_KEY%
+    )
 )
 
 if "!DEFLTBASE_INF!"=="0" if "!SEC_POL_SUCCESS!"=="1" (
     echo Applying default security policy baseline
     secedit /configure /cfg "%INF_FILE%" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to apply default security policy baseline
+    )
 )
 
 echo. & echo Applying Group Policy Update
@@ -701,7 +716,7 @@ gpupdate /force >nul 2>&1
 echo Backup files saved in: %TARGET_FOLDER%
 call :LOG & goto PRIVACY_SECURITY_MENU
 
-:REV_REMOVE_POLICIES
+:RESTORE_POLICIES
 echo. & call :CHOICE "WARNING: Restoring previous Group Policy settings will overwrite current changes. Press (N) if you are unsure"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
@@ -720,15 +735,14 @@ set "HKCU_POL_BACKUP=%TARGET_FOLDER%\HKCU_Policies_Backup.reg"
 set "SEC_BACKUP=%TARGET_FOLDER%\SecurityBackup.inf"
 
 for %%F in (
+    "%BACKUP_GP%"
+	"%BACKUP_GPU%"
     "%HKLM_POL_BACKUP%"
     "%HKCU_POL_BACKUP%"
     "%SEC_BACKUP%"
 ) do (
     if exist "%%~F" goto :FOUND_POLICIES_BACKUP
 )
-
-if exist "%BACKUP_GP%" goto :FOUND_POLICIES_BACKUP
-if exist "%BACKUP_GPU%" goto :FOUND_POLICIES_BACKUP
 
 echo No backup files found to restore
 call :LOG & goto PRIVACY_SECURITY_MENU
@@ -737,30 +751,46 @@ call :LOG & goto PRIVACY_SECURITY_MENU
 if exist "%BACKUP_GP%" (
     echo Restoring GroupPolicy folder
     robocopy "%BACKUP_GP%" "%GP_DIR%" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to restore: %BACKUP_GP%
+    )
 )
 
 if exist "%BACKUP_GPU%" (
     echo Restoring GroupPolicyUsers folder
     robocopy "%BACKUP_GPU%" "%GPU_DIR%" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+    if !errorlevel! geq 8 (
+        echo [ERROR] Failed to restore: %BACKUP_GPU%
+    )
 )
 
 if exist "%HKLM_POL_BACKUP%" (
     echo Restoring HKLM Policies registry keys
     reg import "%HKLM_POL_BACKUP%" >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to restore: %HKLM_POL_BACKUP%
+    )
 )
 
 if exist "%HKCU_POL_BACKUP%" (
     echo Restoring HKCU Policies registry keys
     reg import "%HKCU_POL_BACKUP%" >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to restore: %HKCU_POL_BACKUP%
+    )
 )
 
 if exist "%SEC_BACKUP%" (
     echo Restoring default security policy baseline
     secedit /configure /cfg "%SEC_BACKUP%" /db "%TEMP%\defltbase.sdb" /verbose >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 (
+        echo [ERROR] Failed to restore: %SEC_BACKUP%
+    )
 )
 
 gpupdate /force >nul 2>&1
 call :GO & goto PRIVACY_SECURITY_MENU
+
 
 :NETWORK_MENU
 cls & echo. & echo.
