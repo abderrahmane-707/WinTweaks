@@ -796,65 +796,22 @@ call :GO & goto PRIVACY_SECURITY_MENU
 cls & echo. & echo.
 echo                        --------------------------------- Network ---------------------------------
 echo.
-echo                          [1] Network Tweaks                                    [2] Change DNS
+echo                          [1] Reset Network                                   [2] Wi-Fi Passwords
 echo.
-echo                          [3] Wi-Fi Passwords                                   [4] Reset Network
+echo                          [3] Change DNS                                      [4] Network Info 
 echo.
-echo                          [5] Network Info                                      [0] Back
+echo                                                         [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
-    set ROUTINE=NETWORK_TWEAKS
-    set REV_ROUTINE=REV_NETWORK_TWEAKS
-    set APPLY=Improve Network settings
-    set REVERT=Default Network settings
-    set MENU=NETWORK_MENU
-    goto SUB_MENU
-)
-if "%choice%"=="2" goto DNS_MENU
-if "%choice%"=="3" goto WIFI_PASSWORDS
-if "%choice%"=="4" goto NETWORK_RESET
-if "%choice%"=="5" (call :INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
+if "%choice%"=="1" goto NETWORK_RESET
+if "%choice%"=="2" goto WIFI_PASSWORDS
+if "%choice%"=="3" goto DNS_MENU
+if "%choice%"=="4" (call :INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-5)" & goto NETWORK_MENU
-
-:NETWORK_TWEAKS
-call :PATH_DIR "Network" "NetworkTweaks"
-echo. & echo Improve network settings via registry
-reg import "Files\Network\NetworkTweaks.reg" >> "%LOG_FILE%" 2>&1
-
-echo Configuring TCP global parameters
-for %%P in ("fastopen=enabled" "fastopenfallback=enabled" "rss=enabled" "autotuninglevel=high") do (
-    echo  - %%~P
-    netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
-)
-
-echo Setting Cloudflare DNS on all connected interfaces
-set DNS_IPv4_1=1.1.1.1
-set DNS_IPv4_2=1.0.0.1
-set DNS_IPv6_1=2606:4700:4700::1111
-set DNS_IPv6_2=2606:4700:4700::1001
-call :UPDATE_DNS
-
-call :LOG & goto NETWORK_MENU
-
-:REV_NETWORK_TWEAKS
-call :PATH_DIR "Network" "DefaultNetworkSettings"
-echo. & echo Restoring default network registry settings
-reg import "Files\Network\DefaultNetworkSettings.reg" >> "%LOG_FILE%" 2>&1
-
-echo Resetting TCP global parameters to default
-for %%P in ("fastopen=default" "fastopenfallback=default" "rss=default" "autotuninglevel=normal") do (
-    echo  - %%~P
-    netsh int tcp set global %%~P >> "%LOG_FILE%" 2>&1
-)
-
-echo. & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDHCP.ps1"
-
-call :LOG & goto NETWORK_MENU
+call :INVALID "(0-4)" & goto NETWORK_MENU
 
 :DNS_MENU
 cls & echo. & echo.
