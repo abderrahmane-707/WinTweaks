@@ -832,13 +832,68 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (set "DNS_NAME=Google Public DNS" & set "DNS_IPv4_1=8.8.8.8" & set "DNS_IPv4_2=8.8.4.4" & set "DNS_IPv6_1=2001:4860:4860::8888" & set "DNS_IPv6_2=2001:4860:4860::8844" & goto SET_DNS)
-if "%choice%"=="2" (set "DNS_NAME=Cloudflare DNS" & set "DNS_IPv4_1=1.1.1.1" & set "DNS_IPv4_2=1.0.0.1" & set "DNS_IPv6_1=2606:4700:4700::1111" & set "DNS_IPv6_2=2606:4700:4700::1001" & goto SET_DNS)
-if "%choice%"=="3" (set "DNS_NAME=Cloudflare Family DNS" & set "DNS_IPv4_1=1.1.1.3" & set "DNS_IPv4_2=1.0.0.3" & set "DNS_IPv6_1=2606:4700:4700::1113" & set "DNS_IPv6_2=2606:4700:4700::1003" & goto SET_DNS)
-if "%choice%"=="4" (set "DNS_NAME=AdGuard DNS" & set "DNS_IPv4_1=94.140.14.14" & set "DNS_IPv4_2=94.140.15.15" & set "DNS_IPv6_1=2a10:50c0::ad1:ff" & set "DNS_IPv6_2=2a10:50c0::ad2:ff" & goto SET_DNS)
-if "%choice%"=="5" (set "DNS_NAME=Clean Browsing DNS" & set "DNS_IPv4_1=185.228.168.168" & set "DNS_IPv4_2=185.228.169.168" & set "DNS_IPv6_1=2a0d:2a00:1::" & set "DNS_IPv6_2=2a0d:2a00:2::" & goto SET_DNS)
-if "%choice%"=="6" (set "DNS_NAME=Quad9 DNS" & set "DNS_IPv4_1=9.9.9.9" & set "DNS_IPv4_2=149.112.112.112" & set "DNS_IPv6_1=2620:fe::fe" & set "DNS_IPv6_2=2620:fe::9" & goto SET_DNS)
-if "%choice%"=="7" (set "DNS_NAME=OpenDNS" & set "DNS_IPv4_1=208.67.222.222" & set "DNS_IPv4_2=208.67.220.220" & set "DNS_IPv6_1=2620:119:35::35" & set "DNS_IPv6_2=2620:119:53::53" & goto SET_DNS)
+if "%choice%"=="1" (
+    set "DNS_NAME=Google Public DNS"
+    set "DNS_IPv4_1=8.8.8.8"
+    set "DNS_IPv4_2=8.8.4.4"
+    set "DNS_IPv6_1=2001:4860:4860::8888"
+    set "DNS_IPv6_2=2001:4860:4860::8844"
+    goto SET_DNS
+)
+
+if "%choice%"=="2" (
+    set "DNS_NAME=Cloudflare DNS"
+    set "DNS_IPv4_1=1.1.1.1"
+    set "DNS_IPv4_2=1.0.0.1"
+    set "DNS_IPv6_1=2606:4700:4700::1111"
+    set "DNS_IPv6_2=2606:4700:4700::1001"
+    goto SET_DNS
+)
+
+if "%choice%"=="3" (
+    set "DNS_NAME=Cloudflare Family DNS"
+    set "DNS_IPv4_1=1.1.1.3"
+    set "DNS_IPv4_2=1.0.0.3"
+    set "DNS_IPv6_1=2606:4700:4700::1113"
+    set "DNS_IPv6_2=2606:4700:4700::1003"
+    goto SET_DNS
+)
+
+if "%choice%"=="4" (
+    set "DNS_NAME=AdGuard DNS"
+    set "DNS_IPv4_1=94.140.14.14"
+    set "DNS_IPv4_2=94.140.15.15"
+    set "DNS_IPv6_1=2a10:50c0::ad1:ff"
+    set "DNS_IPv6_2=2a10:50c0::ad2:ff"
+    goto SET_DNS
+)
+
+if "%choice%"=="5" (
+    set "DNS_NAME=Clean Browsing DNS"
+    set "DNS_IPv4_1=185.228.168.168"
+    set "DNS_IPv4_2=185.228.169.168"
+    set "DNS_IPv6_1=2a0d:2a00:1::"
+    set "DNS_IPv6_2=2a0d:2a00:2::"
+    goto SET_DNS
+)
+
+if "%choice%"=="6" (
+    set "DNS_NAME=Quad9 DNS"
+    set "DNS_IPv4_1=9.9.9.9"
+    set "DNS_IPv4_2=149.112.112.112"
+    set "DNS_IPv6_1=2620:fe::fe"
+    set "DNS_IPv6_2=2620:fe::9"
+    goto SET_DNS
+)
+
+if "%choice%"=="7" (
+    set "DNS_NAME=OpenDNS"
+    set "DNS_IPv4_1=208.67.222.222"
+    set "DNS_IPv4_2=208.67.220.220"
+    set "DNS_IPv6_1=2620:119:35::35"
+    set "DNS_IPv6_2=2620:119:53::53"
+    goto SET_DNS
+)
 if "%choice%"=="8" goto SET_DHCP
 if "%choice%"=="9" goto DNS_SERVER_TEST
 if "%choice%"=="10" goto DNS_STATUS
@@ -878,51 +933,34 @@ call :CONFIRM "WARNING: This script will RESET ALL network configurations"
 if errorlevel 2 goto NETWORK_MENU
 
 call :PATH_DIR "Network" "NetworkReset"
-echo. & echo Stopping Network Services
+
+echo Flushing DNS and Caches
+ipconfig /flushdns >> "%LOG_FILE%" 2>&1
+nbtstat -RR >> "%LOG_FILE%" 2>&1
+arp -d * >> "%LOG_FILE%" 2>&1
+
+echo Stopping Network Services
 for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
-echo Resetting Network services to default startup
+echo Resetting TCP/IP Stack, Winsock, and Proxies
+netsh int ip reset >> "%LOG_FILE%" 2>&1
+netsh winsock reset >> "%LOG_FILE%" 2>&1
+netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
+netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
+netsh interface portproxy reset >> "%LOG_FILE%" 2>&1
+netsh advfirewall reset >> "%LOG_FILE%" 2>&1
+netsh branchcache reset >> "%LOG_FILE%" 2>&1
+
+echo Cleaning IPv6 Neighbor and Destination Cache
+netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
+netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
+
+echo Resetting Network Services Startup Configuration
 for %%S in ("Dhcp" "dnscache" "nlasvc" "WlanSvc") do call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
 for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 echo Starting Network Services
 for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
-
-echo Reset TCP/IP Stack
-netsh int ip reset >> "%LOG_FILE%" 2>&1
-
-echo Reset Winsock catalog
-netsh winsock reset >> "%LOG_FILE%" 2>&1
-
-echo Reset WinHTTP proxy
-netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
-
-echo Reset IPv6 settings
-netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
-
-echo Reset Port Proxies
-netsh interface portproxy reset >> "%LOG_FILE%" 2>&1
-
-echo Reset Firewall Rules
-netsh advfirewall reset >> "%LOG_FILE%" 2>&1
-
-echo Resetting BranchCache
-netsh branchcache reset >> "%LOG_FILE%" 2>&1
-
-echo Refreshing NetBIOS names
-nbtstat -RR >> "%LOG_FILE%" 2>&1
-
-echo Flushing DNS
-ipconfig /flushdns >> "%LOG_FILE%" 2>&1
-
-echo Cleaning ARP cache
-arp -d * >> "%LOG_FILE%" 2>&1
-
-echo Cleaning IPv6 Neighbor
-netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
-
-echo Cleaning IPv6 Destination Cache
-netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto NETWORK_MENU
 
