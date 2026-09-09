@@ -989,8 +989,10 @@ if errorlevel 1 goto PACKAGES_MENU
 :: Initialize
 set "ON=(YES)"
 set "OFF=(NO)"
+set "PKG_FILE=Files\Packages\PackageList.txt"
 
 call :INIT_PACKAGES
+if errorlevel 1 (pause & goto PACKAGES_MENU)
 call :TOGGLE_ALL OFF
 
 :: Main interface
@@ -1008,7 +1010,6 @@ call :RENDER_COLUMNS
 echo.
 echo    [U] Update Packages
 echo    [R] Remove Packages
-echo    [M] More
 echo.
 echo              ---------------------------------------------------------------------------
 echo.
@@ -1025,13 +1026,24 @@ if /i "%choice%"=="A" (call :TOGGLE_ALL ON & goto CHOCO_MENU)
 if /i "%choice%"=="D" (call :TOGGLE_ALL OFF & goto CHOCO_MENU)
 if /i "%choice%"=="U" goto UPDATE_MENU
 if /i "%choice%"=="R" goto REMOVE_MENU
-if /i "%choice%"=="M" goto MORE_PKG
 
-call :MULTI_INPUT OPT %MAX_PKG%
+call :MULTI_INPUT
 goto CHOCO_MENU
 
 :RUN_PACKAGES
-call :COLLECT_SELECTED toInstall
+set "sel="
+for /L %%i in (1,1,%MAX_PKG%) do (
+    if "!OPT%%i!"=="!ON!" (
+        for /f "tokens=1 delims=|" %%A in ("!ITEM%%i!") do (
+            if not defined sel (
+                set "sel=%%A"
+            ) else (
+                set "sel=!sel! %%A"
+            )
+        )
+    )
+)
+set "toInstall=!sel!"
 
 call :INSTALL_PKG_LIST
 if errorlevel 1 (pause & goto CHOCO_MENU)
@@ -1039,27 +1051,15 @@ if errorlevel 1 (pause & goto CHOCO_MENU)
 call :GO & call :TOGGLE_ALL OFF & goto CHOCO_MENU
 
 :UPDATE_MENU
-call :LIST_MENU "update" "Checking for available updates" "outdated" "upgrade"
+call :LIST_MENU "update" "Checking for available updates:" "outdated" "upgrade"
 if errorlevel 2 goto CHOCO_MENU
 if errorlevel 1 (pause & goto CHOCO_MENU)
 call :GO & goto CHOCO_MENU
 
 :REMOVE_MENU
-call :LIST_MENU "remove" "Installed packages" "list" "uninstall"
+call :LIST_MENU "remove" "Installed packages:" "list" "uninstall"
 if errorlevel 2 goto CHOCO_MENU
 if errorlevel 1 (pause & goto CHOCO_MENU)
-call :GO & goto CHOCO_MENU
-
-:MORE_PKG
-cls
-echo Enter package name(s) separated by spaces
-echo Type 0 to go back
-
-set "choice=" & set /p "choice=--> "
-if "%choice%"=="" goto MORE_PKG
-if "%choice%"=="0" goto CHOCO_MENU
-
-for %%A in (%choice%) do call :PROCESS_PKG "%%A"
 call :GO & goto CHOCO_MENU
 
 :REMOVE_MS
@@ -1884,38 +1884,15 @@ exit /b
 :INIT_PACKAGES
 set "PKG_COUNT=0"
 
-:: Browsers
-call :ADD_ITEM "googlechrome"                "Google Chrome"
-call :ADD_ITEM "brave"                       "Brave"
-call :ADD_ITEM "firefox"                     "Firefox"
-
-:: Archivers
-call :ADD_ITEM "winrar"                      "WinRAR"
-call :ADD_ITEM "7zip.install"                "7-Zip"
-
-:: Media
-call :ADD_ITEM "vlc.install"                 "VLC"
-call :ADD_ITEM "k-litecodecpack-standard"    "K-Lite Codec"
-call :ADD_ITEM "irfanview irfanviewplugins"  "IrfanView"
-
-:: Documents
-call :ADD_ITEM "sumatrapdf.install"          "Sumatra PDF"
-
-:: Text Editors / Dev Tools
-call :ADD_ITEM "notepadplusplus.install"      "Notepad++"
-call :ADD_ITEM "vscode.install"               "VS Code"
-call :ADD_ITEM "git.install"                  "Git"
-
-:: Utilities
-call :ADD_ITEM "qbittorrent"                  "qbittorrent"
-call :ADD_ITEM "vcredist140"                  "VC++ 2015-2022"
-call :ADD_ITEM "virtualbox"                   "VirtualBox"
-call :ADD_ITEM "io-unlocker"                  "IObit Unlocker"
-call :ADD_ITEM "autohotke1y.install"          "AutoHotkey"
-call :ADD_ITEM "megasync"                     "MEGA"
+for /f "usebackq eol=# tokens=1,2 delims=|" %%A in ("!PKG_FILE!") do (
+    if not "%%A"=="" (
+        set /a "PKG_COUNT+=1"
+        set "ITEM!PKG_COUNT!=%%A|%%B"
+    )
+)
 
 set "MAX_PKG=%PKG_COUNT%"
-exit /b
+exit /b 0
 
 :WHERE_CHOCO
 where choco >nul 2>&1 && exit /b 0
@@ -1934,18 +1911,6 @@ if errorlevel 1 (
 )
 exit /b 0
 
-:COLLECT_SELECTED
-set "sel="
-for /L %%i in (1,1,%MAX_PKG%) do (
-    if "!OPT%%i!"=="!ON!" (
-        for %%V in (ITEM%%i) do (
-            for /f "tokens=1 delims=|" %%A in ("!%%V!") do set "sel=!sel! %%A"
-        )
-    )
-)
-set "%~1=!sel!"
-exit /b
-
 :INSTALL_PKG_LIST
 if not defined toInstall (
     echo. & echo No packages selected
@@ -1961,181 +1926,51 @@ if errorlevel 2 (
     exit /b 2
 )
 
-call :TRY_ACTION "!toInstall!"
+echo. & call choco install !toInstall! -y
 exit /b 0
 
 :LIST_MENU
 cls
-set "listfile=%temp%\choco_%~3.txt"
-del "%listfile%" >nul 2>&1
+set "tmp_list=%temp%\choco_list_%~1.txt"
 
-echo %~2
-echo. & call choco %~3 > "%listfile%" 2>&1
-type "%listfile%"
+echo %~2 
+echo. & choco %~3 > "%tmp_list%" 2>&1
+type "%tmp_list%"
 
 call :PRINT_ACTION_PROMPT "%~1"
 
 set "choice=" & set /p "choice=--> "
-if "%choice%"=="0" (del "%listfile%" >nul 2>&1 & exit /b 2)
+if not defined choice (del "%tmp_list%" >nul 2>&1 & exit /b 1)
+if "%choice%"=="0" (del "%tmp_list%" >nul 2>&1 & exit /b 2)
 
-call :PKG_BULK_ACTION "%~4" "%listfile%"
-if errorlevel 1 (del "%listfile%" >nul 2>&1 & exit /b 1)
-
-del "%listfile%" >nul 2>&1
-exit /b 0
+call :PKG_BULK_ACTION "%~4" "%tmp_list%"
+set "ret=!errorlevel!"
+del "%tmp_list%" >nul 2>&1
+exit /b %ret%
 
 :PKG_BULK_ACTION
-echo. & if not defined choice (
-    echo No package selected
-    exit /b 1
-)
 set "action=%~1"
+set "list_file=%~2"
+set "targets=!choice:,= !"
+
 if /i "!action!"=="upgrade" (set "verb=Updating") else (set "verb=Removing")
 
-set "listfile=%~2"
-set "hasupdate= "
-set "installed= "
-if /i "!action!"=="upgrade" (
-    call :COLLECT_NAMES "!listfile!" hasupdate
-) else (
-    call :COLLECT_NAMES "!listfile!" installed
+if /i "!choice!"=="ALL" (
+    set "targets="
+    for /f "usebackq tokens=1 delims= " %%A in ("!list_file!") do (
+        echo %%A | findstr /v /i /c:"Chocolatey" /c:"packages" /c:"outdated" /c:"Output" /c:"Did" >nul 2>&1
+        if !errorlevel! equ 0 set "targets=!targets! %%A"
+    )
 )
 
-set "cmd_targets="
-if /i "!choice!"=="ALL" (
-    if /i "!action!"=="upgrade" (
-        if "!hasupdate!"==" " (
-            echo No updates are available
-            exit /b 1
-        )
-        set "targets=!hasupdate!"
-        set "cmd_targets=all"
-    ) else (
-        if "!installed!"==" " (
-            echo No packages are currently installed
-            exit /b 1
-        )
-        set "targets=!installed!"
-        set "cmd_targets=!installed!"
-    )
-    echo !verb! all packages:
-    for %%P in (!targets!) do echo     - %%P
-) else (
-    set "requested=!choice:,= !"
-    set "targets="
-    set "missing="
-    set "noupdate="
-    for %%P in (!requested!) do (
-        if /i "!action!"=="upgrade" (
-            set "hasupd="
-            for %%X in (!hasupdate!) do if /i "%%X"=="%%P" set "hasupd=1"
-            if not defined hasupd (
-                set "noupdate=!noupdate! %%P"
-            ) else (
-                set "targets=!targets! %%P"
-            )
-        ) else (
-            set "isinstalled="
-            for %%X in (!installed!) do if /i "%%X"=="%%P" set "isinstalled=1"
-            if not defined isinstalled (
-                set "missing=!missing! %%P"
-            ) else (
-                set "targets=!targets! %%P"
-            )
-        )
-    )
-    if defined missing (
-        echo The following packages are not installed and will be skipped:
-        for %%M in (!missing!) do echo     - %%M
-    )
-    if defined noupdate (
-        echo The following packages are already up to date and will be skipped:
-        for %%N in (!noupdate!) do echo     - %%N
-    )
-    if not defined targets (
-        echo. & echo None of the selected packages need action
-        exit /b 1
-    )
-    echo !verb! the following packages:
-    for %%P in (!targets!) do echo     - %%P
-    set "cmd_targets=!targets!"
-)
+echo. & echo !verb! the following packages:
+for %%P in (!targets!) do echo     - %%P
 
 echo. & call :CHOICE "Do you want to continue?"
-if errorlevel 2 (echo. & echo The operation was cancelled & exit /b 2)
-if /i "!action!"=="upgrade" (
-    echo. & call choco upgrade !cmd_targets! -y
-) else (
-    echo. & call choco uninstall !cmd_targets! -y
-)
+if errorlevel 2 (echo. & echo Operation cancelled & exit /b 2)
+
+echo. & call choco !action! !targets! -y
 exit /b 0
-
-:COLLECT_NAMES
-set "src_file=%~1"
-set "names= "
-for /f "usebackq delims=" %%P in ("!src_file!") do (
-    set "ln=%%P"
-    set "skip=0"
-    if "!ln!"=="" set "skip=1"
-    echo(!ln!| findstr /i /c:"Chocolatey v" /c:"Output is" /c:"packages installed" /c:"package(s) are outdated" /c:"Did you know" >nul && set "skip=1"
-    if "!skip!"=="0" (
-        if not "!ln:|=!"=="!ln!" (
-            for /f "tokens=1 delims=|" %%A in ("!ln!") do set "names=!names!%%A "
-        ) else (
-            for /f "tokens=1" %%A in ("!ln!") do set "names=!names!%%A "
-        )
-    )
-)
-set "%~2=!names!"
-exit /b
-
-:PROCESS_PKG
-set "query=%~1"
-echo. & echo Searching for: !query!
-call choco search "!query!" --exact --limit-output > "%temp%\choco_result.txt" 2>nul
-
-set "found=0"
-set "official_pkg="
-set "official_version="
-
-for /f "tokens=1,2 delims=|" %%L in ('type "%temp%\choco_result.txt" 2^>nul') do (
-    set "found=1"
-    set "official_pkg=%%L"
-    set "official_version=%%M"
-)
-
-if "!found!"=="1" (
-    echo. & echo Official package found: !official_pkg! !official_version!
-    call :CHOICE "Do you want to install !official_pkg!"
-    if errorlevel 2 (
-        echo Installation skipped
-    ) else (
-        call :TRY_ACTION "!official_pkg!"
-    )
-) else (
-    echo No exact match for "!query!" was found
-    echo Similar packages available in Chocolatey:
-    echo. & call choco search "!query!" --limit-output
-    echo. & echo No package was installed automatically. Check the list above and pick the correct name if available
-)
-
-del "%temp%\choco_result.txt" >nul 2>&1
-exit /b
-
-:: %1 = package id to install (also used as the display name, so it no longer needs to be passed twice)
-:TRY_ACTION
-echo. & call choco install %~1 -y
-if !errorlevel! neq 0 (
-    echo. & echo One or more packages failed to install
-    call :CHOICE "Do you want to ignore checksum and retry"
-    if errorlevel 2 (
-        echo The retry was skipped
-    ) else (
-        echo. & echo Retrying with --ignore-checksums
-        call choco install %~1 --ignore-checksums -y
-    )
-)
-exit /b
 
 :PRINT_ACTION_PROMPT
 echo.
@@ -2165,7 +2000,7 @@ for /L %%r in (1,1,!ROWS!) do (
         set "cell=!cell:~0,25!"
         set "line=!line!!cell!"
     )
-    echo                   !line!
+    echo                  !line!
 )
 exit /b
 
@@ -2173,11 +2008,6 @@ exit /b
 set "val=!OFF!"
 if /i "%~1"=="ON" set "val=!ON!"
 for /L %%i in (1,1,%MAX_PKG%) do set "OPT%%i=!val!"
-exit /b
-
-:ADD_ITEM
-set /a "PKG_COUNT+=1"
-set "ITEM%PKG_COUNT%=%~1|%~2"
 exit /b
 
 :MULTI_INPUT
@@ -2209,9 +2039,9 @@ for %%G in (%tokens%) do (
     ) else (
         set "isNum=1" & for /f "delims=0123456789" %%C in ("!tok!") do set "isNum=0"
         if "!isNum!"=="1" if defined tok (
-            if !tok! geq 1 if !tok! leq !max_count! (
-                for %%V in (%prefix%!tok!) do (
-                    if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
+            if !tok! geq 1 if !tok! leq !MAX_PKG! (
+                for %%N in (!tok!) do (
+                    if "!OPT%%N!"=="!ON!" (set "OPT%%N=!OFF!") else (set "OPT%%N=!ON!")
                 )
                 set "matched=1"
             )

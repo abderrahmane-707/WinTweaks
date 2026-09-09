@@ -1,0 +1,20 @@
+googlechrome|Google Chrome
+brave|Brave
+firefox|Firefox
+7zip-zstd|7-Zip Zstandard
+winrar|WinRAR
+peazip|PeaZip
+k-litecodecpack-standard|K-Lite Codec
+vlc.install|VLC
+irfanview irfanviewplugins|IrfanView
+sumatrapdf.install|Sumatra PDF
+notepadplusplus.install|Notepad++
+vscode.install|VS Code
+git.install|Git
+autohotkey.install|AutoHotkey
+freedownloadmanager|FDM
+qbittorrent|qbittorrent
+vcredist140|VC++ 2015-2022
+virtualbox|VirtualBox
+io-unlocker|IObit Unlocker
+megasync|MEGA
