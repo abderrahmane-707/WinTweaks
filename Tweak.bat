@@ -2186,8 +2186,6 @@ set "ITEM%PKG_COUNT%=%~1|%~2"
 exit /b
 
 :MULTI_INPUT
-set "prefix=%~1"
-set "max_count=%~2"
 set "invalid="
 set "tokens=!choice:,= !"
 
@@ -2206,11 +2204,9 @@ for %%G in (%tokens%) do (
         set "isNum2=1" & for /f "delims=0123456789" %%C in ("!rangeEnd!") do set "isNum2=0"
 
         if defined rangeStart if defined rangeEnd if "!isNum1!!isNum2!"=="11" (
-            if !rangeStart! geq 1 if !rangeEnd! leq !max_count! if !rangeStart! leq !rangeEnd! (
+            if !rangeStart! geq 1 if !rangeEnd! leq !MAX_PKG! if !rangeStart! leq !rangeEnd! (
                 for /L %%N in (!rangeStart!,1,!rangeEnd!) do (
-                    for %%V in (%prefix%%%N) do (
-                        if "!%%V!"=="%ON%" (set "%%V=%OFF%") else (set "%%V=%ON%")
-                    )
+                    if "!OPT%%N!"=="!ON!" (set "OPT%%N=!OFF!") else (set "OPT%%N=!ON!")
                 )
                 set "matched=1"
             )
