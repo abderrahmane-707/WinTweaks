@@ -3,10 +3,6 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CrashControl]
 "DisplayParameters"=-
 
-; Set 5 s time to kill services befor shut down (Default)
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
-"WaitToKillServiceTimeout"="5000"
-
 ; WaitToKillAppTimeout=20000: Restores default application closure timeout to 20 seconds
 [HKEY_CURRENT_USER\Control Panel\Desktop]
 "AutoEndTasks"=-
