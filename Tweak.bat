@@ -489,7 +489,7 @@ sc sdset wuauserv D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;
 
 echo Re-registering critical system libraries
 for %%D in (atl.dll urlmon.dll mshtml.dll shdocvw.dll browseui.dll jscript.dll vbscript.dll scrrun.dll msxml.dll msxml3.dll msxml6.dll actxprxy.dll softpub.dll wintrust.dll dssenh.dll rsaenh.dll gpkcsp.dll sccbase.dll slbcsp.dll cryptdlg.dll oleaut32.dll ole32.dll shell32.dll initpki.dll wuapi.dll wuaueng.dll wups.dll wups2.dll qmgr.dll qmgrprxy.dll wucltux.dll muweb.dll) do (
-    regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+    if exist "%windir%\System32\%%D" regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 echo Applying default security policy baseline
@@ -1467,11 +1467,11 @@ for %%S in ("VSS" "swprv") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&
 
 echo Re-registering VSS-related system libraries
 for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
-    regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+	if exist "%windir%\System32\%%D" regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 for %%D in (swprv.dll eventcls.dll) do (
-    regsvr32 /s /i "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
+	if exist "%windir%\System32\%%D" regsvr32 /s "%windir%\System32\%%D" >> "%LOG_FILE%" 2>&1
 )
 
 echo Registering VSS Service
