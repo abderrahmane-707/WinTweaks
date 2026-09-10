@@ -2069,40 +2069,36 @@ if defined invalid (
 exit /b
 
 :NET_CONTROL
-:: Check if the service exists
-sc query %~1 >nul 2>&1
-if !errorlevel! neq 0 (
+set "SVC_STATE="
+for /f "delims=" %%L in ('sc query "%~1" 2^>nul ^| findstr /i "STATE"') do set "SVC_STATE=%%L"
+
+if not defined SVC_STATE (
     echo [NOT FOUND]: %~1
-    exit /b
+    exit /b 1
 )
 
-:: Execute the action based on the requested operation (stop or start)
-if /i %~2==stop (
-    :: Check if the service is already stopped
-    sc query %~1 | find /i "STOPPED" >nul
+if /i "%~2"=="stop" (
+    echo !SVC_STATE! | find /i "STOPPED" >nul
     if !errorlevel! equ 0 (
         echo [ALREADY STOPPED]: %~1
     ) else (
-        :: Try to stop the service
-        net stop %~1 >nul 2>&1
+        net stop "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [SUCCESS]: %~1 _ %~2 
+            echo [SUCCESS]: %~1 _ %~2
         ) else (
-            echo [FAILED]: %~1 _ %~2 
+            echo [FAILED]: %~1 _ %~2
         )
     )
-) else if /i %~2==start (
-    :: Check if the service is already running
-    sc query %~1 | find /i "RUNNING" >nul
+) else if /i "%~2"=="start" (
+    echo !SVC_STATE! | find /i "RUNNING" >nul
     if !errorlevel! equ 0 (
         echo [ALREADY RUNNING]: %~1
     ) else (
-        :: Try to start the service
-        net start %~1 >nul 2>&1
+        net start "%~1" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [SUCCESS]: %~1 _ %~2 
+            echo [SUCCESS]: %~1 _ %~2
         ) else (
-            echo [FAILED]: %~1 _ %~2 
+            echo [FAILED]: %~1 _ %~2
         )
     )
 )
