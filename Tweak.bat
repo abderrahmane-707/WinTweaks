@@ -2102,20 +2102,14 @@ if /i "%~2"=="stop" (
         )
     )
 )
-exit /b
-	
-:SC_CONFIGURE
-sc query %~1 >nul 2>&1
-if !errorlevel! neq 0 (
-    echo [NOT FOUND]: %~1
-    exit /b
-)
+exit /b 0
 
+:SC_CONFIGURE
 sc config %~1 start= %~2 >nul 2>&1
 if !errorlevel! equ 0 (
     echo [SUCCESS]: %~1 _ %~2
 ) else if !errorlevel! equ 1060 (
-    echo [NOT FOUND]: %~1 _ %~2
+    echo [NOT FOUND]: %~1
 ) else (
     echo [FAILED]: %~1 _ %~2
 )
@@ -2141,7 +2135,6 @@ exit /b
 
 :CREATE_FOLDER
 set "TARGET_FOLDER=%PROGRAMDATA%\WinTweaks\%~1\%~2"
-
 if exist "%TARGET_FOLDER%" (
     echo. & echo %TARGET_FOLDER%: Already exists
     call :CHOICE "Do you want to delete the existing backup folder and start fresh?"
