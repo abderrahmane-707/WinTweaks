@@ -1940,8 +1940,9 @@ cls
 set "tmp_list=%temp%\choco_list_%~1.txt"
 
 echo %~2 
-echo. & choco %~3 > "%tmp_list%" 2>&1
-type "%tmp_list%"
+echo. & choco %~3 -r > "%tmp_list%" 2>&1
+
+for /f "usebackq tokens=1,2 delims=|" %%A in ("%tmp_list%") do echo %%A %%B
 
 call :PRINT_ACTION_PROMPT "%~1"
 
@@ -1963,9 +1964,13 @@ if /i "!action!"=="upgrade" (set "verb=Updating") else (set "verb=Removing")
 
 if /i "!choice!"=="ALL" (
     set "targets="
-    for /f "usebackq tokens=1 delims= " %%A in ("!list_file!") do (
-        echo %%A | findstr /v /i /c:"Chocolatey" /c:"packages" /c:"outdated" /c:"Output" /c:"Did" >nul 2>&1
-        if !errorlevel! equ 0 set "targets=!targets! %%A"
+    for /f "usebackq tokens=1,2 delims=|" %%A in ("!list_file!") do (
+        set "skip=0"
+        if /i not "!action!"=="upgrade" (
+            echo %%A | findstr /i /c:"chocolatey" >nul 2>&1
+            if !errorlevel! equ 0 set "skip=1"
+        )
+        if "!skip!"=="0" set "targets=!targets! %%A"
     )
 )
 
@@ -1973,7 +1978,7 @@ echo. & echo !verb! the following packages:
 for %%P in (!targets!) do echo     - %%P
 
 echo. & call :CHOICE "Do you want to continue?"
-if errorlevel 2 (echo. & echo Operation cancelled & exit /b 2)
+if errorlevel 2 exit /b 2
 
 echo. & call choco !action! !targets! -y
 exit /b 0
