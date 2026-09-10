@@ -1627,8 +1627,15 @@ dism /Online /Cleanup-Image /ScanHealth
 call :GO & goto DISM_MENU
 
 :DISM_RESTORE_HEALTH
-cls & echo Fix Windows component
-dism /Online /Cleanup-Image /RestoreHealth
+cls & echo Use Windows Update servers to download clean repair files?
+call :CHOICE "(Select 'N' to specify a local install.wim path)"
+if errorlevel 2 (
+    set "SRC="
+    set /p "SRC=Enter path to install.wim/install.esd source: "
+    dism /Online /Cleanup-Image /RestoreHealth /Source:"%SRC%" /LimitAccess
+) else (
+    dism /Online /Cleanup-Image /RestoreHealth
+)
 call :GO & goto DISM_MENU
 
 :DISM_COMPONENT_CLEANUP
