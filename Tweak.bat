@@ -302,6 +302,15 @@ if "%choice%"=="1" (
 if "%choice%"=="2" goto PRIVACY_CLEANUP
 if "%choice%"=="3" goto WINDOWS_UPDATES_MENU
 if "%choice%"=="4" goto WINDOWS_DEFENDER_MENU
+if "%choice%"=="4" (
+    set ROUTINE=DISABLE_DEFENDER
+    set REV_ROUTINE=ENABLE_DEFENDER
+    set APPLY=Disable Windows Defender
+    set REVERT=Enable Windows Defender
+    set MENU=PRIVACY_SECURITY_MENU
+    goto SUB_MENU
+)
+
 if "%choice%"=="5" (
     set ROUTINE=ENHANCE_SECURITY
     set REV_ROUTINE=DEFAULT_SECURITY
@@ -527,24 +536,6 @@ ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 call :RESTART 
 call :LOG & goto WINDOWS_UPDATES_MENU
 
-:WINDOWS_DEFENDER_MENU
-cls & echo. & echo.
-echo                        ----------------------------- Windows Defender ----------------------------
-echo.
-echo                          [1] Disable Defender                                [2] Enable Defender
-echo.
-echo                          [3] Remove Defender                                 [0] Back
-echo.
-echo                        ---------------------------------------------------------------------------
-
-echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto DISABLE_DEFENDER
-if "%choice%"=="2" goto ENABLE_DEFENDER
-if "%choice%"=="3" goto REMOVE_DEFENDER
-if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
-
-call :INVALID "(0-3)" & goto WINDOWS_DEFENDER_MENU
-
 :DISABLE_DEFENDER
 call :CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection"
 if errorlevel 2 goto WINDOWS_DEFENDER_MENU
@@ -558,22 +549,6 @@ call :GO & goto WINDOWS_DEFENDER_MENU
 :ENABLE_DEFENDER
 echo. & echo Restoring default Windows Defender registry settings
 reg import "Files\Security\DefaultDefender.reg"
-
-call :RESTART 
-call :GO & goto WINDOWS_DEFENDER_MENU
-
-:REMOVE_DEFENDER
-call :CONFIRM "WARNING: This will PERMANENTLY remove Windows Defender core files and services from your system"
-if errorlevel 2 goto WINDOWS_DEFENDER_MENU
-
-echo. & echo Removing Windows Defender Security Health UI component
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\RemoveSecHealthUI.ps1" >nul
-
-echo Removing Windows Defender entries from the registry
-for %%f in ("Files\Security\RemoveDefenderModule\*.reg") do "Files\Security\PowerRun.exe" /TI /SW:0 regedit.exe /s "%%f"
-
-echo Deleting Windows Defender files
-"Files\Security\PowerRun.exe" /TI /SW:0 "Files\Security\DefenderFileRemover.bat"
 
 call :RESTART 
 call :GO & goto WINDOWS_DEFENDER_MENU
