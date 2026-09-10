@@ -1455,11 +1455,13 @@ powershell -Command "Checkpoint-Computer -Description 'WinTweaks Restore Point' 
 if %errorlevel% equ 0 (call :GO & goto SYSTEM_MENU)
 
 call :PATH_DIR "System" "RestorePoint"
-echo Creating a restore point failed. Attempting to fix system dependencies
+echo. & echo Creating a restore point failed. Attempting to fix system dependencies
 echo Enable System Restore on the C: drive
 powershell -Command "Enable-ComputerRestore -Drive 'C:\'" >> "%LOG_FILE%" 2>&1
-echo. & echo Enabling System Restore via registry
+
+echo Enabling System Restore via registry
 reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
+
 echo Stopping restore point services
 for %%S in ("VSS" "swprv") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
 
@@ -1505,7 +1507,6 @@ if errorlevel 1 goto SYSTEM_MENU
 call :PATH_DIR "System" "FullRegistryBackup"
 
 set "SUCCESS_COUNT=0"
-
 echo Creating Full Registry Backup
 for %%A in (
     "HKLM\SYSTEM,SYSTEM"
