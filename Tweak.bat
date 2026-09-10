@@ -1712,12 +1712,11 @@ start "" mdsched.exe
 goto TOOLS_MENU
 
 :CLEAN_MGR
-cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
+cleanmgr.exe /d "%SYSTEMDRIVE%" /VERYLOWDISK
 goto TOOLS_MENU
 
 :DELETE_SCRIPT_DATA
-set "MKDIR_DIR=%PROGRAMDATA%\WinTweaks"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%MKDIR_DIR%"
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
 call :GO & goto TOOLS_MENU
 
 :OTHER_MENU
@@ -1778,15 +1777,16 @@ for /f "usebackq delims=" %%A in ("%~2") do (
 exit /b
 
 :RUNNING_BROWSERS
+:: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
 set "BROWSERS_OPEN=0"
 
-for /f "tokens=1" %%A in ('tasklist /NH 2^>nul') do (
-    for %%B in (%BROWSERS%) do (
-        if /I "%%A"=="%%B" (
-            echo %%B is currently running
-            set "BROWSERS_OPEN=1"
-        )
+:: Check if any browser is currently running
+for %%A in (%BROWSERS%) do (
+    tasklist /FI "IMAGENAME eq %%A" 2>nul | find /I "%%A" >nul
+    if not errorlevel 1 (
+        echo %%A is currently running
+        set "BROWSERS_OPEN=1"
     )
 )
 exit /b
@@ -1800,14 +1800,12 @@ for %%X in (
     "Google\Chrome\User Data|Google Chrome"
     "Microsoft\Edge\User Data|Microsoft Edge"
     "BraveSoftware\Brave-Browser\User Data|Brave"
-) do (
-    for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-        if exist "%LOCALAPPDATA%\%%A" (
-            echo Cleaning %%B
-            for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
-                for %%D in ("Cache" "Code Cache" "GPUCache" "ShaderCache" "Media Cache" "Download Service") do (
-                    rd /s /q "%%P\%%~D" >nul 2>&1
-                )
+) do for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
+    if exist "%LOCALAPPDATA%\%%A" (
+        echo Cleaning %%B
+        for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
+            for %%D in (Cache "Code Cache" GPUCache ShaderCache "Media Cache" "Download Service") do (
+                call :CLEAN_DIR "%%P\%%~D"
             )
         )
     )
@@ -1861,7 +1859,7 @@ call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Wi
 call :CHOICE "Run Disk Cleanup to complete the cleaning?"
 if !errorlevel! equ 1 (
     echo Running Disk Cleanup
-    cleanmgr.exe /d %SYSTEMDRIVE% /VERYLOWDISK
+    cleanmgr.exe /d "%SYSTEMDRIVE%" /VERYLOWDISK
 )
 
 :: Force empty the Recycle Bin for all drives
@@ -2104,7 +2102,7 @@ if /i %~2==stop (
     )
 )
 exit /b
-
+	
 :SC_CONFIGURE
 sc query %~1 >nul 2>&1
 if !errorlevel! neq 0 (
@@ -2115,6 +2113,8 @@ if !errorlevel! neq 0 (
 sc config %~1 start= %~2 >nul 2>&1
 if !errorlevel! equ 0 (
     echo [SUCCESS]: %~1 _ %~2
+) else if !errorlevel! equ 1060 (
+    echo [NOT FOUND]: %~1 _ %~2
 ) else (
     echo [FAILED]: %~1 _ %~2
 )
@@ -2150,7 +2150,7 @@ if exist "%TARGET_FOLDER%" (
 )
 
 if exist "%TARGET_FOLDER%" (
-    echo. & echo Failed to delete old backup folder
+    echo. & echo Failed to delete old folder
     pause & exit /b 1
 ) else (
     call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\%~1\%~2"
@@ -2250,5 +2250,4 @@ exit /b
 
 :GO
 echo. & echo The operation is done.
-pause
-exit /b
+pause & exit /b
