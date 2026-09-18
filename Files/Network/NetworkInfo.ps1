@@ -31,11 +31,17 @@ $ProcessMap["4"] = "System"
 Write-Log "Username: $env:USERNAME"
 Write-Log "Domain: $env:USERDOMAIN"
 
+$defaultRoute = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue |
+    Sort-Object RouteMetric |
+    Select-Object -First 1
+
+$defaultGateway = $defaultRoute.NextHop
+
 # Basic internet connectivity test via the default gateway
 Write-Log "`nConnection tests:"
-$defaultGateway = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1).NextHop
 $pingTarget = if ($defaultGateway) { $defaultGateway } else { "8.8.8.8" }
-if (Test-Connection -ComputerName $pingTarget -Count 3 -Quiet -ErrorAction SilentlyContinue) {
+$isConnected = Test-Connection -ComputerName $pingTarget -Count 3 -Quiet -ErrorAction SilentlyContinue
+if ($isConnected) {
     Write-Log " Connected"
 } else {
     Write-Log " Disconnected"
@@ -43,42 +49,55 @@ if (Test-Connection -ComputerName $pingTarget -Count 3 -Quiet -ErrorAction Silen
 
 # Default gateway
 Write-Log "`nDefault Gateway Address:"
-$gateway = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue).NextHop
-if ($gateway) {
-    Write-Log " $gateway"
+if ($defaultGateway) {
+    Write-Log " $defaultGateway"
 } else {
     Write-Log " Not found"
 }
 
 # Public IP Address & GeoIP lookup
 Write-Log "`nPublic IP Address (WAN):"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$publicIP = Invoke-RestMethod -Uri 'https://api.ipify.org?format=json' -ErrorAction SilentlyContinue
-if ($publicIP -and $publicIP.ip) {
-    Write-Log " IP Address: $($publicIP.ip)"
+if (-not $isConnected) {
+    Write-Log " Skipped (no internet connectivity detected)"
+}
+else {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    $publicIP = $null
     try {
-        $geoInfo = Invoke-RestMethod -Uri "http://ip-api.com/json/$($publicIP.ip)" -ErrorAction SilentlyContinue
-        if ($geoInfo) {
-            Write-Log " Country: $($geoInfo.country)"
-            Write-Log " City: $($geoInfo.city)"
-            Write-Log " ISP: $($geoInfo.isp)"
-            Write-Log " Timezone: $($geoInfo.timezone)"
-        }
-    } catch {
-        Write-Log " Could not retrieve geographic information"
+        $publicIP = Invoke-RestMethod -Uri 'https://api.ipify.org?format=json' -TimeoutSec 5 -ErrorAction Stop
     }
-} else {
-    Write-Log " Could not retrieve public IP address"
+    catch {
+        Write-Log " Could not retrieve public IP address: $($_.Exception.Message)"
+    }
+
+    if ($publicIP -and $publicIP.ip) {
+        Write-Log " IP Address: $($publicIP.ip)"
+        try {
+            $geoInfo = Invoke-RestMethod -Uri "http://ip-api.com/json/$($publicIP.ip)" -TimeoutSec 5 -ErrorAction Stop
+            if ($geoInfo) {
+                Write-Log " Country: $($geoInfo.country)"
+                Write-Log " City: $($geoInfo.city)"
+                Write-Log " ISP: $($geoInfo.isp)"
+                Write-Log " Timezone: $($geoInfo.timezone)"
+            }
+        } catch {
+            Write-Log " Could not retrieve geographic information: $($_.Exception.Message)"
+        }
+    }
 }
 
 # Active Network Adapters
 Write-Log "`nActive Network Adapters:"
+
+$allAdapterConfigs = Get-CimInstance Win32_NetworkAdapterConfiguration
+
 Get-CimInstance Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | ForEach-Object {
     $type = if ($_.Name -match 'Wireless|Wi[- ]?Fi') { 'Wi-Fi' } else { 'Ethernet' }
     $speedText = if ($_.Speed) { "$([math]::Round($_.Speed / 1000000, 1)) Mbps" } else { "Not Available" }
-    
+
     $adapterIndex = $_.Index
-    $adapterConfig = Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object { $_.Index -eq $adapterIndex }
+    $adapterConfig = $allAdapterConfigs | Where-Object { $_.Index -eq $adapterIndex }
 
     $ipAddress = " No IP Address"
     $dnsServers = " No DNS Servers"
@@ -86,11 +105,24 @@ Get-CimInstance Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq
     if ($adapterConfig) {
         if ($adapterConfig.IPAddress) {
             $ipv4Address = $adapterConfig.IPAddress | Where-Object { $_ -match '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$' } | Select-Object -First 1
-            if ($ipv4Address) { $ipAddress = $ipv4Address }
+            if ($ipv4Address) {
+                $ipAddress = $ipv4Address
+            }
+            else {
+                # Display the IPv6 address as a fallback if no IPv4 address is available
+                $ipv6Address = $adapterConfig.IPAddress | Where-Object { $_ -match ':' } | Select-Object -First 1
+                if ($ipv6Address) { $ipAddress = "$ipv6Address (IPv6)" }
+            }
         }
         if ($adapterConfig.DNSServerSearchOrder -and $adapterConfig.DNSServerSearchOrder.Count -gt 0) {
             $ipv4DnsServers = $adapterConfig.DNSServerSearchOrder | Where-Object { $_ -match '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$' }
-            if ($ipv4DnsServers) { $dnsServers = $ipv4DnsServers -join ", " }
+            if ($ipv4DnsServers) {
+                $dnsServers = $ipv4DnsServers -join ", "
+            }
+            else {
+                $ipv6DnsServers = $adapterConfig.DNSServerSearchOrder | Where-Object { $_ -match ':' }
+                if ($ipv6DnsServers) { $dnsServers = ($ipv6DnsServers -join ", ") + " (IPv6)" }
+            }
         }
     }
 
@@ -109,7 +141,8 @@ $ipv6Addresses = Get-NetIPAddress -AddressFamily IPv6 -ErrorAction SilentlyConti
     Where-Object {
         $_.IPAddress -notlike 'fe80*' -and
         $_.IPAddress -notlike '::1' -and
-        $_.PrefixOrigin -notin @('WellKnown', 'RouterAdvertisement', 'Dhcp', 'Manual')
+        # Exclude only router-advertised/local addresses, while retaining actual DHCP and manual addresses
+        $_.PrefixOrigin -notin @('WellKnown', 'RouterAdvertisement')
     } |
     Where-Object {
         $_.IPAddress -notmatch '^2001:0:' -and
@@ -131,41 +164,57 @@ if ($ipv6Addresses) {
 Write-Log "`nActive TCP Connections:"
 $connections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue
 if ($connections) {
-    Write-Log " $("Local Address".PadRight(25))$("Remote Address".PadRight(25))Process"
-    Write-Log " $("-------------".PadRight(25))$("--------------".PadRight(25))-------"
-
-    foreach ($conn in $connections | Sort-Object LocalPort) {
-        # Changed to string for matching
-        $processName = $ProcessMap[[string]$conn.OwningProcess]
+    $tcpTable = $connections | Sort-Object LocalPort | ForEach-Object {
+        $processName = $ProcessMap[[string]$_.OwningProcess]
         if (-not $processName) { $processName = "N/A" }
 
-        $local = "$($conn.LocalAddress):$($conn.LocalPort)"
-        $remote = "$($conn.RemoteAddress):$($conn.RemotePort)"
+        [PSCustomObject]@{
+            "Local Address"  = "$($_.LocalAddress):$($_.LocalPort)"
+            "Remote Address" = "$($_.RemoteAddress):$($_.RemotePort)"
+            "Process"        = $processName
+        }
+    } | Format-Table -AutoSize | Out-String
 
-        Write-Log " $($local.PadRight(25)) $($remote.PadRight(25)) $processName"
-    }
+    Write-Log $tcpTable
 } else {
     Write-Log " No established connections found"
 }
 
-# Listening TCP Ports
-Write-Log "`n$("TCP Port".PadRight(20))Process"
-Write-Log "$("--------".PadRight(19))--------"
-Get-NetTCPConnection -State Listen | Select-Object LocalPort, OwningProcess -Unique | Sort-Object LocalPort | ForEach-Object {
-    # Changed to string for matching
-    $procName = $ProcessMap[[string]$_.OwningProcess]
-    $displayName = if ($procName) { $procName } else { 'Unknown' }
-    Write-Log " $($_.LocalPort.ToString().PadRight(18)) $displayName"
+# Listening TCP & UDP Ports
+Write-Log "`nListening Ports (TCP/UDP):"
+
+$listeningPorts = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Select-Object LocalPort, OwningProcess -Unique | Sort-Object LocalPort
+$udpPorts = Get-NetUDPEndpoint -ErrorAction SilentlyContinue | Select-Object LocalPort, OwningProcess -Unique | Sort-Object LocalPort
+
+$combinedPorts = @()
+
+if ($listeningPorts) {
+    $combinedPorts += $listeningPorts | ForEach-Object {
+        $procName = $ProcessMap[[string]$_.OwningProcess]
+        [PSCustomObject]@{
+            "Protocol" = "TCP"
+            "Port"     = $_.LocalPort
+            "Process"  = if ($procName) { $procName } else { 'Unknown' }
+        }
+    }
 }
 
-# Open UDP Ports
-Write-Log "`n$("UDP Port".PadRight(20))Process"
-Write-Log "$("--------".PadRight(19))--------"
-Get-NetUDPEndpoint | Select-Object LocalPort, OwningProcess -Unique | Sort-Object LocalPort | ForEach-Object {
-    # Changed to string for matching
-    $procName = $ProcessMap[[string]$_.OwningProcess]
-    $displayName = if ($procName) { $procName } else { 'Unknown' }
-    Write-Log " $($_.LocalPort.ToString().PadRight(18)) $displayName"
+if ($udpPorts) {
+    $combinedPorts += $udpPorts | ForEach-Object {
+        $procName = $ProcessMap[[string]$_.OwningProcess]
+        [PSCustomObject]@{
+            "Protocol" = "UDP"
+            "Port"     = $_.LocalPort
+            "Process"  = if ($procName) { $procName } else { 'Unknown' }
+        }
+    }
+}
+
+if ($combinedPorts.Count -gt 0) {
+    $portsTable = $combinedPorts | Sort-Object Protocol, Port | Format-Table -AutoSize | Out-String
+    Write-Log $portsTable
+} else {
+    Write-Log " No listening TCP or UDP ports found"
 }
 
 # Firewall Status
@@ -229,10 +278,4 @@ if ($availableNetworks) {
     if ($currentSSID -ne "") { DisplayNetworkInfo -ssid $currentSSID -info $networkInfo }
 } else {
     Write-Log " No Wi-Fi networks available or no Wi-Fi adapter found"
-}
-
-# Finalize transcript if it was started
-if ($ExportPath) {
-    Stop-Transcript | Out-Null
-    Write-Log "`nReport also saved to: $ExportPath"
 }
