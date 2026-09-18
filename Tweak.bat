@@ -396,15 +396,25 @@ call :CLEANING_FUNCTION
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
+echo Stopping services
+for %%S in ("BITS" "wuauserv" "DiagTrack") do call :NET_CONTROL "%%S" "stop"
+
 echo Cleaning system log files
 for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
-    if exist "%%~F\" (
-        "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "del /f /q \"%%~F\*\""
+    if exist "%%~F" (
+        :: Transfer ownership to the group of administrators and grant full privileges
+        takeown /f "%%~F" /r /d y >nul 2>&1
+        icacls "%%~F" /grant administrators:F /t /c /q >nul 2>&1
+        del /f /q /s /a "%%~F\*" >nul 2>&1
+
         for /d %%D in ("%%~F\*") do (
-            "Files\Security\PowerRun.exe" /TI /SW:0 cmd.exe /c "rd /s /q \"%%~D\""
+            rd /s /q "%%~D" >nul 2>&1
         )
     )
 )
+
+echo Starting services
+for %%S in ("BITS" "wuauserv" "DiagTrack") do call :NET_CONTROL "%%S" "start"
 
 echo Cleaning all Windows Event Logs
 for /f "tokens=*" %%L in ('wevtutil el 2^>nul') do (
