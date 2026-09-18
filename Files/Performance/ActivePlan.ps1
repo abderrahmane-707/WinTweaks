@@ -14,4 +14,3 @@ if ($null -ne $activePlan) {
 Write-Host "Current Power Plan:"
 Write-Host " Name: $planName"
 Write-Host " GUID: $planGuid"
-
