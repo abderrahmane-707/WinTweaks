@@ -1,3 +1,8 @@
+param (
+    [int]$PingCount = 3,
+    [string[]]$TestHosts = @("google.com", "cloudflare.com", "microsoft.com", "facebook.com")
+)
+
 # Check for working IPv6 connectivity
 $hasGlobalIPv6 = $false
 
@@ -35,51 +40,73 @@ else {
     Write-Host "No IPv6 Connectivity Detected`n"
 }
 
-# Display benchmark results
-Write-Host "Testing connection on DNS servers:`n"
-
-$formatString = "{0,-28} {1,-22} {2,-6} {3,-8} {4,-10} {5,-10} {6,-10}"
-
-Write-Host ($formatString -f "ServerName", "IPAddress", "Type", "Status", "Avg (ms)", "Min (ms)", "Max (ms)")
-Write-Host ($formatString -f "----------", "---------", "----", "------", "--------", "--------", "--------")
-
 # Measure latency for each DNS server
-foreach ($server in $testServers) {
+Write-Host "Testing connection on DNS servers ($PingCount pings each)...`n"
+
+$formatString = "{0,-28} {1,-22} {2,-6} {3,-8} {4,-10} {5,-10} {6,-10} {7,-10}"
+
+Write-Host ($formatString -f "ServerName", "IPAddress", "Type", "Status", "Avg (ms)", "Min (ms)", "Max (ms)", "Loss (%)")
+Write-Host ($formatString -f "----------", "---------", "----", "------", "--------", "--------", "--------", "--------")
+
+$results = foreach ($server in $testServers) {
 
     $status = "Failed"
     $avg = "N/A"
     $min = "N/A"
     $max = "N/A"
+    $lossPct = "N/A"
 
     try {
-        $ping = Test-Connection -ComputerName $server.Address -Count 3 -ErrorAction Stop
+        $ping = Test-Connection -ComputerName $server.Address -Count $PingCount -ErrorAction Stop
 
         if ($ping) {
+            $received = $ping.Count
             $status = "Online"
             $avg = [math]::Round(($ping | Measure-Object ResponseTime -Average).Average, 2)
             $min = [math]::Round(($ping | Measure-Object ResponseTime -Minimum).Minimum, 2)
             $max = [math]::Round(($ping | Measure-Object ResponseTime -Maximum).Maximum, 2)
+            $lossPct = [math]::Round((1 - ($received / $PingCount)) * 100, 0)
         }
     }
     catch {
     }
 
-    Write-Host ($formatString -f $server.Name, $server.Address, $server.Type, $status, $avg, $min, $max)
+    $resultObj = [PSCustomObject]@{
+        ServerName = $server.Name
+        IPAddress  = $server.Address
+        Type       = $server.Type
+        Status     = $status
+        AvgMs      = $avg
+        MinMs      = $min
+        MaxMs      = $max
+        LossPct    = $lossPct
+    }
+
+    Write-Host ($formatString -f $resultObj.ServerName, $resultObj.IPAddress, $resultObj.Type, $resultObj.Status, $resultObj.AvgMs, $resultObj.MinMs, $resultObj.MaxMs, $resultObj.LossPct)
+
+    $resultObj
 
     Start-Sleep -Seconds 1
+}
+
+# Sort by average latency, keep failed servers at the bottom
+$sortedResults = $results | Sort-Object -Property @{
+    Expression = { if ($_.Status -eq "Online") { $_.AvgMs } else { [double]::MaxValue } }
+}
+
+# Display sorted summary after all tests complete (server names only)
+Write-Host "`nSummary (sorted by latency):`n"
+
+$rank = 1
+foreach ($r in $sortedResults) {
+    Write-Host "  $rank. $($r.ServerName)"
+    $rank++
 }
 
 # Verify DNS name resolution
 Write-Host "`nDNS Resolution Test:"
 
-$hosts = @(
-    "google.com",
-    "cloudflare.com",
-    "microsoft.com",
-    "facebook.com"
-)
-
-foreach ($h in $hosts) {
+foreach ($h in $TestHosts) {
     $result = Resolve-DnsName -Name $h -ErrorAction SilentlyContinue
 
     if ($result) {
