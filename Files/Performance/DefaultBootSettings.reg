@@ -6,4 +6,4 @@ Windows Registry Editor Version 5.00
 ; WaitToKillAppTimeout=20000: Restores default application closure timeout to 20 seconds
 [HKEY_CURRENT_USER\Control Panel\Desktop]
 "AutoEndTasks"=-
-"WaitToKillAppTimeout"="20000"
+"WaitToKillAppTimeout"=-
