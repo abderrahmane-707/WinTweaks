@@ -1,12 +1,8 @@
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
-"DoNotConnectToWindowsUpdateInternetLocations"=-
 "DisableWindowsUpdateAccess"=-
-"WUServer"=-
-"WUStatusServer"=-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU]
 "NoAutoUpdate"=-
-"UseWUServer"=-
 "NoAutoRebootWithLoggedOnUsers"=-

@@ -2,13 +2,9 @@ Windows Registry Editor Version 5.00
 
 ; Block Windows Update access and redirect to a fake local server
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate]
-"DoNotConnectToWindowsUpdateInternetLocations"=dword:00000001
 "DisableWindowsUpdateAccess"=dword:00000001
-"WUServer"="http://127.0.0.1"
-"WUStatusServer"="http://127.0.0.1"
 
 ; Disable automatic updates and prevent auto-rebooting
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU]
 "NoAutoUpdate"=dword:00000001
-"UseWUServer"=dword:00000001
 "NoAutoRebootWithLoggedOnUsers"=dword:00000001
