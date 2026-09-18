@@ -282,11 +282,11 @@ echo                        --------------------------- Privacy and Security ---
 echo.
 echo                          [1] Windows Telemetry                               [2] Privacy Cleanup
 echo.
-echo                          [3] Windows Updates                                 [4] Windows Defender
+echo                          [3] Windows Updates                                 [4] Enhance Security  
 echo.
-echo                          [5] Enhance Security                                [6] Group Policies
+echo                          [5] Group Policies                                  [6] Security Info
 echo.
-echo                          [7] Security Info                                   [0] Back
+echo                                                         [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
@@ -301,17 +301,7 @@ if "%choice%"=="1" (
 )
 if "%choice%"=="2" goto PRIVACY_CLEANUP
 if "%choice%"=="3" goto WINDOWS_UPDATES_MENU
-if "%choice%"=="4" goto WINDOWS_DEFENDER_MENU
 if "%choice%"=="4" (
-    set ROUTINE=DISABLE_DEFENDER
-    set REV_ROUTINE=ENABLE_DEFENDER
-    set APPLY=Disable Windows Defender
-    set REVERT=Enable Windows Defender
-    set MENU=PRIVACY_SECURITY_MENU
-    goto SUB_MENU
-)
-
-if "%choice%"=="5" (
     set ROUTINE=ENHANCE_SECURITY
     set REV_ROUTINE=DEFAULT_SECURITY
     set APPLY=Enhance system security
@@ -319,7 +309,7 @@ if "%choice%"=="5" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="6" (
+if "%choice%"=="5" (
     set ROUTINE=REMOVE_POLICIES
     set REV_ROUTINE=RESTORE_POLICIES
     set APPLY=Remove all policies setting
@@ -327,10 +317,10 @@ if "%choice%"=="6" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="7" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
+if "%choice%"=="6" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
 if "%choice%"=="0" goto MAIN_MENU
 
-call :INVALID "(0-7)" & goto PRIVACY_SECURITY_MENU
+call :INVALID "(0-6)" & goto PRIVACY_SECURITY_MENU
 
 :DISABLE_TELEMETRY
 call :PATH_DIR "Security" "DisableTelemetry"
@@ -535,23 +525,6 @@ ipconfig /registerdns >> "%LOG_FILE%" 2>&1
 
 call :RESTART 
 call :LOG & goto WINDOWS_UPDATES_MENU
-
-:DISABLE_DEFENDER
-call :CONFIRM "WARNING: This will PERMANENTLY DISABLE Windows Defender real-time protection"
-if errorlevel 2 goto WINDOWS_DEFENDER_MENU
-
-echo. & echo Disabling Windows defender via registry
-reg import "Files\Security\DisableDefender.reg"
-
-call :RESTART 
-call :GO & goto WINDOWS_DEFENDER_MENU
-
-:ENABLE_DEFENDER
-echo. & echo Restoring default Windows Defender registry settings
-reg import "Files\Security\DefaultDefender.reg"
-
-call :RESTART 
-call :GO & goto WINDOWS_DEFENDER_MENU
 
 :ENHANCE_SECURITY
 call :PATH_DIR "Security" "EnhanceSecurity"
