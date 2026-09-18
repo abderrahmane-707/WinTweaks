@@ -1679,16 +1679,12 @@ echo.
 echo.
 echo                        ---------------------------------- Other ----------------------------------
 echo.
-echo                           [1] Run Chris Titus Tool                           [2] Run OO Shutup 10
-echo.
-echo                           [3] Run Internet Speed Test                        [0] Back
+echo                           [1] Run Chris Titus Tool                             [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto CTT
-if "%choice%"=="2" goto OO_SHUTUP
-if "%choice%"=="3" goto NET_SPEED_TEST
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-3)" & goto OTHER_MENU
@@ -1696,16 +1692,6 @@ call :INVALID "(0-3)" & goto OTHER_MENU
 :CTT
 cls & echo Running Chris Titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
-call :GO & goto OTHER_MENU
-
-:OO_SHUTUP
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\OOSU10"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadOOShutup.ps1" "%MKDIR_DIR%"
-call :GO & goto OTHER_MENU
-
-:NET_SPEED_TEST
-call :MKDIR_PROMPT "%PROGRAMDATA%\WinTweaks\Other\speedtest_cli"
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DownloadNetSpeed.ps1" "%MKDIR_DIR%"
 call :GO & goto OTHER_MENU
 
 
