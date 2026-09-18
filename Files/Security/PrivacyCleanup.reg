@@ -1,8 +1,6 @@
 Windows Registry Editor Version 5.00
 
-; Clears history of connected USB storage devices and Wi-Fi networks
-[-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USBSTOR]
-[-HKEY_LOCAL_MACHINE\SYSTEM\MountedTestDevices]
+; Clears history of Wi-Fi networks
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles]
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged]
 
@@ -10,32 +8,21 @@ Windows Registry Editor Version 5.00
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
 
-; Wipes the memory of which folders you visited and "Open/Save" dialog history
+; Wipes Open/Save dialog history
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32]
-[-HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\BagMRU]
-[-HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags]
 
-; Clears the hidden logs of which apps you launched, when, and how often
+; Clears execution history (UserAssist & MuiCache)
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\UserAssist]
 [-HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\SOFTWARE\Microsoft\Windows\Shell\MuiCache]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store]
 
-; Clears "Recent Files" for Paint, Wordpad, and Windows Media Player
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\MediaPlayer\Player\RecentFileList]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\MediaPlayer\Player\RecentURLList]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Paint\Recent File List]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Wordpad\Recent File List]
-
-; Clears the Windows Timeline (TaskFlow) and Clipboard history
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\TaskFlow]
-[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Clipboard\History]
-
-; Clears Jump Lists and recent file tracks on the Taskbar
+; Clears Recent Files & Jump Lists
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage\AppLaunch]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage\ShowJumpList]
-
-; Clears search history within File Explorer
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SearchHistory]
+
+; Clears Timeline & Clipboard
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\TaskFlow]
+[-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Clipboard\History]
