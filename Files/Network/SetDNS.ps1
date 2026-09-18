@@ -10,7 +10,7 @@ $activeInterfaces = Get-NetAdapter | Where-Object { $_.Status -eq "Up" }
 
 # Check whether there are active interfaces before continuing
 if (-not $activeInterfaces) {
-    Write-Warning "There are currently no active network interfaces."
+    Write-Warning "There are currently no active network interfaces"
     return
 }
 
