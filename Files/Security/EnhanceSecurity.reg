@@ -107,7 +107,7 @@ Windows Registry Editor Version 5.00
 ; Network, SMB, and TCP/IP Hardening
 ; Disable SMBv1, restrict null sessions, and harden TCP/IP parameters
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
-"SMBv1"=dword:00000000
+"SMB1"=dword:00000000
 "restrictnullsessaccess"=dword:00000001
 "AutoShareWks"=dword:00000000
 

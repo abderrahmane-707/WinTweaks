@@ -95,7 +95,7 @@ Windows Registry Editor Version 5.00
 "DefaultOutboundAction"=dword:00000000
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
-"SMBv1"=-
+"SMB1"=-
 "restrictnullsessaccess"=-
 "AutoShareWks"=-
 
