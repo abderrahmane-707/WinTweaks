@@ -1,5 +1,28 @@
 Windows Registry Editor Version 5.00
- 
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
+"LmCompatibilityLevel"=-
+"NoLMHash"=-
+"RestrictAnonymous"=-
+"RestrictAnonymousSAM"=-
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest]
+"UseLogonCredential"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services]
+"AllowBasic"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoAutorun"=-
+"NoDriveTypeAutoRun"=-
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Remote Assistance]
+"fAllowFullControl"=-
+"fAllowToGetHelp"=-
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel]
+"DisableExceptionChainValidation"=-
+
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\PCT 1.0\Server]
 "Enabled"=-
 "DisabledByDefault"=-
@@ -56,6 +79,21 @@ Windows Registry Editor Version 5.00
 "Enabled"=-
 "DisabledByDefault"=-
 
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile]
+"EnableFirewall"=dword:00000001
+"DefaultInboundAction"=dword:00000001
+"DefaultOutboundAction"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile]
+"EnableFirewall"=dword:00000001
+"DefaultInboundAction"=dword:00000001
+"DefaultOutboundAction"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile]
+"EnableFirewall"=dword:00000001
+"DefaultInboundAction"=dword:00000001
+"DefaultOutboundAction"=dword:00000000
+
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
 "SMBv1"=-
 "restrictnullsessaccess"=-
@@ -68,6 +106,16 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient]
 "EnableMulticast"=-
+
+;These values ​​are the default
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"EnableLUA"=dword:00000001
+"ConsentPromptBehaviorAdmin"=dword:00000005
+"ConsentPromptBehaviorUser"=dword:00000003
+"PromptOnSecureDesktop"=dword:00000001
+"EnableInstallerDetection"=dword:00000001
+"EnableVirtualization"=dword:00000001
+"FilterAdministratorToken"=dword:00000000
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\v2.0.50727]
 "SchUseStrongCrypto"=-
@@ -85,29 +133,6 @@ Windows Registry Editor Version 5.00
 "SchUseStrongCrypto"=-
 "SystemDefaultTlsVersions"=-
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
-"LmCompatibilityLevel"=-
-"NoLMHash"=-
-"RestrictAnonymous"=-
-"RestrictAnonymousSAM"=-
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest]
-"UseLogonCredential"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services]
-"AllowBasic"=-
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"NoAutorun"=-
-"NoDriveTypeAutoRun"=-
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Remote Assistance]
-"fAllowFullControl"=-
-"fAllowToGetHelp"=-
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel]
-"DisableExceptionChainValidation"=-
-
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
 "DisableRemoteScmEndpoints"=-
 
@@ -122,28 +147,3 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WifiNetworkManager\HotspotLogin]
 "IsEnabled"=-
-
-;These values ​​are the default.
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"EnableLUA"=dword:00000001
-"ConsentPromptBehaviorAdmin"=dword:00000005
-"ConsentPromptBehaviorUser"=dword:00000003
-"PromptOnSecureDesktop"=dword:00000001
-"EnableInstallerDetection"=dword:00000001
-"EnableVirtualization"=dword:00000001
-"FilterAdministratorToken"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile]
-"EnableFirewall"=dword:00000001
-"DefaultInboundAction"=dword:00000001
-"DefaultOutboundAction"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile]
-"EnableFirewall"=dword:00000001
-"DefaultInboundAction"=dword:00000001
-"DefaultOutboundAction"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile]
-"EnableFirewall"=dword:00000001
-"DefaultInboundAction"=dword:00000001
-"DefaultOutboundAction"=dword:00000000

@@ -1,20 +1,5 @@
 Windows Registry Editor Version 5.00
 
-; Remove the open and print shell commands for photoviewer.dll application
-[-HKEY_CLASSES_ROOT\Applications\photoviewer.dll\shell\open]
-[-HKEY_CLASSES_ROOT\Applications\photoviewer.dll\shell\print]
-
-; Remove specific file type associations (Bitmap, JFIF, JPEG, GIF, PNG, WDP)
-[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Bitmap]
-[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.JFIF]
-[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Jpeg]
-[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Gif]
-[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Png]
-[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Wdp]
-
-; Remove the Image Preview command from system file associations
-[-HKEY_CLASSES_ROOT\SystemFileAssociations\image\shell\Image Preview]
-
 ; Remove the entire FileAssociations key - removes all extension mappings for Photo Viewer
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations]
 
@@ -27,6 +12,21 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations]
 ".tif"="PhotoViewer.FileAssoc.Tiff"
 ".tiff"="PhotoViewer.FileAssoc.Tiff"
+
+; Remove specific file type associations (Bitmap, JFIF, JPEG, GIF, PNG, WDP)
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Bitmap]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.JFIF]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Jpeg]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Gif]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Png]
+[-HKEY_CLASSES_ROOT\PhotoViewer.FileAssoc.Wdp]
+
+; Remove the open and print shell commands for photoviewer.dll application
+[-HKEY_CLASSES_ROOT\Applications\photoviewer.dll\shell\open]
+[-HKEY_CLASSES_ROOT\Applications\photoviewer.dll\shell\print]
+
+; Remove the Image Preview command from system file associations
+[-HKEY_CLASSES_ROOT\SystemFileAssociations\image\shell\Image Preview]
 
 ; This clears the file type associations for these extensions
 [HKEY_CURRENT_USER\SOFTWARE\Classes\.bmp]

@@ -1,5 +1,11 @@
 Windows Registry Editor Version 5.00
 
+; Clears history of connected USB storage devices and Wi-Fi networks
+[-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USBSTOR]
+[-HKEY_LOCAL_MACHINE\SYSTEM\MountedTestDevices]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged]
+
 ; Removes history of Run commands, Search bar queries, and typed address bar paths
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU]
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery]
@@ -33,9 +39,3 @@ Windows Registry Editor Version 5.00
 
 ; Clears search history within File Explorer
 [-HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SearchHistory]
-
-; Clears history of connected USB storage devices and Wi-Fi networks
-[-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USBSTOR]
-[-HKEY_LOCAL_MACHINE\SYSTEM\MountedTestDevices]
-[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles]
-[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged]

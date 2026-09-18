@@ -2174,7 +2174,7 @@ if !errorlevel! equ 1 (
     echo Your computer will restart after 5 seconds
     shutdown /r /t 5
     timeout /t 3 >nul
-    exit
+    exit /b
 )
 exit /b
 

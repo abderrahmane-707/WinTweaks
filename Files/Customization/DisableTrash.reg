@@ -1,16 +1,11 @@
 Windows Registry Editor Version 5.00
 
-; Disable and hide News and Interests from task bar
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
-"EnableFeeds"=dword:00000000
-
-; Hide Meet Now button from system tray
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"HideSCAMeetNow"=dword:00000001
-
-; Disable online search in File Explorer
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
-"DisableSearchBoxSuggestions"=dword:00000001
+; Disable Windows consumer features and suggestions (Blocks tips, ads, and recommendations)
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
+"DisableWindowsConsumerFeatures"=dword:00000001
+"DisableThirdPartySuggestions"=dword:00000001
+"DisableSoftLanding"=dword:00000001
+"DisableWindowsTips"=dword:00000001
 
 ; Configure Windows Search to block cloud/web features
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
@@ -18,16 +13,17 @@ Windows Registry Editor Version 5.00
 "ConnectedSearchUseWeb"=dword:00000000
 "DisableWebSearch"=dword:00000001
 
-; Disable bing search
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
-"BingSearchEnabled"=dword:00000000
+; Disables experimentation
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
+"AllowExperimentation"=dword:00000000
 
-; Disable Windows consumer features and suggestions (Blocks tips, ads, and recommendations)
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
-"DisableWindowsConsumerFeatures"=dword:00000001
-"DisableThirdPartySuggestions"=dword:00000001
-"DisableSoftLanding"=dword:00000001
-"DisableWindowsTips"=dword:00000001
+; Disable and hide News and Interests from task bar
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
+"EnableFeeds"=dword:00000000
+
+; Disable online search in File Explorer
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer]
+"DisableSearchBoxSuggestions"=dword:00000001
 
 ; Disable Game DVR (Turns off Xbox game recording functionality)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR]
@@ -37,14 +33,18 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization]
 "DODownloadMode"=dword:00000000
 
-; Disables experimentation
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
-"AllowExperimentation"=dword:00000000
-
-; Disable Sticky Keys sound effect
-[HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
-"Flags"="506"
+; Hide Meet Now button from system tray
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"HideSCAMeetNow"=dword:00000001
 
 ; Allows file paths longer than 260 characters
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem]
 "LongPathsEnabled"=dword:00000001
+
+; Disable bing search
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Search]
+"BingSearchEnabled"=dword:00000000
+
+; Disable Sticky Keys sound effect
+[HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys]
+"Flags"="506"

@@ -1,5 +1,35 @@
 Windows Registry Editor Version 5.00
 
+; LSA, Credentials, and Local Security Policies
+; Enforce NTLMv2, disable LM hashes, and restrict anonymous access
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
+"LmCompatibilityLevel"=dword:00000005
+"NoLMHash"=dword:00000001
+"RestrictAnonymous"=dword:00000001
+"RestrictAnonymousSAM"=dword:00000001
+
+; Disable WDigest to prevent clear-text passwords in memory
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest]
+"UseLogonCredential"=dword:00000000
+
+; Disable Basic Authentication for Remote Desktop (RDP)
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services]
+"AllowBasic"=dword:00000000
+
+; Disable AutoRun for all drives to block malware execution
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoAutorun"=dword:00000001
+"NoDriveTypeAutoRun"=dword:000000ff
+
+; Disable incoming Remote Assistance requests
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Remote Assistance]
+"fAllowFullControl"=dword:00000000
+"fAllowToGetHelp"=dword:00000000
+
+; Enable SEHOP (Structured Exception Handling Overwrite Protection)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel]
+"DisableExceptionChainValidation"=dword:00000000
+
 ; SCHANNEL: Protocols (Enable TLS 1.2/1.3, Disable older insecure protocols)
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\PCT 1.0\Server]
 "Enabled"=dword:00000000
@@ -57,6 +87,23 @@ Windows Registry Editor Version 5.00
 "Enabled"=dword:00000001
 "DisabledByDefault"=dword:00000000
 
+; Windows Firewall (Enforce ON for all profiles)
+; Enable Firewall and block all unsolicited inbound connections
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile]
+"EnableFirewall"=dword:00000001
+"DefaultInboundAction"=dword:00000001
+"DefaultOutboundAction"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile]
+"EnableFirewall"=dword:00000001
+"DefaultInboundAction"=dword:00000001
+"DefaultOutboundAction"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile]
+"EnableFirewall"=dword:00000001
+"DefaultInboundAction"=dword:00000001
+"DefaultOutboundAction"=dword:00000000
+
 ; Network, SMB, and TCP/IP Hardening
 ; Disable SMBv1, restrict null sessions, and harden TCP/IP parameters
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters]
@@ -72,6 +119,17 @@ Windows Registry Editor Version 5.00
 ; Disable LLMNR to prevent network spoofing attacks
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient]
 "EnableMulticast"=dword:00000000
+
+; UAC (User Account Control) - Balanced & Secure
+; Enforce UAC with secure desktop prompts and admin approval mode
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"EnableLUA"=dword:00000001
+"ConsentPromptBehaviorAdmin"=dword:00000005
+"ConsentPromptBehaviorUser"=dword:00000003
+"PromptOnSecureDesktop"=dword:00000001
+"EnableInstallerDetection"=dword:00000001
+"EnableVirtualization"=dword:00000001
+"FilterAdministratorToken"=dword:00000000
 
 ; NET Framework Cryptography Hardening
 ; Force .NET apps to use strong cryptography and system default TLS versions
@@ -91,36 +149,6 @@ Windows Registry Editor Version 5.00
 "SchUseStrongCrypto"=dword:00000001
 "SystemDefaultTlsVersions"=dword:00000001
 
-; LSA, Credentials, and Local Security Policies
-; Enforce NTLMv2, disable LM hashes, and restrict anonymous access
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
-"LmCompatibilityLevel"=dword:00000005
-"NoLMHash"=dword:00000001
-"RestrictAnonymous"=dword:00000001
-"RestrictAnonymousSAM"=dword:00000001
-
-; Disable WDigest to prevent clear-text passwords in memory
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest]
-"UseLogonCredential"=dword:00000000
-
-; Disable Basic Authentication for Remote Desktop (RDP)
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services]
-"AllowBasic"=dword:00000000
-
-; Disable AutoRun for all drives to block malware execution
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"NoAutorun"=dword:00000001
-"NoDriveTypeAutoRun"=dword:000000ff
-
-; Disable incoming Remote Assistance requests
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Remote Assistance]
-"fAllowFullControl"=dword:00000000
-"fAllowToGetHelp"=dword:00000000
-
-; Enable SEHOP (Structured Exception Handling Overwrite Protection)
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel]
-"DisableExceptionChainValidation"=dword:00000000
-
 ; WiFi & Misc Services
 ; Disable WiFi Sense, automatic hotspot connections, and remote SCM endpoints
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control]
@@ -137,31 +165,3 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WifiNetworkManager\HotspotLogin]
 "IsEnabled"=dword:00000000
-
-; UAC (User Account Control) - Balanced & Secure
-; Enforce UAC with secure desktop prompts and admin approval mode
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"EnableLUA"=dword:00000001
-"ConsentPromptBehaviorAdmin"=dword:00000005
-"ConsentPromptBehaviorUser"=dword:00000003
-"PromptOnSecureDesktop"=dword:00000001
-"EnableInstallerDetection"=dword:00000001
-"EnableVirtualization"=dword:00000001
-"FilterAdministratorToken"=dword:00000000
-
-; Windows Firewall (Enforce ON for all profiles)
-; Enable Firewall and block all unsolicited inbound connections
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile]
-"EnableFirewall"=dword:00000001
-"DefaultInboundAction"=dword:00000001
-"DefaultOutboundAction"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile]
-"EnableFirewall"=dword:00000001
-"DefaultInboundAction"=dword:00000001
-"DefaultOutboundAction"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile]
-"EnableFirewall"=dword:00000001
-"DefaultInboundAction"=dword:00000001
-"DefaultOutboundAction"=dword:00000000
