@@ -36,12 +36,9 @@ if ($hasGlobalIPv6) {
         @{Name="OpenDNS IPv6"; Address="2620:119:35::35"; Type="IPv6"}
     )
 }
-else {
-    Write-Host "No IPv6 Connectivity Detected`n"
-}
 
 # Measure latency for each DNS server
-Write-Host "Testing connection on DNS servers ($PingCount pings each)...`n"
+Write-Host "Testing connection on DNS servers ($PingCount pings each)`n"
 
 $formatString = "{0,-28} {1,-22} {2,-6} {3,-8} {4,-10} {5,-10} {6,-10} {7,-10}"
 
