@@ -1,12 +1,16 @@
-# Restart active network adapters
-Get-NetAdapter |
-Where-Object { $_.Status -eq 'Up' } |
-ForEach-Object {
+param (
+    [Parameter(Position = 0)]
+    [string]$LogPath
+)
+
+. "$PSScriptRoot\..\Common\Logger.ps1"
+
+Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
     try {
-        Write-Output " - Restart: $($_.Name)"
+        Write-Log " - Restarting adapter: $($_.Name)"
         Restart-NetAdapter -Name $_.Name -Confirm:$false -ErrorAction Stop
     }
     catch {
-        Write-Output "Failed: $($_.Name)"
+        Write-Log "   Failed to restart $($_.Name): $($_.Exception.Message)"
     }
 }

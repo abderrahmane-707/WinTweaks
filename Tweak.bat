@@ -771,6 +771,48 @@ if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-4)" & goto NETWORK_MENU
 
+:NETWORK_RESET
+call :CONFIRM "WARNING: This script will RESET ALL network configurations"
+if errorlevel 2 goto NETWORK_MENU
+
+call :PATH_DIR "Network" "NetworkReset"
+
+echo. & echo Flushing DNS and Caches
+ipconfig /flushdns >> "%LOG_FILE%" 2>&1
+nbtstat -RR >> "%LOG_FILE%" 2>&1
+arp -d * >> "%LOG_FILE%" 2>&1
+
+echo Stopping Network Services
+for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+
+echo Resetting TCP/IP Stack, Winsock, and Proxies
+netsh int ip reset >> "%LOG_FILE%" 2>&1
+netsh winsock reset >> "%LOG_FILE%" 2>&1
+netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
+netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
+netsh interface portproxy reset >> "%LOG_FILE%" 2>&1
+netsh advfirewall reset >> "%LOG_FILE%" 2>&1
+netsh branchcache reset >> "%LOG_FILE%" 2>&1
+
+echo Cleaning IPv6 Neighbor and Destination Cache
+netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
+netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
+
+echo Resetting Network Services Startup Configuration
+for %%S in ("Dhcp" "dnscache" "nlasvc" "WlanSvc") do call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
+for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+
+echo Starting Network Services
+for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
+
+:: Wait 3 seconds for services to stabilize before restarting the adapters
+timeout /t 3 /nobreak >nul
+
+echo Restarting active network adapters
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\RestartInterfaces.ps1" "%LOG_FILE%"
+
+call :LOG & goto NETWORK_MENU
+
 :DNS_MENU
 cls & echo. & echo.
 echo                        ------------------------------- DNS Server --------------------------------
@@ -885,42 +927,6 @@ if errorlevel 1 goto NETWORK_MENU
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
 echo. & echo Wifi Password file saved in: %TARGET_FILE%
 call :GO & goto NETWORK_MENU
-
-:NETWORK_RESET
-call :CONFIRM "WARNING: This script will RESET ALL network configurations"
-if errorlevel 2 goto NETWORK_MENU
-
-call :PATH_DIR "Network" "NetworkReset"
-
-echo Flushing DNS and Caches
-ipconfig /flushdns >> "%LOG_FILE%" 2>&1
-nbtstat -RR >> "%LOG_FILE%" 2>&1
-arp -d * >> "%LOG_FILE%" 2>&1
-
-echo Stopping Network Services
-for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
-
-echo Resetting TCP/IP Stack, Winsock, and Proxies
-netsh int ip reset >> "%LOG_FILE%" 2>&1
-netsh winsock reset >> "%LOG_FILE%" 2>&1
-netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
-netsh interface ipv6 reset >> "%LOG_FILE%" 2>&1
-netsh interface portproxy reset >> "%LOG_FILE%" 2>&1
-netsh advfirewall reset >> "%LOG_FILE%" 2>&1
-netsh branchcache reset >> "%LOG_FILE%" 2>&1
-
-echo Cleaning IPv6 Neighbor and Destination Cache
-netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
-netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
-
-echo Resetting Network Services Startup Configuration
-for %%S in ("Dhcp" "dnscache" "nlasvc" "WlanSvc") do call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
-
-echo Starting Network Services
-for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
-
-call :LOG & goto NETWORK_MENU
 
 :PACKAGES_MENU
 cls & echo. & echo.
