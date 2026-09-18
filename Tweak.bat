@@ -904,7 +904,11 @@ call :INVALID "(0-10)" & goto DNS_MENU
 :SET_DNS
 call :PATH_DIR "Network" "DNS"
 echo. & echo Setting %DNS_NAME% server on all connected interfaces
-call :UPDATE_DNS
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
+    -DnsIPv4Primary "%DNS_IPv4_1%" ^
+    -DnsIPv4Secondary "%DNS_IPv4_2%" ^
+    -DnsIPv6Primary "%DNS_IPv6_1%" ^
+    -DnsIPv6Secondary "%DNS_IPv6_2%"
 
 call :LOG & goto DNS_MENU
 
@@ -1823,14 +1827,6 @@ exit /b
 call :PATH_DIR "%~1" "%~2"
 cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\%~1\%~2.ps1" "%LOG_FILE%"
 call :LOG
-exit /b
-
-:UPDATE_DNS
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
-    -DnsIPv4Primary "%DNS_IPv4_1%" ^
-    -DnsIPv4Secondary "%DNS_IPv4_2%" ^
-    -DnsIPv6Primary "%DNS_IPv6_1%" ^
-    -DnsIPv6Secondary "%DNS_IPv6_2%"
 exit /b
 
 :INIT_PACKAGES
