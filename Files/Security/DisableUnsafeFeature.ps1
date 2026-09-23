@@ -16,7 +16,13 @@ foreach ($f in @(
 
     if ($info.State -eq 'Enabled') {
         Write-Output "Disabling: $f"
-        Disable-WindowsOptionalFeature -Online -FeatureName $f -NoRestart
+        try {
+            Disable-WindowsOptionalFeature -Online -FeatureName $f -NoRestart -ErrorAction Stop | Out-Null
+            Write-Output "Disabled: $f"
+        }
+        catch {
+            Write-Warning "Failed to disable '$f': $($_.Exception.Message)"
+        }
     }
     else {
         Write-Output "Feature '$f' is already disabled"
