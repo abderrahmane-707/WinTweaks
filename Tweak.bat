@@ -1874,7 +1874,7 @@ if errorlevel 2 (
     exit /b 2
 )
 
-echo. & call choco install !toInstall! -y
+echo. & call choco install !toInstall! --ignorechecksum -y
 exit /b 0
 
 :LIST_MENU
