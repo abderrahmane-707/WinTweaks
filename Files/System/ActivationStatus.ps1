@@ -20,10 +20,10 @@ try {
                 Write-Host " The machine is permanently activated" -ForegroundColor Green
             }
             0 {
-                Write-Host " The machine is not activated" -ForegroundColor Red
+                Write-Host " The machine is not activated"
             }
             5 {
-                Write-Host " Status: Notification (activation grace period has expired)" -ForegroundColor Red
+                Write-Host " Status: Notification (activation grace period has expired)"
                 Write-Host " Description: $($license.Description)"
             }
             { $_ -in 2, 3, 4, 6 } {
