@@ -8,6 +8,8 @@ param (
 
 . "$PSScriptRoot\..\Common\Logger.ps1"
 
+$FolderPath = $FolderPath.TrimEnd('\')
+
 # Output archive path
 $ZipPath = "$FolderPath.zip"
 
@@ -66,9 +68,21 @@ if (Test-Path $ZipPath) {
     $ZipSize = (Get-Item $ZipPath).Length
     $FormattedZipSize = Format-FileSize -Bytes $ZipSize
 
+    # Make sure the archive is not empty/corrupt before deleting the source folder
+    if ($ZipSize -le 0) {
+        Write-Log "Archive '$ZipPath' was created but is empty. Keeping source folder and aborting"
+        exit 1
+    }
+
     # Remove temporary source folder
     Write-Log "Deleting $FolderPath"
-    Remove-Item $FolderPath -Recurse -Force
+    try {
+        Remove-Item $FolderPath -Recurse -Force -ErrorAction Stop
+    }
+    catch {
+        Write-Log "Failed to delete source folder '$FolderPath' - $_"
+        exit 1
+    }
 
     # Display summary
     Write-Log "`nSize Before compress: $FormattedFolderSize"
