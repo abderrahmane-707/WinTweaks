@@ -1,10 +1,10 @@
 Write-Host "Windows Activation Status:"
 
 try {
-    # Fetch the active Windows license only (filter out Office/other product licenses
-    # that may also have a non-null PartialProductKey)
+    # Fetch the active Windows license by ApplicationId (Windows' fixed GUID) —
+    # faster and more precise than 'Name LIKE Windows%'.
     $license = Get-CimInstance -ClassName SoftwareLicensingProduct `
-        -Filter "PartialProductKey IS NOT NULL AND Name LIKE 'Windows%'" `
+        -Filter "ApplicationId = '55c92734-d682-4d71-983e-d6ec3f16059f' AND PartialProductKey IS NOT NULL" `
         -ErrorAction Stop |
         Select-Object -First 1 LicenseStatus, RemainingGracePeriod, Description
 
@@ -12,9 +12,6 @@ try {
         Write-Host " Unable to retrieve activation status (No licensing info found)"
     }
     else {
-        # LicenseStatus values per SoftwareLicensingProduct documentation:
-        # 0 = Unlicensed, 1 = Licensed, 2 = OOBGrace, 3 = OOTGrace,
-        # 4 = NonGenuineGrace, 5 = Notification (expired), 6 = ExtendedGrace
         switch ($license.LicenseStatus) {
             1 {
                 Write-Host " The machine is permanently activated" -ForegroundColor Green
