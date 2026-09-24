@@ -1538,7 +1538,7 @@ echo                          [3] Defragment Drive                              
 echo. 
 echo                          [5] Memory Diagnostic                                   [6] Disk Cleanup
 echo.
-echo                          [7] Delete Script Data                                  [0] Back
+echo                                                          [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
@@ -1549,7 +1549,6 @@ if "%choice%"=="3" goto DEFRAG
 if "%choice%"=="4" goto CHKDSK
 if "%choice%"=="5" goto MEMORY_DIAG
 if "%choice%"=="6" goto CLEAN_MGR
-if "%choice%"=="7" goto DELETE_SCRIPT_DATA
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-7)" & goto TOOLS_MENU
@@ -1679,9 +1678,6 @@ goto TOOLS_MENU
 cleanmgr.exe /d "%SYSTEMDRIVE%" /VERYLOWDISK
 goto TOOLS_MENU
 
-:DELETE_SCRIPT_DATA
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
-call :GO & goto TOOLS_MENU
 
 :OTHER_MENU
 cls
@@ -1689,12 +1685,15 @@ echo.
 echo.
 echo                        ---------------------------------- Other ----------------------------------
 echo.
-echo                           [1] Run Chris Titus Tool                             [0] Back
+echo                           [1] Run Chris Titus Tool                          [2] Delete Script Data
+echo.
+echo                                                          [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto CTT
+if "%choice%"=="2" goto DELETE_SCRIPT_DATA
 if "%choice%"=="0" goto MAIN_MENU
 
 call :INVALID "(0-3)" & goto OTHER_MENU
@@ -1704,7 +1703,9 @@ cls & echo Running Chris Titus tool
 powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christitus.com/win | iex"
 call :GO & goto OTHER_MENU
 
-
+:DELETE_SCRIPT_DATA
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
+call :GO & goto TOOLS_MENU
 
 :: -------------------------------------------------------------<FUNCTIONS>-------------------------------------------------------------
 :SET_TASKS
