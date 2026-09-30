@@ -1023,14 +1023,12 @@ call :GO & call :TOGGLE_ALL OFF & goto CHOCO_MENU
 
 :UPDATE_MENU
 call :LIST_MENU "update" "Checking for available updates:" "outdated" "upgrade"
-if errorlevel 2 goto CHOCO_MENU
-if errorlevel 1 (pause & goto CHOCO_MENU)
+if errorlevel 1 goto CHOCO_MENU
 call :GO & goto CHOCO_MENU
 
 :REMOVE_MENU
 call :LIST_MENU "remove" "Installed packages:" "list" "uninstall"
-if errorlevel 2 goto CHOCO_MENU
-if errorlevel 1 (pause & goto CHOCO_MENU)
+if errorlevel 1 goto CHOCO_MENU
 call :GO & goto CHOCO_MENU
 
 :REMOVE_MS
