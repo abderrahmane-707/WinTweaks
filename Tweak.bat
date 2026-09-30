@@ -990,7 +990,7 @@ echo.
 echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 set "choice=" & set /p "choice=--> Select option(s) and press [S] to Start: "
 
-if "%choice%"=="" goto CHOCO_MENU
+if not defined choice goto CHOCO_MENU
 if "%choice%"=="0" goto PACKAGES_MENU
 if /i "%choice%"=="S" goto RUN_PACKAGES
 if /i "%choice%"=="A" (call :TOGGLE_ALL ON & goto CHOCO_MENU)
