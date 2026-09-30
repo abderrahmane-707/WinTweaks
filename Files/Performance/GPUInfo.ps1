@@ -349,39 +349,6 @@ function Get-MonitorInfo {
     return $list
 }
 
-# Latest GPU errors from the event log
-function Get-GpuEvents {
-    $providers = 'nvlddmkm', 'Display', 'amdkmdag', 'amdwddmg', 'igfx', 'igfxn', 'Microsoft-Windows-Display'
-    $start = (Get-Date).AddDays(-30)
-    $result = [ordered]@{ TdrCount30d = 0; Recent = @() }
-
-    try {
-        $tdr = @(Get-WinEvent -FilterHashtable @{
-            LogName = 'System'; ProviderName = $providers; Id = 4101; StartTime = $start
-        } -ErrorAction SilentlyContinue)
-        $result.TdrCount30d = $tdr.Count
-    } catch { }
-
-    try {
-        $events = @(Get-WinEvent -FilterHashtable @{
-            LogName = 'System'; ProviderName = $providers; Level = 1, 2, 3; StartTime = $start
-        } -MaxEvents 5 -ErrorAction SilentlyContinue)
-        foreach ($e in $events) {
-            $msg = ("$($e.Message)" -replace '\s+', ' ').Trim()
-            if ($msg.Length -gt 140) { $msg = $msg.Substring(0, 140) + '...' }
-            $result.Recent += [PSCustomObject]@{
-                Time     = $e.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss')
-                Provider = $e.ProviderName
-                EventId  = $e.Id
-                Level    = $e.LevelDisplayName
-                Message  = $msg
-            }
-        }
-    } catch { }
-
-    return [PSCustomObject]$result
-}
-
 # Collect GPU information
 function Get-GPUInfo {
     param ($DxAdapters)
@@ -525,7 +492,6 @@ $sysInfo = [PSCustomObject]@{
     Compute             = Get-ComputeInfo
     HybridGraphics      = $hybrid
     Monitors            = @(Get-MonitorInfo)
-    Events              = Get-GpuEvents
 }
 
 if ($gpuInfo.Count -gt 0) {
@@ -633,17 +599,6 @@ if ($gpuInfo.Count -gt 0) {
         }
     } else {
         Write-Log "  No monitor information available"
-    }
-
-    Write-Log ""
-    Write-Log "Display Driver Events (last 30 days):"
-    Write-Log "  Driver Timeout Resets (Event 4101): $($sysInfo.Events.TdrCount30d)"
-    if ($sysInfo.Events.Recent.Count -gt 0) {
-        foreach ($e in $sysInfo.Events.Recent) {
-            Write-Log "  [$($e.Time)] $($e.Provider) (ID $($e.EventId), $($e.Level)): $($e.Message)"
-        }
-    } else {
-        Write-Log "  No recent display driver errors or warnings found."
     }
 } else {
     Write-Log "No GPU information found on this system."
