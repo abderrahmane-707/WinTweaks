@@ -533,21 +533,22 @@ if ($gpuInfo.Count -gt 0) {
     foreach ($g in $gpuInfo) {
         Write-Log "GPU #$i - $($g.Name)"
 
-        Write-Log " Basic Information:"
-        Write-Log "  Name:                    $($g.Name)"
-        Write-Log "  Type:                    $($g.Type)"
-        Write-Log "  Primary Adapter:         $($g.IsPrimary)"
-        Write-Log "  Display Output Active:   $($g.DisplayActive)"
-        Write-Log "  Video Processor:         $($g.VideoProcessor)"
-        Write-Log "  Manufacturer:            $($g.AdapterCompatibility)"
-        Write-Log "  Status:                  $($g.Status)"
-        Write-Log "  Device Error Code:       $($g.ErrorCode)"
+        Write-Log "  Basic Information:"
+        Write-Log "    Name:                    $($g.Name)"
+        Write-Log "    Type:                    $($g.Type)"
+        Write-Log "    Primary Adapter:         $($g.IsPrimary)"
+        Write-Log "    Display Output Active:   $($g.DisplayActive)"
+        Write-Log "    Video Processor:         $($g.VideoProcessor)"
+        Write-Log "    Manufacturer:            $($g.AdapterCompatibility)"
+        Write-Log "    Status:                  $($g.Status)"
+        Write-Log "    Device Error Code:       $($g.ErrorCode)"
 
-        Write-Log "`n Hardware Identifiers:"
-        Write-Log "  Vendor ID:               $($g.VendorId) ($($g.VendorName))"
-        Write-Log "  Device ID (hex):         $($g.DeviceIdHex)"
-        Write-Log "  Subsystem ID:            $($g.SubsystemId)"
-        Write-Log "  PCI Location:            $($g.PciLocation)"
+        Write-Log ""
+        Write-Log "  Hardware Identifiers:"
+        Write-Log "    Vendor ID:               $($g.VendorId) ($($g.VendorName))"
+        Write-Log "    Device ID (hex):         $($g.DeviceIdHex)"
+        Write-Log "    Subsystem ID:            $($g.SubsystemId)"
+        Write-Log "    PCI Location:            $($g.PciLocation)"
         $hwExtra = [ordered]@{
             'Chip Type:      ' = $g.ChipType
             'DAC Type:       ' = $g.DacType
@@ -556,39 +557,44 @@ if ($gpuInfo.Count -gt 0) {
         }
         $hwReported = @($hwExtra.GetEnumerator() | Where-Object { $_.Value -ne 'N/A' })
         if ($hwReported.Count -gt 0) {
-            foreach ($item in $hwReported) { Write-Log "  $($item.Key)         $($item.Value)" }
+            foreach ($item in $hwReported) { Write-Log "    $($item.Key)         $($item.Value)" }
         } else {
-            Write-Log "  Chip/DAC/VBIOS:          (not reported by driver)"
+            Write-Log "    Chip/DAC/VBIOS:          (not reported by driver)"
         }
 
-        Write-Log "`n Memory & Display:"
-        Write-Log "  Adapter RAM (dedicated): $($g.AdapterRAM)"
-        Write-Log "  Shared System Memory:    $($g.SharedMemory)"
-        Write-Log "  Current Resolution:      $($g.CurrentResolution)"
-        Write-Log "  Refresh Rate:            $($g.RefreshRate)"
-        Write-Log "  Max Refresh Rate:        $($g.MaxRefreshRate)"
-        Write-Log "  Color Depth:             $($g.BitsPerPixel)"
+        Write-Log ""
+        Write-Log "  Memory & Display:"
+        Write-Log "    Adapter RAM (dedicated): $($g.AdapterRAM)"
+        Write-Log "    Shared System Memory:    $($g.SharedMemory)"
+        Write-Log "    Current Resolution:      $($g.CurrentResolution)"
+        Write-Log "    Refresh Rate:            $($g.RefreshRate)"
+        Write-Log "    Max Refresh Rate:        $($g.MaxRefreshRate)"
+        Write-Log "    Color Depth:             $($g.BitsPerPixel)"
 
-        Write-Log "`n Driver Details:"
-        Write-Log "  Driver Version:          $($g.DriverVersion)"
-        Write-Log "  Driver Date:             $($g.DriverDate)"
-        Write-Log "  Driver Install Date:     $($g.DriverInstallDate)"
-        Write-Log "  Driver Provider:         $($g.DriverProvider)"
-        Write-Log "  Signature Status:        $($g.DriverSigned)"
-        Write-Log "  Signer:                  $($g.DriverSigner)"
-        Write-Log "  INF Name:                $($g.InfName)"
-        Write-Log "  Max D3D12 Feature Level: $($g.MaxFeatureLevel)"
-        Write-Log "  OpenGL Driver:           $(if ($g.OpenGLDriver -eq 'N/A') { '(not reported by driver)' } else { $g.OpenGLDriver })"
-        Write-Log "  Device ID:               $($g.Index)"
+        Write-Log ""
+        Write-Log "  Driver Details:"
+        Write-Log "    Driver Version:          $($g.DriverVersion)"
+        Write-Log "    Driver Date:             $($g.DriverDate)"
+        Write-Log "    Driver Install Date:     $($g.DriverInstallDate)"
+        Write-Log "    Driver Provider:         $($g.DriverProvider)"
+        Write-Log "    Signature Status:        $($g.DriverSigned)"
+        Write-Log "    Signer:                  $($g.DriverSigner)"
+        Write-Log "    INF Name:                $($g.InfName)"
+        Write-Log "    Max D3D12 Feature Level: $($g.MaxFeatureLevel)"
+        Write-Log "    OpenGL Driver:           $(if ($g.OpenGLDriver -eq 'N/A') { '(not reported by driver)' } else { $g.OpenGLDriver })"
+        Write-Log "    Device ID:               $($g.Index)"
 
         if ($g.Name -match 'Microsoft Basic Display') {
-            Write-Log "`n  Warning: generic Microsoft driver in use; the vendor GPU driver is not installed."
+            Write-Log ""
+            Write-Log "  Warning: generic Microsoft driver in use; the vendor GPU driver is not installed"
         }
         if ($null -ne $g.ErrorCodeRaw -and [int]$g.ErrorCodeRaw -ne 0) {
-            Write-Log "`n  Warning: device reports problem - $($g.ErrorCode)"
+            Write-Log ""
+            Write-Log "  Warning: device reports problem - $($g.ErrorCode)"
         }
         if ($g.DriverSigned -eq 'Not signed') {
-            Write-Log "`n  Warning: the display driver is not digitally signed."
+            Write-Log ""
+            Write-Log "  Warning: the display driver is not digitally signed"
         }
 
         Write-Log ""
@@ -602,7 +608,8 @@ if ($gpuInfo.Count -gt 0) {
     Write-Log "  VRR in Windowed Games:         $($sysInfo.VrrWindowedGames)"
     Write-Log "  Hybrid Graphics:               $($sysInfo.HybridGraphics)"
 
-    Write-Log "`n Graphics APIs:"
+    Write-Log ""
+    Write-Log "Graphics APIs:"
     $vk = $sysInfo.Vulkan
     Write-Log "  Vulkan Loader:           $(if ($vk.LoaderPresent) { "Present (v$($vk.LoaderVersion))" } else { 'Not found' })"
     Write-Log "  Vulkan Driver Manifests: $(if ($vk.Drivers.Count -gt 0) { $vk.Drivers -join '; ' } else { 'N/A' })"
@@ -611,7 +618,8 @@ if ($gpuInfo.Count -gt 0) {
     Write-Log "  OpenCL:                  $(if ($cp.OpenCLAvailable) { "Available (loader $($cp.OpenCLLoader))" } else { 'Not available' })"
     Write-Log "  OpenCL Vendors:          $(if ($cp.OpenCLVendors.Count -gt 0) { $cp.OpenCLVendors -join '; ' } else { 'N/A' })"
 
-    Write-Log "`n Connected Monitors ($($sysInfo.Monitors.Count)):"
+    Write-Log ""
+    Write-Log "Connected Monitors ($($sysInfo.Monitors.Count)):"
     if ($sysInfo.Monitors.Count -gt 0) {
         $m = 1
         foreach ($mon in $sysInfo.Monitors) {
@@ -624,10 +632,11 @@ if ($gpuInfo.Count -gt 0) {
             $m++
         }
     } else {
-        Write-Log "  No monitor information available."
+        Write-Log "  No monitor information available"
     }
 
-    Write-Log "`n Display Driver Events (last 30 days):"
+    Write-Log ""
+    Write-Log "Display Driver Events (last 30 days):"
     Write-Log "  Driver Timeout Resets (Event 4101): $($sysInfo.Events.TdrCount30d)"
     if ($sysInfo.Events.Recent.Count -gt 0) {
         foreach ($e in $sysInfo.Events.Recent) {
