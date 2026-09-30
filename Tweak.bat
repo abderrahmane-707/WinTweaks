@@ -391,8 +391,6 @@ call :DELETE_FOLDERS "Cleaning Microsoft Edge data" "%LOCALAPPDATA%\Microsoft\Ed
 call :DELETE_FOLDERS "Cleaning Firefox roaming user data" "%APPDATA%\Mozilla\Firefox"
 call :DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\Firefox"
 
-call :CLEANING_FUNCTION
-
 echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
@@ -429,6 +427,11 @@ echo. | clip >nul
 
 echo Flushing DNS cache
 ipconfig /flushdns >nul 2>&1
+
+echo Running Disk Cleanup
+cleanmgr.exe /d "%SYSTEMDRIVE%" /VERYLOWDISK
+
+call :CLEANING_FUNCTION
 
 call :GO & goto PRIVACY_SECURITY_MENU
 
