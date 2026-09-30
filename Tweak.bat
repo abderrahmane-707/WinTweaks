@@ -268,11 +268,10 @@ set "BATTERY_REPORT=%MKDIR_DIR%\BatteryReport.html"
 
 cls & echo Creating battery report
 powercfg /batteryreport /output "%BATTERY_REPORT%"
-if %errorlevel% neq 0 echo Failed to create battery report
-
-call :CHOICE "Do you want to open battery report file in your default html viewer?"
-if !errorlevel! equ 1 start "" "%BATTERY_REPORT%"
-
+if %errorlevel% equ 0 (
+    echo. & call :CHOICE "Do you want to open battery report file in your default html viewer?"
+    if !errorlevel! equ 1 start "" "%BATTERY_REPORT%"
+)
 call :GO & goto HW_INFO_MENU
 
 
