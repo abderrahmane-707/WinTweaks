@@ -199,7 +199,7 @@ if ($cs -and $null -ne $cs.HypervisorPresent) {
     Write-Field 'Hypervisor Active' $(if ($cs.HypervisorPresent) { 'Yes' } else { 'No' })
 }
 
-# TPM (may require administrator privileges)
+# TPM
 $tpmText = 'Not detected'
 try {
     $tpm = Get-CimInstance -Namespace 'root\cimv2\Security\MicrosoftTpm' -ClassName Win32_Tpm -ErrorAction Stop | Select-Object -First 1

@@ -175,95 +175,6 @@ if ($os -and $cs -and $cs.TotalPhysicalMemory -gt 0) {
     Write-Log "  Memory counters are not available."
 }
 
-#  Current usage breakdown (performance counters via CIM, independent of Windows language)
-Write-Log ""
-Write-Log "Memory Usage Breakdown:"
-try {
-    $null = Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory -ErrorAction Stop
-    Start-Sleep -Seconds 1     # Second sample to compute rates (Hard Faults)
-    $perf = Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory -ErrorAction Stop
-
-    $standby = [double]$perf.StandbyCacheNormalPriorityBytes + [double]$perf.StandbyCacheReserveBytes + [double]$perf.StandbyCacheCoreBytes
-    if ($totalBytes -gt 0) {
-        Write-Field 'In Use (excl. cache)' (Format-Size ($totalBytes - [double]$perf.AvailableBytes))
-    }
-    Write-Field 'Available'          (Format-Size ([double]$perf.AvailableBytes))
-    Write-Field 'Cached (system)'    (Format-Size ([double]$perf.CacheBytes))
-    Write-Field 'Standby'            (Format-Size $standby)
-    Write-Field 'Modified'           (Format-Size ([double]$perf.ModifiedPageListBytes))
-    Write-Field 'Free (zeroed)'      (Format-Size ([double]$perf.FreeAndZeroPageListBytes))
-    Write-Field 'Paged Pool'         (Format-Size ([double]$perf.PoolPagedBytes))
-    Write-Field 'Non-Paged Pool'     (Format-Size ([double]$perf.PoolNonpagedBytes))
-    Write-Field 'Hard Faults (Pages/s)' ([double]$perf.PagesInputPersec).ToString('F0', $ci)
-} catch {
-    Write-Log "  Performance counters are not available: $($_.Exception.Message)"
-}
-
-# Memory compression
-try {
-    $mm = Get-MMAgent -ErrorAction Stop
-    Write-Field 'Memory Compression' $(if ($mm.MemoryCompression) { 'Enabled' } else { 'Disabled' })
-    $mc = Get-Process -Name 'Memory Compression' -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($mc) { Write-Field 'Compressed Store' (Format-Size ([double]$mc.WorkingSet64)) }
-} catch { }
-
-# Slots, maximum capacity, and error correction type
-if ($array) {
-    Write-Log ""
-    Write-Log "Motherboard Memory Capabilities:"
-    $slotsTotal = [int]$array.MemoryDevices
-    $slotsUsed  = $modules.Count
-    if ($slotsTotal -gt 0) {
-        Write-Field 'Slots (used / total)' "$slotsUsed / $slotsTotal"
-    }
-    $maxKB = if ($array.MaxCapacityEx) { [double]$array.MaxCapacityEx } else { [double]$array.MaxCapacity }
-    if ($maxKB -gt 0) {
-        Write-Field 'Max Supported' "$([math]::Round($maxKB / 1MB, 0)) GB"
-    }
-    Write-Field 'Error Correction' (Get-EccText $array.MemoryErrorCorrection)
-}
-
-#  Virtual memory and page file
-Write-Log ""
-Write-Log "Commit Memory (RAM + Page File):"
-if ($os) {
-    $commitLimit = [double]$os.TotalVirtualMemorySize * 1KB
-    $commitFree  = [double]$os.FreeVirtualMemory * 1KB
-    $commitUsed  = $commitLimit - $commitFree
-
-    Write-Field 'Commit Limit'     (Format-Size $commitLimit)
-    Write-Field 'Commit Used'      (Format-Size $commitUsed)
-    Write-Field 'Commit Available' (Format-Size $commitFree)
-
-    if ($commitLimit -gt 0) {
-        $commitPct = [math]::Round($commitUsed / $commitLimit * 100, 1)
-        Write-Field 'Commit Usage' "$($commitPct.ToString('F1', $ci))%"
-    }
-} else {
-    Write-Log "  Commit counters are not available."
-}
-
-Write-Log ""
-Write-Log "Page File:"
-if ($cs) {
-    Write-Field 'Managed Automatically' $(if ($cs.AutomaticManagedPagefile) { 'Yes' } else { 'No' })
-}
-if ($pageFiles.Count -gt 0) {
-    foreach ($pf in $pageFiles) {
-        Write-Log "  $($pf.Name)"
-        Write-Field 'Allocated' "$($pf.AllocatedBaseSize) MB" 4
-        Write-Field 'Current Usage' "$($pf.CurrentUsage) MB" 4
-        Write-Field 'Peak Usage' "$($pf.PeakUsage) MB" 4
-
-        $setting = $pageSettings | Where-Object { $_.Name -eq $pf.Name } | Select-Object -First 1
-        if ($setting) {
-            Write-Field 'Configured Initial/Max' "$($setting.InitialSize) MB / $($setting.MaximumSize) MB" 4
-        }
-    }
-} else {
-    Write-Log "  No page file configured."
-}
-
 #  Modules
 Write-Log ""
 Write-Log "Memory Modules:"
@@ -308,4 +219,89 @@ if ($modules.Count -gt 0) {
     }
 } else {
     Write-Log "  No memory module information available"
+	Write-Log ""
+}
+
+#  Current usage breakdown (performance counters via CIM, independent of Windows language)
+Write-Log "Memory Usage Breakdown:"
+try {
+    $null = Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory -ErrorAction Stop
+    Start-Sleep -Seconds 1     # Second sample to compute rates (Hard Faults)
+    $perf = Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory -ErrorAction Stop
+
+    $standby = [double]$perf.StandbyCacheNormalPriorityBytes + [double]$perf.StandbyCacheReserveBytes + [double]$perf.StandbyCacheCoreBytes
+    if ($totalBytes -gt 0) {
+        Write-Field 'In Use (excl. cache)' (Format-Size ($totalBytes - [double]$perf.AvailableBytes))
+    }
+    Write-Field 'Available'          (Format-Size ([double]$perf.AvailableBytes))
+    Write-Field 'Cached (system)'    (Format-Size ([double]$perf.CacheBytes))
+    Write-Field 'Standby'            (Format-Size $standby)
+    Write-Field 'Modified'           (Format-Size ([double]$perf.ModifiedPageListBytes))
+    Write-Field 'Free (zeroed)'      (Format-Size ([double]$perf.FreeAndZeroPageListBytes))
+    Write-Field 'Paged Pool'         (Format-Size ([double]$perf.PoolPagedBytes))
+    Write-Field 'Non-Paged Pool'     (Format-Size ([double]$perf.PoolNonpagedBytes))
+    Write-Field 'Hard Faults (Pages/s)' ([double]$perf.PagesInputPersec).ToString('F0', $ci)
+} catch {
+    Write-Log "  Performance counters are not available: $($_.Exception.Message)"
+}
+
+# Memory compression
+try {
+    $mm = Get-MMAgent -ErrorAction Stop
+    Write-Field 'Memory Compression' $(if ($mm.MemoryCompression) { 'Enabled' } else { 'Disabled' })
+    $mc = Get-Process -Name 'Memory Compression' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($mc) { Write-Field 'Compressed Store' (Format-Size ([double]$mc.WorkingSet64)) }
+} catch { }
+
+# Slots and error correction type (Max Supported removed)
+if ($array) {
+    Write-Log ""
+    Write-Log "Motherboard Memory Capabilities:"
+    $slotsTotal = [int]$array.MemoryDevices
+    $slotsUsed  = $modules.Count
+    if ($slotsTotal -gt 0) {
+        Write-Field 'Slots (used / total)' "$slotsUsed / $slotsTotal"
+    }
+    Write-Field 'Error Correction' (Get-EccText $array.MemoryErrorCorrection)
+}
+
+#  Virtual memory and page file
+Write-Log ""
+Write-Log "Commit Memory (RAM + Page File):"
+if ($os) {
+    $commitLimit = [double]$os.TotalVirtualMemorySize * 1KB
+    $commitFree  = [double]$os.FreeVirtualMemory * 1KB
+    $commitUsed  = $commitLimit - $commitFree
+
+    Write-Field 'Commit Limit'     (Format-Size $commitLimit)
+    Write-Field 'Commit Used'      (Format-Size $commitUsed)
+    Write-Field 'Commit Available' (Format-Size $commitFree)
+
+    if ($commitLimit -gt 0) {
+        $commitPct = [math]::Round($commitUsed / $commitLimit * 100, 1)
+        Write-Field 'Commit Usage' "$($commitPct.ToString('F1', $ci))%"
+    }
+} else {
+    Write-Log "  Commit counters are not available."
+}
+
+Write-Log ""
+Write-Log "Page File:"
+if ($cs) {
+    Write-Field 'Managed Automatically' $(if ($cs.AutomaticManagedPagefile) { 'Yes' } else { 'No' })
+}
+if ($pageFiles.Count -gt 0) {
+    foreach ($pf in $pageFiles) {
+        Write-Log "  $($pf.Name)"
+        Write-Field 'Allocated' "$($pf.AllocatedBaseSize) MB" 4
+        Write-Field 'Current Usage' "$($pf.CurrentUsage) MB" 4
+        Write-Field 'Peak Usage' "$($pf.PeakUsage) MB" 4
+
+        $setting = $pageSettings | Where-Object { $_.Name -eq $pf.Name } | Select-Object -First 1
+        if ($setting) {
+            Write-Field 'Configured Initial/Max' "$($setting.InitialSize) MB / $($setting.MaximumSize) MB" 4
+        }
+    }
+} else {
+    Write-Log "  No page file configured."
 }

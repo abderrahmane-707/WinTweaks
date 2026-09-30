@@ -87,7 +87,6 @@ function Get-CpuIdentity {
 }
 
 # Total cache size for a specific level from Win32_CacheMemory (KB)
-# Level: 3 = L1, 4 = L2, 5 = L3
 function Get-CacheTotalKB {
     param ($CacheEntries, [int]$Level)
     $entries = @($CacheEntries | Where-Object { $_.Level -eq $Level })
@@ -171,7 +170,7 @@ try {
         }
 
     } else {
-        Write-Log "No processor information found on this system."
+        Write-Log "  No processor information found on this system."
     }
 } catch {
     Write-Log "Error retrieving processor information: $($_.Exception.Message)"

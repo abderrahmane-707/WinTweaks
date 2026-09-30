@@ -161,7 +161,7 @@ function Get-ControllerModeText {
     return 'Unknown'
 }
 
-# NTFS details (fsutil labels are English-only; requires administrator)
+# NTFS details (fsutil labels are English-only)
 function Get-NtfsInfo {
     param ([string]$Letter)
     try {
@@ -236,7 +236,7 @@ try {
     }
 } catch { }
 
-# BitLocker (requires administrator privileges)
+# BitLocker
 $bitLockerMap     = @{}
 $bitLockerQueried = $false
 try {
@@ -260,7 +260,7 @@ try {
     }
 } catch { }
 
-# SMART failure prediction (root\wmi, requires administrator; not exposed by all NVMe drivers)
+# SMART failure prediction
 $failurePredict = @()
 try {
     $failurePredict = @(Get-CimInstance -Namespace 'root\wmi' -ClassName MSStorageDriver_FailurePredictStatus -ErrorAction Stop)
@@ -376,7 +376,7 @@ try {
                     Write-Field 'SMART Prediction' 'OK (no failure predicted)'
                 }
             } elseif ($failurePredict.Count -eq 0) {
-                Write-Field 'SMART Prediction' 'N/A (not supported or requires administrator)'
+                Write-Field 'SMART Prediction' 'N/A'
             } else {
                 Write-Field 'SMART Prediction' 'N/A (no matching entry for this disk)'
             }
@@ -407,7 +407,7 @@ try {
                     Write-Log "    WARNING: Disk #$($disk.Index) has uncorrected errors (read: $($rel.ReadErrorsUncorrected), write: $($rel.WriteErrorsUncorrected)) - back up your data and check the disk."
                 }
             } else {
-                Write-Field 'SMART Data' 'Not available (may require administrator)'
+                Write-Field 'SMART Data' 'Not available'
             }
 
             # Partitions associated with this disk
@@ -476,7 +476,7 @@ try {
             $fs     = Get-Value $drive.FileSystem
 
             $bitLocker = if ($bitLockerMap.ContainsKey($letter)) { $bitLockerMap[$letter] }
-                         elseif (-not $bitLockerQueried) { 'N/A (requires administrator)' }
+                         elseif (-not $bitLockerQueried) { 'N/A' }
                          else { 'N/A' }
 
             $clusterSize = $null
@@ -509,7 +509,7 @@ try {
                     Write-Field 'NTFS Version' (Get-Value $ntfs.Version)
                     Write-Field 'MFT Size'      (Get-Value $ntfs.Mft)
                 } else {
-                    Write-Field 'NTFS Details' 'N/A (requires administrator)'
+                    Write-Field 'NTFS Details' 'N/A'
                 }
             }
 
@@ -684,4 +684,3 @@ if ($raidControllers.Count -gt 0) {
 } else {
     Write-Log "  No hardware/firmware RAID controller detected"
 }
-Write-Log ""
