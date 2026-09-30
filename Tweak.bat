@@ -1810,12 +1810,6 @@ start explorer.exe >nul 2>&1
 :: Delete PowerShell command history
 call :DELETE_FILES "Clearing PowerShell command history" "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 
-call :CHOICE "Run Disk Cleanup to complete the cleaning?"
-if !errorlevel! equ 1 (
-    echo Running Disk Cleanup
-    cleanmgr.exe /d "%SYSTEMDRIVE%" /VERYLOWDISK
-)
-
 :: Force empty the Recycle Bin for all drives
 echo Emptying Recycle Bin
 powershell -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"
