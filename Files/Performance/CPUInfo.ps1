@@ -95,9 +95,7 @@ function Get-CacheTotalKB {
     return ($entries | Measure-Object -Property InstalledSize -Sum).Sum
 }
 
-# ---------------------------------------------------------------
 # Properties to retrieve
-# ---------------------------------------------------------------
 $properties = @(
     'DeviceID', 'Manufacturer', 'Name', 'Description', 'AddressWidth',
     'NumberOfCores', 'NumberOfLogicalProcessors', 'CurrentClockSpeed',
