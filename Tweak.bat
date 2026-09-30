@@ -1608,7 +1608,7 @@ call :GO & goto DISM_MENU
 call :CONFIRM "WARNING: This will permanently remove rollback capability for Windows Updates"
 if errorlevel 2 goto DISM_MENU
 
-echo Cleaning Windows components
+echo. & echo Cleaning Windows components
 dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
 call :GO & goto DISM_MENU
 
