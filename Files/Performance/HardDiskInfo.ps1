@@ -363,53 +363,6 @@ try {
             Write-Field 'Health Status'     $health
             Write-Field 'Operational Status' $opStat
 
-            # SMART failure prediction
-            $fp = $null
-            if ($disk.PNPDeviceID) {
-                $fp = $failurePredict | Where-Object { $_.InstanceName -and $_.InstanceName.StartsWith($disk.PNPDeviceID, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
-            }
-            if ($fp) {
-                if ($fp.PredictFailure) {
-                    Write-Field 'SMART Prediction' "FAILURE PREDICTED (reason code $($fp.Reason))"
-                    Write-Log "    WARNING: SMART predicts failure on Disk #$($disk.Index) - back up your data immediately."
-                } else {
-                    Write-Field 'SMART Prediction' 'OK (no failure predicted)'
-                }
-            } elseif ($failurePredict.Count -eq 0) {
-                Write-Field 'SMART Prediction' 'N/A'
-            } else {
-                Write-Field 'SMART Prediction' 'N/A (no matching entry for this disk)'
-            }
-
-            # SMART / Reliability (may require admin privileges, and some disks don't support it)
-            $rel = $null
-            if ($pd) {
-                try { $rel = $pd | Get-StorageReliabilityCounter -ErrorAction Stop } catch { }
-            }
-            if ($rel) {
-                if ($null -ne $rel.Wear -and $diskType -like 'SSD*') { Write-Field 'SSD Wear Level' "$($rel.Wear)%" }
-                if ($null -ne $rel.PowerOnHours)    { Write-Field 'Power-On Hours'   $rel.PowerOnHours }
-                if ($null -ne $rel.StartStopCycleCount)  { Write-Field 'Start/Stop Cycles'   $rel.StartStopCycleCount }
-                if ($null -ne $rel.LoadUnloadCycleCount) { Write-Field 'Load/Unload Cycles'  $rel.LoadUnloadCycleCount }
-                if ($null -ne $rel.ReadErrorsTotal -or $null -ne $rel.WriteErrorsTotal) {
-                    Write-Field 'Read/Write Errors' "$(Get-Value $rel.ReadErrorsTotal) / $(Get-Value $rel.WriteErrorsTotal)"
-                }
-                if ($null -ne $rel.ReadErrorsUncorrected) {
-                    Write-Field 'Uncorrected Read Err' $rel.ReadErrorsUncorrected
-                }
-                if ($null -ne $rel.WriteErrorsUncorrected) {
-                    Write-Field 'Uncorrected Write Err' $rel.WriteErrorsUncorrected
-                }
-                if ($null -ne $rel.ReadLatencyMax)  { Write-Field 'Max Read Latency'  "$($rel.ReadLatencyMax) ms" }
-                if ($null -ne $rel.WriteLatencyMax) { Write-Field 'Max Write Latency' "$($rel.WriteLatencyMax) ms" }
-                if ($null -ne $rel.FlushLatencyMax) { Write-Field 'Max Flush Latency' "$($rel.FlushLatencyMax) ms" }
-                if (($rel.ReadErrorsUncorrected -gt 0) -or ($rel.WriteErrorsUncorrected -gt 0)) {
-                    Write-Log "    WARNING: Disk #$($disk.Index) has uncorrected errors (read: $($rel.ReadErrorsUncorrected), write: $($rel.WriteErrorsUncorrected)) - back up your data and check the disk."
-                }
-            } else {
-                Write-Field 'SMART Data' 'Not available'
-            }
-
             # Partitions associated with this disk
             $parts = @(Get-CimAssociatedInstance -InputObject $disk -ResultClassName Win32_DiskPartition -ErrorAction SilentlyContinue |
                        Sort-Object StartingOffset)
@@ -466,9 +419,6 @@ try {
     $otherDrives = @(Get-CimInstance Win32_LogicalDisk -Filter 'DriveType <> 3' -ErrorAction SilentlyContinue | Sort-Object DeviceID)
 
     if ($localDrives.Count -gt 0) {
-        $totalBytes = 0.0
-        $freeBytes  = 0.0
-
         foreach ($drive in $localDrives) {
             $letter = $drive.DeviceID
             $vol    = $volumeMap[$letter]
@@ -491,9 +441,6 @@ try {
             Write-Field 'Volume Serial' (Get-Value $drive.VolumeSerialNumber)
             Write-Field 'File System'  $fs
             Write-Field 'Cluster Size'  $(if ($clusterSize) { Format-Size $clusterSize } else { 'N/A' })
-            if ($fs -eq 'NTFS' -and $clusterSize -and ($clusterSize -lt 4096 -or $clusterSize -gt 65536)) {
-                Write-Log "    Warning: unusual NTFS cluster size on $letter ($(Format-Size $clusterSize))."
-            }
 
             # Volume health, dirty bit, compression, indexing
             Write-Field 'Volume Health'   $(if ($vol) { Get-Value $vol.HealthStatus } else { 'N/A' })
@@ -542,36 +489,16 @@ try {
             if ($drive.Size -gt 0) {
                 $usedBytes = [double]$drive.Size - [double]$drive.FreeSpace
                 $usedPct   = [math]::Round($usedBytes / $drive.Size * 100, 1)
-                $freePct   = [math]::Round(100 - $usedPct, 1)
-
-                $totalBytes += $drive.Size
-                $freeBytes  += $drive.FreeSpace
 
                 Write-Field 'Capacity'    (Format-Size $drive.Size)
                 Write-Field 'Used Space'  (Format-Size $usedBytes)
                 Write-Field 'Free Space'  (Format-Size $drive.FreeSpace)
                 Write-Field 'Usage'       "$($usedPct.ToString('F1', $ci))%"
 
-                if ($freePct -lt 10 -or $drive.FreeSpace -lt 10GB) {
-                    Write-Log "    Warning: low free space on $letter ($($freePct.ToString('F1', $ci))% free)."
-                }
             } else {
                 Write-Field 'Capacity' 'N/A'
             }
 
-            Write-Log ""
-        }
-
-        # Local storage summary only (without network or removable)
-        if ($totalBytes -gt 0) {
-            $usedTotal = $totalBytes - $freeBytes
-            $usedPct   = [math]::Round($usedTotal / $totalBytes * 100, 1)
-
-            Write-Log "Total Local Storage Statistics:"
-            Write-Field 'Total Capacity' (Format-Size $totalBytes) 2
-            Write-Field 'Used Space'     (Format-Size $usedTotal) 2
-            Write-Field 'Free Space'     (Format-Size $freeBytes) 2
-            Write-Field 'Usage'          "$($usedPct.ToString('F1', $ci))%" 2
             Write-Log ""
         }
     } else {
