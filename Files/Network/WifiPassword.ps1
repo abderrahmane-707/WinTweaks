@@ -74,7 +74,7 @@ if (-not $profiles) {
     exit
 }
 
-# Load last-connected times once (requires admin to read HKLM)
+# Load last-connected times once
 $lastConnectedMap = Get-LastConnectedMap
 
 # Process each Wi-Fi profile
