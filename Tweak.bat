@@ -1546,7 +1546,7 @@ echo. & set "choice=" & set /p choice="Select an option: "
 if "%choice%"=="1" goto SFC_SCAN
 if "%choice%"=="2" goto DISM_MENU
 if "%choice%"=="3" goto DEFRAG
-if "%choice%"=="4" goto CHKDSK
+if "%choice%"=="4" goto CHKDSK_MENU
 if "%choice%"=="5" goto MEMORY_DIAG
 if "%choice%"=="6" goto CLEAN_MGR
 if "%choice%"=="0" goto MAIN_MENU
@@ -1613,61 +1613,97 @@ call :GO & goto DISM_MENU
 start "" dfrgui.exe
 goto TOOLS_MENU
 
-:CHKDSK
-cls & echo Available drives on your system:
-for %%d in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
-    if exist %%d:\ echo %%d:\
-)
-
-echo. & echo Enter drive letter to check
-echo Enter "0" to go back
-
-set "drive=" & set /p "drive= "
-if "%drive%"=="0" goto TOOLS_MENU
-if not defined drive goto CHKDSK
-set "drive=%drive:"=%"
-set "drive=%drive:~0,1%"
-if not exist "%drive%:\" (
-    echo. & echo Invalid drive letter: %drive%
-    pause
-    goto CHKDSK
-)
-for %%c in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do if /i "%drive%"=="%%c" set "drive=%%c"
-
 :CHKDSK_MENU
 cls & echo. & echo.
-echo                        --------------------------------- CHKDSK ----------------------------------
+echo                        --------------------------- Disk Diagnostics ------------------------------
 echo.
-echo                          [1] Check Status                                    [2] Fix File System
+echo                            [1] Scan a drive letter                    [2] Scan a hidden volume
 echo.
-echo                          [3] Fix Bad Sectors                                 [0] Back
+echo                            [3] Full Disk Scan                         [4] SMART Report
+echo.
+echo                                                        [0] Back
 echo.
 echo                        ---------------------------------------------------------------------------
 
-echo. & set "choice=" & set /p choice="Select an option for %drive%\: drive: "
-if "%choice%"=="1" goto DISK_STATUS 
-if "%choice%"=="2" goto FIX_FILE
-if "%choice%"=="3" goto FIX_SECTORS
-if "%choice%"=="0" goto CHKDSK
+echo. & set "choice=" & set /p "choice=Select an option: "
+if "%choice%"=="1" goto DRIVE_LETTER
+if "%choice%"=="2" goto HIDDEN_VOLUMES
+if "%choice%"=="3" goto FULL_SCAN
+if "%choice%"=="4" goto SMART_RUN
+if "%choice%"=="0" goto TOOLS_MENU
 
-call :INVALID "(0-3)" & goto CHKDSK_MENU
+call :INVALID "(0-4)" & goto CHKDSK_MENU
 
-:DISK_STATUS
-cls & echo Running read-only CHKDSK on drive %drive%:\ to check for errors
-timeout /t 2 >nul
-chkdsk %drive%:
+:DRIVE_LETTER
+cls & set "VOL_TARGET=" & set "VOL_FS="
+for /f "tokens=1,2 delims=|" %%a in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskVolumes.ps1" -Drive') do (
+    set "VOL_TARGET=%%a" & set "VOL_FS=%%b"
+)
+
+if "%VOL_TARGET%"=="0" goto CHKDSK_MENU
+if not defined VOL_TARGET (
+    echo. & echo Invalid drive letter
+    pause & goto DRIVE_LETTER
+)
+goto CHOOSE_MODE
+
+:HIDDEN_VOLUMES
+cls & echo Listing all detected volumes, including hidden / unlettered partitions
+
+set "VOL_TARGET=" & set "VOL_FS="
+for /f "tokens=1,2 delims=|" %%a in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskVolumes.ps1" -Pick') do (
+    set "VOL_TARGET=%%a" & set "VOL_FS=%%b"
+)
+
+if "%VOL_TARGET%"=="0" goto CHKDSK_MENU
+if not defined VOL_TARGET (
+    echo. & echo No valid selection
+    pause & goto HIDDEN_VOLUMES
+)
+goto CHOOSE_MODE
+
+:FULL_SCAN
+set "VOL_TARGET=ALL" & set "VOL_FS=" & goto CHOOSE_MODE
+
+:CHOOSE_MODE
+cls & if /i "%VOL_TARGET%"=="ALL" (
+    echo Target: ALL volumes
+) else (
+    echo Target: %VOL_TARGET%     File system: %VOL_FS%
+)
+echo.
+echo  [1] Read-only check (no changes, may show false errors on a mounted volume)
+echo  [2] Online scan  /scan   (NTFS only, accurate, no dismount)  RECOMMENDED
+echo  [3] Check and repair errors  /f
+echo  [4] Deep scan  /r   (repair + surface scan for bad sectors, slow)
+echo  [0] Back
+
+echo. & set "choice=" & set "MODE_ARGS=" & set /p choice="Select an option: "
+if "%choice%"=="0" goto CHKDSK_MENU
+if "%choice%"=="1" goto MODE_RUN
+if "%choice%"=="2" set "MODE_ARGS=/scan" & goto MODE_RUN
+if "%choice%"=="3" set "MODE_ARGS=/f" & goto MODE_RUN
+if "%choice%"=="4" set "MODE_ARGS=/r" & goto MODE_RUN
+
+call :INVALID "(0-4)" & goto CHOOSE_MODE
+
+:MODE_RUN
+if /i "%VOL_TARGET%"=="ALL" goto MODE_RUN_ALL
+if "%MODE_ARGS%"=="/scan" if /i not "%VOL_FS%"=="NTFS" (
+    echo /scan supports NTFS only - falling back to read-only check
+    set "MODE_ARGS="
+)
+call :RUN_CHKDSK "%VOL_TARGET%" %MODE_ARGS%
 call :GO & goto CHKDSK_MENU
 
-:FIX_FILE
-cls & echo Running CHKDSK with /f option on drive %drive%:\ to fix file system errors
-timeout /t 2 >nul
-chkdsk %drive%: /f
+:MODE_RUN_ALL
+for /f "tokens=1,2 delims=|" %%a in ('powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "Files\Tools\DiskVolumes.ps1" -All') do (
+    call :RUN_ONE "%%a" "%%b"
+)
 call :GO & goto CHKDSK_MENU
 
-:FIX_SECTORS
-cls & echo Running CHKDSK with /r option on drive %drive%:\ to find bad sectors and recover data
-timeout /t 2 >nul
-chkdsk %drive%: /r
+:SMART_RUN
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskSmart.ps1"
 call :GO & goto CHKDSK_MENU
 
 :MEMORY_DIAG
@@ -1704,8 +1740,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "iwr -useb https://christ
 call :GO & goto OTHER_MENU
 
 :DELETE_SCRIPT_DATA
-cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
-call :GO & goto TOOLS_MENU
+cls & powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
+call :GO & goto OTHER_MENU
 
 :: -------------------------------------------------------------<FUNCTIONS>-------------------------------------------------------------
 :SET_TASKS
@@ -2004,6 +2040,28 @@ if defined invalid (
     pause
 )
 exit /b
+
+:RUN_ONE
+set "R_TARGET=%~1"
+set "R_FS=%~2"
+set "R_ARGS=%MODE_ARGS%"
+if /i "%R_FS%"=="RAW" (
+    echo. & echo Skipping %R_TARGET% - no recognizable file system
+    exit /b 0
+)
+if "%R_ARGS%"=="/scan" if /i not "%R_FS%"=="NTFS" set "R_ARGS="
+call :RUN_CHKDSK "%R_TARGET%" %R_ARGS%
+exit /b
+
+:RUN_CHKDSK
+echo. & echo chkdsk %~1 %~2
+chkdsk "%~1" %~2
+set "RC=%errorlevel%"
+if "%RC%"=="0" echo Result: no errors found
+if "%RC%"=="1" echo Result: errors were found and fixed
+if "%RC%"=="2" echo Result: cleanup performed, or errors exist and /f was not used
+if "%RC%"=="3" echo Result: could not check the disk, or errors could not be fixed
+exit /b %RC%
 
 :NET_CONTROL
 set "SVC_STATE="
