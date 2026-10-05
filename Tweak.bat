@@ -1951,7 +1951,12 @@ for %%P in (!targets!) do echo     - %%P
 echo. & call :CHOICE "Do you want to continue?"
 if errorlevel 2 exit /b 2
 
-echo. & call choco !action! !targets! -y
+echo.
+if /i "!action!"=="upgrade" (
+    call choco !action! !targets! --ignorechecksum -y
+) else (
+    call choco !action! !targets! -y
+)
 exit /b 0
 
 :PRINT_ACTION_PROMPT
