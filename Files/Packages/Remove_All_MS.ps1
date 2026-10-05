@@ -1,118 +1,115 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param ()
 
-# List of package name patterns to match (Safe patterns that won't trigger system errors)
-$AppxPatterns = @(
-    "AdobePhotoshopExpress", "CandyCrush", "Facebook", "LinkedIn", "Netflix", "Spotify",
-    "Twitter", "XboxApp", "BingFinance", "BingNews", "BingSports", "BingTravel",
-    "BingWeather", "GamingApp", "GetHelp", "GetStarted", "Messaging", "Microsoft3DViewer",
-    "MicrosoftOfficeHub", "MicrosoftSolitaireCollection", "NetworkSpeedTest", "News",
-    "Office.OneNote", "Print3D", "SkypeApp", "WindowsAlarms",
-    "WindowsCommunicationsApps", "FeedbackHub", "WindowsMaps", "SoundRecorder",
-    "ZuneMusic", "ZuneVideo"
+# Exact package names (case-insensitive exact match)
+$ExactNames = @(
+    'Microsoft.BingFinance', 'Microsoft.BingNews', 'Microsoft.BingSports',
+    'Microsoft.BingTravel', 'Microsoft.BingWeather', 'Microsoft.GamingApp',
+    'Microsoft.GetHelp', 'Microsoft.Getstarted', 'Microsoft.Messaging',
+    'Microsoft.Microsoft3DViewer', 'Microsoft.MicrosoftOfficeHub',
+    'Microsoft.MicrosoftSolitaireCollection', 'Microsoft.NetworkSpeedTest',
+    'Microsoft.News', 'Microsoft.Office.OneNote', 'Microsoft.Print3D',
+    'Microsoft.SkypeApp', 'Microsoft.WindowsAlarms', 'Microsoft.WindowsFeedbackHub',
+    'Microsoft.WindowsMaps', 'Microsoft.WindowsSoundRecorder', 'Microsoft.XboxApp',
+    'Microsoft.ZuneMusic', 'Microsoft.ZuneVideo',
+    'microsoft.windowscommunicationsapps'   # Mail and Calendar - remove from the list if needed
 )
+$ExactSet = [System.Collections.Generic.HashSet[string]]::new(
+    [string[]]$ExactNames, [System.StringComparer]::OrdinalIgnoreCase)
 
-# Convert array to a single regex pattern, anchored to the start of the name
-# to avoid unintended partial matches (e.g. "News" matching inside unrelated package names)
-$RegexPattern = "^(" + (($AppxPatterns | ForEach-Object { [regex]::Escape($_) }) -join '|') + ")"
+# Third-party packages: the publisher prefix varies (e.g. king.com.CandyCrushSaga,
+# SpotifyAB.SpotifyMusic), so match the app name after the first dot
+$VendorRegex = [regex]::new(
+    '^[^.]+\.(AdobePhotoshopExpress|CandyCrush|Facebook|LinkedIn|Netflix|Spotify|Twitter)',
+    'IgnoreCase, Compiled')
 
-# Shared removal logic for both provisioned and installed packages.
-# Uses the caller's $PSCmdlet so -WhatIf/-Confirm from the main script flow through
-# to each individual removal (ShouldProcess handles per-item [Y/N/A] prompting natively).
-function Remove-MatchedPackages {
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
-    param (
-        [Parameter(Mandatory=$true)] $Packages,
-        [Parameter(Mandatory=$true)] [scriptblock]$RemoveAction,
-        [Parameter(Mandatory=$true)] [string]$NameProperty
-    )
-
-    $removed = 0
-    $failed = 0
-
-    foreach ($pkg in $Packages) {
-        $displayName = $pkg.$NameProperty
-
-        if ($PSCmdlet.ShouldProcess($displayName, "Remove Appx package")) {
-            try {
-                & $RemoveAction $pkg
-                Write-Host "Successfully removed: $displayName"
-                $removed++
-            }
-            catch {
-                Write-Warning "Failed to remove $($displayName): $_"
-                $failed++
-            }
-        }
-    }
-
-    return [PSCustomObject]@{ Removed = $removed; Failed = $failed }
+function Test-TargetName {
+    param ([string]$Name)
+    return $ExactSet.Contains($Name) -or $VendorRegex.IsMatch($Name)
 }
 
-# --- Gather packages (with error handling around the retrieval calls) ---
-
-Write-Host "`nChecking for Provisioned Packages to remove"
+# Gather packages (one query per package type)
+Write-Host "`nChecking for installed Appx packages"
 try {
-    $provisionedPackages = @(
-        Get-AppxProvisionedPackage -Online -ErrorAction Stop |
-            Where-Object { $_.DisplayName -match $RegexPattern }
-    )
-}
-catch {
-    Write-Warning "Failed to query provisioned packages: $_"
-    $provisionedPackages = @()
-}
-
-Write-Host "`nChecking for installed Appx Packages"
-try {
-    $packagesToRemove = @(
+    # -AllUsers returns one entry per user, so de-duplicate by full package name
+    $installed = @(
         Get-AppxPackage -AllUsers -ErrorAction Stop |
-            Where-Object { $_.Name -match $RegexPattern }
+            Where-Object { Test-TargetName $_.Name } |
+            Sort-Object -Property PackageFullName -Unique
     )
 }
 catch {
-    Write-Warning "Failed to query installed packages: $_"
-    $packagesToRemove = @()
+    Write-Warning "Failed to query installed packages: $($_.Exception.Message)"
+    $installed = @()
 }
 
-if ($packagesToRemove.Count -eq 0 -and $provisionedPackages.Count -eq 0) {
+Write-Host "Checking for provisioned packages"
+try {
+    $provisioned = @(
+        Get-AppxProvisionedPackage -Online -ErrorAction Stop |
+            Where-Object { Test-TargetName $_.DisplayName } |
+            Sort-Object -Property PackageName -Unique
+    )
+}
+catch {
+    Write-Warning "Failed to query provisioned packages: $($_.Exception.Message)"
+    $provisioned = @()
+}
+
+if ($installed.Count -eq 0 -and $provisioned.Count -eq 0) {
     Write-Host "No matching packages found (or none could be queried). Nothing to do"
     exit 0
 }
 
-# Build a single unified list of every package (provisioned + installed) for review,
-# de-duplicated by name so packages present in both categories are only shown once.
-$allNames = @()
-$allNames += $provisionedPackages | ForEach-Object { $_.DisplayName }
-$allNames += $packagesToRemove | ForEach-Object { $_.Name }
-$uniqueNames = $allNames | Sort-Object -Unique
+# Unified, de-duplicated list for review
+$uniqueNames = @(
+    @($installed | ForEach-Object { $_.Name }) +
+    @($provisioned | ForEach-Object { $_.DisplayName })
+) | Sort-Object -Unique
 
-Write-Host "`nThe following $($uniqueNames.Count) package(s) will be removed:"
-$uniqueNames | ForEach-Object { Write-Host " - $_" }
+Write-Host "The following $($uniqueNames.Count) package(s) will be removed:"
+$uniqueNames | ForEach-Object { Write-Host "  - $_" }
 
-$totalRemoved = 0
-$totalFailed = 0
-
-if ($provisionedPackages.Count -gt 0) {
-    Write-Host "`nRemoving provisioned packages"
-    $result = Remove-MatchedPackages -Packages $provisionedPackages -NameProperty "DisplayName" -RemoveAction {
-        param($pkg)
-        Remove-AppxProvisionedPackage -Online -PackageName $pkg.PackageName -ErrorAction Stop | Out-Null
-    }
-    $totalRemoved += $result.Removed
-    $totalFailed += $result.Failed
+# Single confirmation for the whole batch (-WhatIf and -Confirm work here)
+$total = $installed.Count + $provisioned.Count
+if (-not $PSCmdlet.ShouldProcess("$total Appx package(s)", 'Remove')) {
+    Write-Host "Operation cancelled (WhatIf or declined)."
+    exit 0
 }
 
-if ($packagesToRemove.Count -gt 0) {
-    Write-Host "`nRemoving installed packages"
-    $result = Remove-MatchedPackages -Packages $packagesToRemove -NameProperty "Name" -RemoveAction {
-        param($pkg)
-        Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
+$removed = 0
+$failed  = 0
+
+# Remove installed packages first, then provisioned ones (no need to re-query)
+if ($installed.Count -gt 0) {
+    Write-Host "Removing installed packages"
+    foreach ($pkg in $installed) {
+        try {
+            $pkg | Remove-AppxPackage -AllUsers -ErrorAction Stop
+            Write-Host "  Successfully removed: $($pkg.Name)"
+            $removed++
+        }
+        catch {
+            Write-Warning "Failed to remove $($pkg.Name): $($_.Exception.Message)"
+            $failed++
+        }
     }
-    $totalRemoved += $result.Removed
-    $totalFailed += $result.Failed
 }
 
-# Unified summary covering both provisioned and installed packages
-Write-Host "`nRemoved: $totalRemoved"
-Write-Host "Failed: $totalFailed"
+if ($provisioned.Count -gt 0) {
+    Write-Host "Removing provisioned packages"
+    foreach ($pkg in $provisioned) {
+        try {
+            Remove-AppxProvisionedPackage -Online -PackageName $pkg.PackageName -ErrorAction Stop | Out-Null
+            Write-Host "  Successfully removed: $($pkg.DisplayName)"
+            $removed++
+        }
+        catch {
+            Write-Warning "Failed to remove $($pkg.DisplayName): $($_.Exception.Message)"
+            $failed++
+        }
+    }
+}
+
+Write-Host "Removed: $removed"
+Write-Host "Failed: $failed"
