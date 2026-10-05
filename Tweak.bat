@@ -544,7 +544,7 @@ echo. & echo Applying security hardening registry settings
 reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling unsafe Windows features
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\DisableUnsafeFeature.ps1" >> "%LOG_FILE%" 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\DisableUnsafeFeature.ps1" "%LOG_FILE%"
 
 echo Disabling unsafe Windows services
 for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP") do (
