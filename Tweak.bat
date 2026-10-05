@@ -73,7 +73,7 @@ if "!choice!"=="3" (
     set ROUTINE=BOOT_TWEAKS
     set REV_ROUTINE=REV_BOOT_TWEAKS
     set APPLY=Enhance boot-up settings
-    set REVERT=Set boot-up settings to default
+    set REVERT=Default boot-up settings
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
 )
@@ -312,7 +312,7 @@ if "!choice!"=="5" (
     set ROUTINE=REMOVE_POLICIES
     set REV_ROUTINE=RESTORE_POLICIES
     set APPLY=Remove all policies setting
-    set REVERT=Restore all policies setting
+    set "REVERT=Restore all policies setting (from backup files)"
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
@@ -1097,7 +1097,7 @@ if "!choice!"=="7" (
     set ROUTINE=POWER_SETTINGS
     set REV_ROUTINE=REMOVE_POWER_SETTINGS
     set APPLY=Creating 'Powerful settings' folder on your Desktop
-    set REVERT=Removing 'Powerful settings' folder from your Desktop
+    set REVERT=Remove 'Powerful settings' folder from your Desktop
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
@@ -1128,7 +1128,7 @@ echo                        ------------------------------ File Explorer -------
 echo.
 echo                          [1] File Extensions                                  [2] Hidden Files
 echo.
-echo                          [3] Recent Files                                     [4] Open On This PC
+echo                          [3] Recent Files                                     [4] Launch Location
 echo.
 echo                                                         [0] Back
 echo.
