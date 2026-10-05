@@ -33,15 +33,15 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto PERFORMANCE_MENU
-if "%choice%"=="2" goto PRIVACY_SECURITY_MENU
-if "%choice%"=="3" goto NETWORK_MENU
-if "%choice%"=="4" goto PACKAGES_MENU
-if "%choice%"=="5" goto CUSTOMIZATION_MENU
-if "%choice%"=="6" goto SYSTEM_MENU
-if "%choice%"=="7" goto TOOLS_MENU
-if "%choice%"=="8" goto OTHER_MENU
-if "%choice%"=="0" exit /b
+if "!choice!"=="1" goto PERFORMANCE_MENU
+if "!choice!"=="2" goto PRIVACY_SECURITY_MENU
+if "!choice!"=="3" goto NETWORK_MENU
+if "!choice!"=="4" goto PACKAGES_MENU
+if "!choice!"=="5" goto CUSTOMIZATION_MENU
+if "!choice!"=="6" goto SYSTEM_MENU
+if "!choice!"=="7" goto TOOLS_MENU
+if "!choice!"=="8" goto OTHER_MENU
+if "!choice!"=="0" exit /b
 
 call :INVALID "(0-8)" & goto MAIN_MENU
 
@@ -60,8 +60,8 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto SERVICES_MENU
-if "%choice%"=="2" (
+if "!choice!"=="1" goto SERVICES_MENU
+if "!choice!"=="2" (
     set ROUTINE=DISABLE_TASKS
     set REV_ROUTINE=ENABLE_TASKS
     set APPLY=Disable unnecessary scheduled tasks
@@ -69,7 +69,7 @@ if "%choice%"=="2" (
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
 )
-if "%choice%"=="3" (
+if "!choice!"=="3" (
     set ROUTINE=BOOT_TWEAKS
     set REV_ROUTINE=REV_BOOT_TWEAKS
     set APPLY=Enhance boot-up settings
@@ -77,10 +77,10 @@ if "%choice%"=="3" (
     set MENU=PERFORMANCE_MENU
     goto SUB_MENU
 )
-if "%choice%"=="4" goto CLEAN_UP
-if "%choice%"=="5" goto POWER_PLAN_MENU
-if "%choice%"=="6" goto HW_INFO_MENU
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="4" goto CLEAN_UP
+if "!choice!"=="5" goto POWER_PLAN_MENU
+if "!choice!"=="6" goto HW_INFO_MENU
+if "!choice!"=="0" goto MAIN_MENU
 
 call :INVALID "(0-6)" & goto PERFORMANCE_MENU
 
@@ -97,26 +97,26 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
+if "!choice!"=="1" (
     set FILE=Files\Performance\ServicesTweaks.txt
     set MSG=Tweaking Windows services
     set LOG=ServicesTweaks
     goto SET_SERVICES
 )
-if "%choice%"=="2" (
+if "!choice!"=="2" (
     set FILE=Files\Performance\SafeServicesTweaks.txt
     set MSG=Tweaking Windows services in safe mode
     set LOG=SafeServicesTweaks
     goto SET_SERVICES
 )
-if "%choice%"=="3" (
+if "!choice!"=="3" (
     set FILE=Files\Performance\DefaultServices.txt
     set MSG=Restore Windows services to default startup
     set LOG=DefaultServices
     goto SET_SERVICES
 )
-if "%choice%"=="4" goto EXPORT_SERVICES
-if "%choice%"=="0" goto PERFORMANCE_MENU
+if "!choice!"=="4" goto EXPORT_SERVICES
+if "!choice!"=="0" goto PERFORMANCE_MENU
 
 call :INVALID "(0-4)" & goto SERVICES_MENU
 
@@ -209,7 +209,7 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
+if "!choice!"=="1" (
     set ROUTINE=ADD_ULTIMATE_PLAN
     set REV_ROUTINE=REMOVE_ULTIMATE_PLAN
     set APPLY=Add Ultimate Performance plan
@@ -217,11 +217,11 @@ if "%choice%"=="1" (
     set MENU=POWER_PLAN_MENU
     goto SUB_MENU
 )
-if "%choice%"=="2" call :SET_POWER_PLAN "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" "high performance"  & goto POWER_PLAN_MENU
-if "%choice%"=="3" call :SET_POWER_PLAN "381b4222-f694-41f0-9685-ff5bb260df2e" "balanced"          & goto POWER_PLAN_MENU
-if "%choice%"=="4" call :SET_POWER_PLAN "a1841308-3541-4fab-bc81-f71556f20b4a" "power saver"       & goto POWER_PLAN_MENU
-if "%choice%"=="5" goto ACTIVE_PLAN
-if "%choice%"=="0" goto PERFORMANCE_MENU
+if "!choice!"=="2" call :SET_POWER_PLAN "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" "high performance"  & goto POWER_PLAN_MENU
+if "!choice!"=="3" call :SET_POWER_PLAN "381b4222-f694-41f0-9685-ff5bb260df2e" "balanced"          & goto POWER_PLAN_MENU
+if "!choice!"=="4" call :SET_POWER_PLAN "a1841308-3541-4fab-bc81-f71556f20b4a" "power saver"       & goto POWER_PLAN_MENU
+if "!choice!"=="5" goto ACTIVE_PLAN
+if "!choice!"=="0" goto PERFORMANCE_MENU
 
 call :INVALID "(0-5)" & goto POWER_PLAN_MENU
 
@@ -252,13 +252,13 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (call :INFO_SCRIPT "Performance" "CPUInfo"          & goto HW_INFO_MENU)
-if "%choice%"=="2" (call :INFO_SCRIPT "Performance" "GPUInfo"          & goto HW_INFO_MENU)
-if "%choice%"=="3" (call :INFO_SCRIPT "Performance" "HardDiskInfo"     & goto HW_INFO_MENU)
-if "%choice%"=="4" (call :INFO_SCRIPT "Performance" "MemoryInfo"       & goto HW_INFO_MENU)
-if "%choice%"=="5" (call :INFO_SCRIPT "Performance" "MotherboardInfo"  & goto HW_INFO_MENU)
-if "%choice%"=="6" goto BATTERY_INFO
-if "%choice%"=="0" goto PERFORMANCE_MENU
+if "!choice!"=="1" (call :INFO_SCRIPT "Performance" "CPUInfo"          & goto HW_INFO_MENU)
+if "!choice!"=="2" (call :INFO_SCRIPT "Performance" "GPUInfo"          & goto HW_INFO_MENU)
+if "!choice!"=="3" (call :INFO_SCRIPT "Performance" "HardDiskInfo"     & goto HW_INFO_MENU)
+if "!choice!"=="4" (call :INFO_SCRIPT "Performance" "MemoryInfo"       & goto HW_INFO_MENU)
+if "!choice!"=="5" (call :INFO_SCRIPT "Performance" "MotherboardInfo"  & goto HW_INFO_MENU)
+if "!choice!"=="6" goto BATTERY_INFO
+if "!choice!"=="0" goto PERFORMANCE_MENU
 
 call :INVALID "(0-6)" & goto HW_INFO_MENU
 
@@ -290,7 +290,7 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
+if "!choice!"=="1" (
     set ROUTINE=DISABLE_TELEMETRY
     set REV_ROUTINE=DEFAULT_TELEMETRY
     set APPLY=Disable Windows telemetry
@@ -298,9 +298,9 @@ if "%choice%"=="1" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="2" goto PRIVACY_CLEANUP
-if "%choice%"=="3" goto WINDOWS_UPDATES_MENU
-if "%choice%"=="4" (
+if "!choice!"=="2" goto PRIVACY_CLEANUP
+if "!choice!"=="3" goto WINDOWS_UPDATES_MENU
+if "!choice!"=="4" (
     set ROUTINE=ENHANCE_SECURITY
     set REV_ROUTINE=DEFAULT_SECURITY
     set APPLY=Enhance system security
@@ -308,7 +308,7 @@ if "%choice%"=="4" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="5" (
+if "!choice!"=="5" (
     set ROUTINE=REMOVE_POLICIES
     set REV_ROUTINE=RESTORE_POLICIES
     set APPLY=Remove all policies setting
@@ -316,8 +316,8 @@ if "%choice%"=="5" (
     set MENU=PRIVACY_SECURITY_MENU
     goto SUB_MENU
 )
-if "%choice%"=="6" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="6" (call :INFO_SCRIPT "Security" "SecurityInfo"  & goto PRIVACY_SECURITY_MENU)
+if "!choice!"=="0" goto MAIN_MENU
 
 call :INVALID "(0-6)" & goto PRIVACY_SECURITY_MENU
 
@@ -339,9 +339,9 @@ copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
 
 echo Blocking windows telemetry and trash domains
 for /f "usebackq delims=" %%L in ("Files\Security\TrackingDomains.txt") do (
-    findstr /C:"%%L" "%HOSTS_PATH%" >nul
+    findstr /X /L /C:"%%L" "%HOSTS_PATH%" >nul
     if !errorlevel! neq 0 (
-        echo %%L>>"%HOSTS_PATH%"
+        >>"%HOSTS_PATH%" echo %%L
     )
 )
 
@@ -362,7 +362,7 @@ echo Setting telemetry services to manual startup
 for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
 echo Removing telemetry and trash domain entries from the Hosts file
-findstr /V /L /G:"Files\Security\TrackingDomains.txt" "%HOSTS_PATH%" > "%TEMP_FILE%"
+findstr /V /X /L /G:"Files\Security\TrackingDomains.txt" "%HOSTS_PATH%" > "%TEMP_FILE%"
 copy /y "%TEMP_FILE%" "%HOSTS_PATH%" >> "%LOG_FILE%" 2>&1
 del "%TEMP_FILE%" >nul 2>&1
 
@@ -396,10 +396,10 @@ reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 echo Stopping services
 for %%S in ("BITS" "wuauserv" "DiagTrack") do call :NET_CONTROL "%%S" "stop"
 
+:: Transfer ownership to the group of administrators and grant full privileges
 echo Cleaning system log files
 for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
     if exist "%%~F" (
-        :: Transfer ownership to the group of administrators and grant full privileges
         takeown /f "%%~F" /r /d y >nul 2>&1
         icacls "%%~F" /grant administrators:F /t /c /q >nul 2>&1
         del /f /q /s /a "%%~F\*" >nul 2>&1
@@ -445,10 +445,10 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto DISABLE_UPDATES
-if "%choice%"=="2" goto ENABLE_UPDATES
-if "%choice%"=="3" goto RESET_UPDATES
-if "%choice%"=="0" goto PRIVACY_SECURITY_MENU
+if "!choice!"=="1" goto DISABLE_UPDATES
+if "!choice!"=="2" goto ENABLE_UPDATES
+if "!choice!"=="3" goto RESET_UPDATES
+if "!choice!"=="0" goto PRIVACY_SECURITY_MENU
 
 call :INVALID "(0-3)" & goto WINDOWS_UPDATES_MENU
 
@@ -514,13 +514,9 @@ call :SC_CONFIGURE "CryptSvc" "auto" >> "%LOG_FILE%" 2>&1
 for %%S in ("UsoSvc" "DoSvc") do call :SC_CONFIGURE "%%S" "delayed-auto" >> "%LOG_FILE%" 2>&1
 for %%S in ("BITS" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
 
-echo Reset TCP/IP Stack
+echo Resetting TCP/IP Stack, Winsock, and Proxies
 netsh int ip reset >> "%LOG_FILE%" 2>&1
-
-echo Reset Winsock catalog
 netsh winsock reset >> "%LOG_FILE%" 2>&1
-
-echo Reset WinHTTP proxy
 netsh winhttp reset proxy >> "%LOG_FILE%" 2>&1
 
 echo Flushing DNS
@@ -765,11 +761,11 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto NETWORK_RESET
-if "%choice%"=="2" goto WIFI_PASSWORDS
-if "%choice%"=="3" goto DNS_MENU
-if "%choice%"=="4" (call :INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="1" goto NETWORK_RESET
+if "!choice!"=="2" goto WIFI_PASSWORDS
+if "!choice!"=="3" goto DNS_MENU
+if "!choice!"=="4" (call :INFO_SCRIPT "Network" "NetworkInfo"  & goto NETWORK_MENU)
+if "!choice!"=="0" goto MAIN_MENU
 
 call :INVALID "(0-4)" & goto NETWORK_MENU
 
@@ -834,7 +830,7 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
+if "!choice!"=="1" (
     set "DNS_NAME=Google Public DNS"
     set "DNS_IPv4_1=8.8.8.8"
     set "DNS_IPv4_2=8.8.4.4"
@@ -843,7 +839,7 @@ if "%choice%"=="1" (
     goto SET_DNS
 )
 
-if "%choice%"=="2" (
+if "!choice!"=="2" (
     set "DNS_NAME=Cloudflare DNS"
     set "DNS_IPv4_1=1.1.1.1"
     set "DNS_IPv4_2=1.0.0.1"
@@ -852,7 +848,7 @@ if "%choice%"=="2" (
     goto SET_DNS
 )
 
-if "%choice%"=="3" (
+if "!choice!"=="3" (
     set "DNS_NAME=Cloudflare Family DNS"
     set "DNS_IPv4_1=1.1.1.3"
     set "DNS_IPv4_2=1.0.0.3"
@@ -861,7 +857,7 @@ if "%choice%"=="3" (
     goto SET_DNS
 )
 
-if "%choice%"=="4" (
+if "!choice!"=="4" (
     set "DNS_NAME=AdGuard DNS"
     set "DNS_IPv4_1=94.140.14.14"
     set "DNS_IPv4_2=94.140.15.15"
@@ -870,7 +866,7 @@ if "%choice%"=="4" (
     goto SET_DNS
 )
 
-if "%choice%"=="5" (
+if "!choice!"=="5" (
     set "DNS_NAME=Clean Browsing DNS"
     set "DNS_IPv4_1=185.228.168.168"
     set "DNS_IPv4_2=185.228.169.168"
@@ -879,7 +875,7 @@ if "%choice%"=="5" (
     goto SET_DNS
 )
 
-if "%choice%"=="6" (
+if "!choice!"=="6" (
     set "DNS_NAME=Quad9 DNS"
     set "DNS_IPv4_1=9.9.9.9"
     set "DNS_IPv4_2=149.112.112.112"
@@ -888,7 +884,7 @@ if "%choice%"=="6" (
     goto SET_DNS
 )
 
-if "%choice%"=="7" (
+if "!choice!"=="7" (
     set "DNS_NAME=OpenDNS"
     set "DNS_IPv4_1=208.67.222.222"
     set "DNS_IPv4_2=208.67.220.220"
@@ -896,10 +892,10 @@ if "%choice%"=="7" (
     set "DNS_IPv6_2=2620:119:53::53"
     goto SET_DNS
 )
-if "%choice%"=="8" goto SET_DHCP
-if "%choice%"=="9" goto DNS_SERVER_TEST
-if "%choice%"=="10" goto DNS_STATUS
-if "%choice%"=="0" goto NETWORK_MENU
+if "!choice!"=="8" goto SET_DHCP
+if "!choice!"=="9" goto DNS_SERVER_TEST
+if "!choice!"=="10" goto DNS_STATUS
+if "!choice!"=="0" goto NETWORK_MENU
 
 call :INVALID "(0-10)" & goto DNS_MENU
 
@@ -945,10 +941,10 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto CHOCO_INITIAL
-if "%choice%"=="2" goto REMOVE_MS
-if "%choice%"=="3" (call :INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PACKAGES_MENU)
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="1" goto CHOCO_INITIAL
+if "!choice!"=="2" goto REMOVE_MS
+if "!choice!"=="3" (call :INFO_SCRIPT "Packages" "ProgramsInfo"  & goto PACKAGES_MENU)
+if "!choice!"=="0" goto MAIN_MENU
 
 call :INVALID "(0-3)" & goto PACKAGES_MENU
 
@@ -990,12 +986,12 @@ echo Tip: You can select multiple items, e.g. 1,3,5 or 1-5 or 1-3,7,10-12
 set "choice=" & set /p "choice=--> Select option(s) and press [S] to Start: "
 
 if not defined choice goto CHOCO_MENU
-if "%choice%"=="0" goto PACKAGES_MENU
-if /i "%choice%"=="S" goto RUN_PACKAGES
-if /i "%choice%"=="A" (call :TOGGLE_ALL ON & goto CHOCO_MENU)
-if /i "%choice%"=="D" (call :TOGGLE_ALL OFF & goto CHOCO_MENU)
-if /i "%choice%"=="U" goto UPDATE_MENU
-if /i "%choice%"=="R" goto REMOVE_MENU
+if "!choice!"=="0" goto PACKAGES_MENU
+if /i "!choice!"=="S" goto RUN_PACKAGES
+if /i "!choice!"=="A" (call :TOGGLE_ALL ON & goto CHOCO_MENU)
+if /i "!choice!"=="D" (call :TOGGLE_ALL OFF & goto CHOCO_MENU)
+if /i "!choice!"=="U" goto UPDATE_MENU
+if /i "!choice!"=="R" goto REMOVE_MENU
 
 call :MULTI_INPUT
 goto CHOCO_MENU
@@ -1056,8 +1052,8 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto FILE_EXPLORER_MENU
-if "%choice%"=="2" (
+if "!choice!"=="1" goto FILE_EXPLORER_MENU
+if "!choice!"=="2" (
     set ROUTINE=DARK_MODE
     set REV_ROUTINE=LIGHT_MODE
     set APPLY=Activate dark mode
@@ -1065,7 +1061,7 @@ if "%choice%"=="2" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="3" (
+if "!choice!"=="3" (
     set ROUTINE=DIS_NOTIFICATION
     set REV_ROUTINE=ENA_NOTIFICATION
     set APPLY=Disable notification center
@@ -1073,7 +1069,7 @@ if "%choice%"=="3" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="4" (
+if "!choice!"=="4" (
     set ROUTINE=HIDE_SHORTCUT_ARROW
     set REV_ROUTINE=SHOW_SHORTCUT_ARROW
     set APPLY=Remove shortcut arrow
@@ -1081,7 +1077,7 @@ if "%choice%"=="4" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="5" (
+if "!choice!"=="5" (
     set ROUTINE=NUM_LOCK_OFF
     set REV_ROUTINE=NUM_LOCK_ON
     set APPLY=Disable num lock when logging in
@@ -1089,7 +1085,7 @@ if "%choice%"=="5" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="6" (
+if "!choice!"=="6" (
     set ROUTINE=UTC
     set REV_ROUTINE=LOCAL_TIME
     set APPLY=Setting hardware clock to UTC
@@ -1097,7 +1093,7 @@ if "%choice%"=="6" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="7" (
+if "!choice!"=="7" (
     set ROUTINE=POWER_SETTINGS
     set REV_ROUTINE=REMOVE_POWER_SETTINGS
     set APPLY=Creating 'Powerful settings' folder on your Desktop
@@ -1105,7 +1101,7 @@ if "%choice%"=="7" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="8" (
+if "!choice!"=="8" (
     set ROUTINE=TRASH
     set REV_ROUTINE=DEF_TRASH
     set APPLY=Disable unnecessary Windows features
@@ -1113,7 +1109,7 @@ if "%choice%"=="8" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="9" (
+if "!choice!"=="9" (
     set ROUTINE=PHOTO_VIEWER
     set REV_ROUTINE=REMOVE_PHOTO_VIEWER
     set APPLY=Restore classic Windows photo viewer
@@ -1121,8 +1117,8 @@ if "%choice%"=="9" (
     set MENU=CUSTOMIZATION_MENU
     goto SUB_MENU
 )
-if "%choice%"=="10" goto CONTEXT_MENU
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="10" goto CONTEXT_MENU
+if "!choice!"=="0" goto MAIN_MENU
 
 call :INVALID "(0-10)" & goto CUSTOMIZATION_MENU
 
@@ -1139,7 +1135,7 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
+if "!choice!"=="1" (
     set ROUTINE=SHOW_EXTENSIONS
     set REV_ROUTINE=HIDE_EXTENSIONS
     set APPLY=Show files extensions
@@ -1147,7 +1143,7 @@ if "%choice%"=="1" (
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
-if "%choice%"=="2" (
+if "!choice!"=="2" (
     set ROUTINE=SHOW_HIDDEN
     set REV_ROUTINE=DIS_HIDDEN
     set APPLY=Show hidden files
@@ -1155,7 +1151,7 @@ if "%choice%"=="2" (
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
-if "%choice%"=="3" (
+if "!choice!"=="3" (
     set ROUTINE=HIDE_RECENT
     set REV_ROUTINE=SHOW_RECENT
     set APPLY=Hide recent files
@@ -1163,7 +1159,7 @@ if "%choice%"=="3" (
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
-if "%choice%"=="4" (
+if "!choice!"=="4" (
     set ROUTINE=ON_THIS_PC
     set REV_ROUTINE=ON_QUICK_ACCESS
     set APPLY=Open file explorer on: This PC
@@ -1171,7 +1167,7 @@ if "%choice%"=="4" (
     set MENU=FILE_EXPLORER_MENU
     goto SUB_MENU
 )
-if "%choice%"=="0" goto CUSTOMIZATION_MENU
+if "!choice!"=="0" goto CUSTOMIZATION_MENU
 
 call :INVALID "(0-4)" & goto FILE_EXPLORER_MENU
 
@@ -1306,7 +1302,7 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" (
+if "!choice!"=="1" (
     set ROUTINE=CMD_CONTEXT
     set REV_ROUTINE=REV_CMD_CONTEXT
     set APPLY=Add "Open CMD Here" options to context menu
@@ -1314,7 +1310,7 @@ if "%choice%"=="1" (
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
-if "%choice%"=="2" (
+if "!choice!"=="2" (
     set ROUTINE=CMD_CONTEXT_ADMIN
     set REV_ROUTINE=REV_CMD_CONTEXT_ADMIN
     set APPLY=Add "Open CMD Here (Admin)" options to context menu
@@ -1322,7 +1318,7 @@ if "%choice%"=="2" (
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
-if "%choice%"=="3" (
+if "!choice!"=="3" (
     set ROUTINE=RESTART_EXPLORER
     set REV_ROUTINE=REV_RESTART_EXPLORER
     set APPLY=Add "Restart Explorer" option to context menu
@@ -1330,7 +1326,7 @@ if "%choice%"=="3" (
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
-if "%choice%"=="4" (
+if "!choice!"=="4" (
     set ROUTINE=KILL_FROZEN
     set REV_ROUTINE=REV_KILL_FROZEN
     set APPLY=Add "Kill frozen process" option to context menu
@@ -1338,7 +1334,7 @@ if "%choice%"=="4" (
     set MENU=CONTEXT_MENU
     goto SUB_MENU
 )
-if "%choice%"=="0" goto CUSTOMIZATION_MENU
+if "!choice!"=="0" goto CUSTOMIZATION_MENU
 
 call :INVALID "(0-4)" & goto CONTEXT_MENU
 
@@ -1360,11 +1356,13 @@ call :GO & goto CONTEXT_MENU
 reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%1' -Verb RunAs\"" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
 reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%V' -Verb RunAs\"" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin\command" /ve /d "powershell -NoProfile -Command \"Start-Process cmd -ArgumentList '/s /k pushd \\\"%%V\\\"' -Verb RunAs\"" /f >nul 2>&1
 call :GO & goto CONTEXT_MENU
 
 :REV_CMD_CONTEXT_ADMIN
@@ -1405,11 +1403,11 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto RESTORE_POINT
-if "%choice%"=="2" goto REG_BACK
-if "%choice%"=="3" goto ACTIVATION_MENU
-if "%choice%"=="4" (call :INFO_SCRIPT "System" "SystemInfo"  & goto SYSTEM_MENU)
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="1" goto RESTORE_POINT
+if "!choice!"=="2" goto REG_BACK
+if "!choice!"=="3" goto ACTIVATION_MENU
+if "!choice!"=="4" (call :INFO_SCRIPT "System" "SystemInfo"  & goto SYSTEM_MENU)
+if "!choice!"=="0" goto MAIN_MENU
 
 call :INVALID "(0-4)" & goto SYSTEM_MENU
 
@@ -1512,9 +1510,9 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto RUN_ACTIVATION
-if "%choice%"=="2" goto CHECK_ACTIVATION
-if "%choice%"=="0" goto SYSTEM_MENU
+if "!choice!"=="1" goto RUN_ACTIVATION
+if "!choice!"=="2" goto CHECK_ACTIVATION
+if "!choice!"=="0" goto SYSTEM_MENU
 
 call :INVALID "(0-2)" & goto ACTIVATION_MENU
 
@@ -1543,15 +1541,15 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto SFC_SCAN
-if "%choice%"=="2" goto DISM_MENU
-if "%choice%"=="3" goto DEFRAG
-if "%choice%"=="4" goto CHKDSK_MENU
-if "%choice%"=="5" goto MEMORY_DIAG
-if "%choice%"=="6" goto CLEAN_MGR
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="1" goto SFC_SCAN
+if "!choice!"=="2" goto DISM_MENU
+if "!choice!"=="3" goto DEFRAG
+if "!choice!"=="4" goto CHKDSK_MENU
+if "!choice!"=="5" goto MEMORY_DIAG
+if "!choice!"=="6" goto CLEAN_MGR
+if "!choice!"=="0" goto MAIN_MENU
 
-call :INVALID "(0-7)" & goto TOOLS_MENU
+call :INVALID "(0-6)" & goto TOOLS_MENU
 
 :SFC_SCAN
 cls & echo Running sfc scan
@@ -1571,11 +1569,11 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: " 
-if "%choice%"=="1" goto DISM_CHECK_HEALTH
-if "%choice%"=="2" goto DISM_SCAN_HEALTH
-if "%choice%"=="3" goto DISM_RESTORE_HEALTH
-if "%choice%"=="4" goto DISM_COMPONENT_CLEANUP
-if "%choice%"=="0" goto TOOLS_MENU
+if "!choice!"=="1" goto DISM_CHECK_HEALTH
+if "!choice!"=="2" goto DISM_SCAN_HEALTH
+if "!choice!"=="3" goto DISM_RESTORE_HEALTH
+if "!choice!"=="4" goto DISM_COMPONENT_CLEANUP
+if "!choice!"=="0" goto TOOLS_MENU
 
 call :INVALID "(0-4)" & goto DISM_MENU
 
@@ -1626,11 +1624,11 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p "choice=Select an option: "
-if "%choice%"=="1" goto DRIVE_LETTER
-if "%choice%"=="2" goto HIDDEN_VOLUMES
-if "%choice%"=="3" goto FULL_SCAN
-if "%choice%"=="4" goto SMART_RUN
-if "%choice%"=="0" goto TOOLS_MENU
+if "!choice!"=="1" goto DRIVE_LETTER
+if "!choice!"=="2" goto HIDDEN_VOLUMES
+if "!choice!"=="3" goto FULL_SCAN
+if "!choice!"=="4" goto SMART_RUN
+if "!choice!"=="0" goto TOOLS_MENU
 
 call :INVALID "(0-4)" & goto CHKDSK_MENU
 
@@ -1679,11 +1677,11 @@ echo  [4] Deep scan  /r   (repair + surface scan for bad sectors, slow)
 echo  [0] Back
 
 echo. & set "choice=" & set "MODE_ARGS=" & set /p choice="Select an option: "
-if "%choice%"=="0" goto CHKDSK_MENU
-if "%choice%"=="1" goto MODE_RUN
-if "%choice%"=="2" set "MODE_ARGS=/scan" & goto MODE_RUN
-if "%choice%"=="3" set "MODE_ARGS=/f" & goto MODE_RUN
-if "%choice%"=="4" set "MODE_ARGS=/r" & goto MODE_RUN
+if "!choice!"=="0" goto CHKDSK_MENU
+if "!choice!"=="1" goto MODE_RUN
+if "!choice!"=="2" set "MODE_ARGS=/scan" & goto MODE_RUN
+if "!choice!"=="3" set "MODE_ARGS=/f" & goto MODE_RUN
+if "!choice!"=="4" set "MODE_ARGS=/r" & goto MODE_RUN
 
 call :INVALID "(0-4)" & goto CHOOSE_MODE
 
@@ -1728,11 +1726,11 @@ echo.
 echo                        ---------------------------------------------------------------------------
 
 echo. & set "choice=" & set /p choice="Select an option: "
-if "%choice%"=="1" goto CTT
-if "%choice%"=="2" goto DELETE_SCRIPT_DATA
-if "%choice%"=="0" goto MAIN_MENU
+if "!choice!"=="1" goto CTT
+if "!choice!"=="2" goto DELETE_SCRIPT_DATA
+if "!choice!"=="0" goto MAIN_MENU
 
-call :INVALID "(0-3)" & goto OTHER_MENU
+call :INVALID "(0-2)" & goto OTHER_MENU
 
 :CTT
 cls & echo Running Chris Titus tool
@@ -1921,7 +1919,7 @@ call :PRINT_ACTION_PROMPT "%~1"
 
 set "choice=" & set /p "choice=--> "
 if not defined choice (del "%tmp_list%" >nul 2>&1 & exit /b 1)
-if "%choice%"=="0" (del "%tmp_list%" >nul 2>&1 & exit /b 2)
+if "!choice!"=="0" (del "%tmp_list%" >nul 2>&1 & exit /b 2)
 
 call :PKG_BULK_ACTION "%~4" "%tmp_list%"
 set "ret=!errorlevel!"
@@ -1998,7 +1996,7 @@ exit /b
 set "invalid="
 set "tokens=!choice:,= !"
 
-for %%G in (%tokens%) do (
+for %%G in (!tokens!) do (
     set "tok=%%G"
     set "matched=0"
     set "noHyphen=!tok:-=!"
@@ -2212,9 +2210,9 @@ echo.
 echo      [0] Back
 echo. & set "choice=" & set /p choice="Select an option: "
 
-if "%choice%"=="1" goto %ROUTINE%
-if "%choice%"=="2" goto %REV_ROUTINE%
-if "%choice%"=="0" goto %MENU%
+if "!choice!"=="1" goto %ROUTINE%
+if "!choice!"=="2" goto %REV_ROUTINE%
+if "!choice!"=="0" goto %MENU%
 call :INVALID "(0-2)" & goto SUB_MENU
 
 :CHOICE
