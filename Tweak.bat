@@ -163,7 +163,10 @@ call :LOG & goto PERFORMANCE_MENU
 :BOOT_TWEAKS
 call :PATH_DIR "Performance" "BootTweaks"
 
-echo. & echo Importing Boot up tweaks registry settings
+echo. & echo Enabling hibernation
+powercfg /hibernate on >> "%LOG_FILE%" 2>&1
+
+echo Importing Boot up tweaks registry settings
 reg import "Files\Performance\BootTweaks.reg" >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto PERFORMANCE_MENU

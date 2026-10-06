@@ -9,3 +9,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Control Panel\Desktop]
 "AutoEndTasks"="1"
 "WaitToKillAppTimeout"="1500"
+
+; Enabling fast startup
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power]
+"HiberbootEnabled"=dword:00000001
