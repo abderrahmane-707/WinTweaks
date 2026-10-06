@@ -69,7 +69,7 @@ LicenseManager,demand
 lltdsvc,demand
 lmhosts,demand
 LxpSvc,demand
-MapsBroker,delayed-auto
+MapsBroker,demand
 McpManagementService,demand
 MixedRealityOpenXRSvc,demand
 MSDTC,demand
