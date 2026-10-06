@@ -1356,16 +1356,18 @@ reg delete "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHere" /f >nu
 call :GO & goto CONTEXT_MENU
 
 :CMD_CONTEXT_ADMIN
-reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\shell\OpenCmdHereAdmin\command" /ve /d "powershell -Command \"Start-Process cmd -ArgumentList '/s','/k','pushd %%1' -Verb RunAs\"" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin" /v "Icon" /d "cmd.exe" /f >nul 2>&1
-reg add "HKCU\Software\Classes\Directory\Background\shell\OpenCmdHereAdmin\command" /ve /d "powershell -NoProfile -Command \"Start-Process cmd -ArgumentList '/s /k pushd \\\"%%V\\\"' -Verb RunAs\"" /f >nul 2>&1
+:: Folder right-click
+reg add "HKCU\Software\Classes\Directory\shell\runas" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\runas" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\runas" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\shell\runas\command" /ve /d "cmd.exe /s /k pushd \"%%V\"" /f >nul 2>&1
+
+:: Empty space inside a folder
+reg add "HKCU\Software\Classes\Directory\Background\shell\runas" /ve /d "Open CMD Here (Admin)" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\runas" /v "Icon" /d "cmd.exe,0" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\runas" /v "HasLUAShield" /t REG_SZ /d "" /f >nul 2>&1
+reg add "HKCU\Software\Classes\Directory\Background\shell\runas\command" /ve /d "cmd.exe /s /k pushd \"%%V\"" /f >nul 2>&1
+
 call :GO & goto CONTEXT_MENU
 
 :REV_CMD_CONTEXT_ADMIN
@@ -1595,8 +1597,8 @@ cls & echo Use Windows Update servers to download clean repair files?
 call :CHOICE "(Select 'N' to specify a local install.wim path)"
 if errorlevel 2 (
     set "SRC="
-    set /p "SRC=Enter path to install.wim/install.esd source: "
-    dism /Online /Cleanup-Image /RestoreHealth /Source:"%SRC%" /LimitAccess
+    set /p "SRC=Enter path to install.wim/esd: "
+    dism /Online /Cleanup-Image /RestoreHealth /Source:wim:"!SRC!":1 /LimitAccesss
 ) else (
     dism /Online /Cleanup-Image /RestoreHealth
 )
