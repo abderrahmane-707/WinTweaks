@@ -1565,9 +1565,11 @@ call :CHOICE "(Select 'N' to specify a local install.wim/esd path)"
 if errorlevel 2 (
     set "SRC="
     set "IDX="
+	echo.
     set /p "SRC=Enter path to install.wim/install.esd: "
 
     if not exist "!SRC!" (
+	echo.
         echo [ERROR] File not found: !SRC!
         call :GO & goto DISM_MENU
     )
