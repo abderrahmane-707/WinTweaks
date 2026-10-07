@@ -196,11 +196,7 @@ if "!BROWSERS_OPEN!"=="1" (
     if errorlevel 2 (
         echo Skipping browser cleanup
     ) else (
-        echo Closing browsers
-        for %%B in (%BROWSERS%) do (
-            taskkill /IM "%%B" /F /T >nul 2>&1
-        )
-        timeout /t 2 >nul
+        call :CLOSE_BROWSERS
     )
 )
 
@@ -239,16 +235,16 @@ if "!choice!"=="0" goto PERFORMANCE_MENU
 call :INVALID "(0-5)" & goto POWER_PLAN_MENU
 
 :ULTIMATE_PLAN_ADD
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\AddUltimatePerformance.ps1"
+call :RUN_PS1 "Performance\AddUltimatePerformance.ps1"
 call :GO & goto POWER_PLAN_MENU
 
 :ULTIMATE_PLAN_REMOVE
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\RemoveUltimatePerformance.ps1"
+call :RUN_PS1 "Performance\RemoveUltimatePerformance.ps1"
 call :GO & goto POWER_PLAN_MENU
 
 :ACTIVE_PLAN
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Performance\ActivePlan.ps1"
+call :RUN_PS1 "Performance\ActivePlan.ps1"
 call :GO & goto POWER_PLAN_MENU
 
 :HW_INFO_MENU
@@ -351,7 +347,7 @@ echo Disabling Windows telemetry via registry
 reg import "Files\Security\DisableTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows telemetry services
-for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
+call :SC_EACH disabled "DiagTrack" "dmwappushsvc" "WerSvc" >> "%LOG_FILE%" 2>&1
 
 echo Backing up original Hosts file
 copy /y "%HOSTS_PATH%" "%TARGET_FILE%" >> "%LOG_FILE%" 2>&1
@@ -379,7 +375,7 @@ echo Restoring default telemetry registry settings
 reg import "Files\Security\DefaultTelemetry.reg" >> "%LOG_FILE%" 2>&1
 
 echo Setting telemetry services to manual startup
-for %%S in ("DiagTrack" "dmwappushsvc" "WerSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+call :SC_EACH demand "DiagTrack" "dmwappushsvc" "WerSvc" >> "%LOG_FILE%" 2>&1
 
 echo Removing telemetry and trash domain entries from the Hosts file
 findstr /V /X /L /G:"Files\Security\TrackingDomains.txt" "%HOSTS_PATH%" > "%TEMP_FILE%"
@@ -397,16 +393,10 @@ if errorlevel 2 goto PRIVACY_SECURITY_MENU
 echo.
 call :RUNNING_BROWSERS
 if "!BROWSERS_OPEN!"=="1" (
-    echo Closing open browsers
-    for %%B in (%BROWSERS%) do (
-        taskkill /IM "%%B" /F /T >nul 2>&1
-    )
-    timeout /t 2 >nul
+    call :CLOSE_BROWSERS
 )
 
-call :DELETE_FOLDERS "Cleaning Google Chrome data" "%LOCALAPPDATA%\Google\Chrome\User Data"
-call :DELETE_FOLDERS "Cleaning Brave data" "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data"
-call :DELETE_FOLDERS "Cleaning Microsoft Edge data" "%LOCALAPPDATA%\Microsoft\Edge\User Data"
+call :FOR_EACH_CHROMIUM :DELETE_CHROMIUM_DATA
 call :DELETE_FOLDERS "Cleaning Firefox roaming user data" "%APPDATA%\Mozilla\Firefox"
 call :DELETE_FOLDERS "Cleaning Firefox local user data" "%LOCALAPPDATA%\Mozilla\Firefox"
 
@@ -414,7 +404,7 @@ echo Cleaning registry entries
 reg import "Files\Security\PrivacyCleanup.reg" >nul 2>&1
 
 echo Stopping services
-for %%S in ("BITS" "wuauserv" "DiagTrack") do call :NET_CONTROL "%%S" "stop"
+call :NET_EACH stop "BITS" "wuauserv" "DiagTrack"
 
 :: Transfer ownership to the Administrators group and grant full privileges
 echo Cleaning system log files
@@ -431,7 +421,7 @@ for %%F in ("%SYSTEMROOT%\Logs" "%SYSTEMROOT%\System32\LogFiles") do (
 )
 
 echo Starting services
-for %%S in ("BITS" "wuauserv" "DiagTrack") do call :NET_CONTROL "%%S" "start"
+call :NET_EACH start "BITS" "wuauserv" "DiagTrack"
 
 echo Cleaning all Windows Event Logs
 for /f "tokens=*" %%L in ('wevtutil el 2^>nul') do (
@@ -480,10 +470,10 @@ echo Disabling Windows Updates via registry
 reg import "Files\Security\DisableUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling Windows Update services
-for %%S in ("BITS" "UsoSvc" "wuauserv") do call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
+call :SC_EACH disabled "BITS" "UsoSvc" "wuauserv" >> "%LOG_FILE%" 2>&1
 
 echo Stopping Windows Update services
-for %%S in ("BITS" "UsoSvc" "wuauserv") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+call :NET_EACH stop "BITS" "UsoSvc" "wuauserv" >> "%LOG_FILE%" 2>&1
 
 call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
 call :DELETE_FILES "Deleting Windows Update log file" "%SYSTEMROOT%\WindowsUpdate.log" "%LOG_FILE%"
@@ -498,7 +488,7 @@ reg import "Files\Security\DefaultUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Restoring Windows Update services to default startup
 call :SC_CONFIGURE "UsoSvc" "delayed-auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("BITS" "wuauserv") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+call :SC_EACH demand "BITS" "wuauserv" >> "%LOG_FILE%" 2>&1
 
 call :LOG & goto WINDOWS_UPDATES_MENU
 
@@ -513,7 +503,7 @@ echo Resetting Windows Update registry keys to default
 reg import "Files\Security\ResetUpdates.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stopping Windows Update services
-for %%S in ("BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+call :NET_EACH stop "BITS" "CryptSvc" "DoSvc" "UsoSvc" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc" >> "%LOG_FILE%" 2>&1
 
 call :DELETE_FOLDERS "Deleting SoftwareDistribution folder" "%SYSTEMROOT%\SoftwareDistribution" "%LOG_FILE%"
 call :DELETE_FOLDERS "Deleting Catroot2 folder" "%SYSTEMROOT%\System32\catroot2" "%LOG_FILE%"
@@ -537,8 +527,8 @@ bitsadmin /reset /allusers >> "%LOG_FILE%" 2>&1
 
 echo Restoring Windows Update services to default startup
 call :SC_CONFIGURE "CryptSvc" "auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("UsoSvc" "DoSvc") do call :SC_CONFIGURE "%%S" "delayed-auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("BITS" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+call :SC_EACH delayed-auto "UsoSvc" "DoSvc" >> "%LOG_FILE%" 2>&1
+call :SC_EACH demand "BITS" "WaaSMedicSvc" "wuauserv" "WinHttpAutoProxySvc" >> "%LOG_FILE%" 2>&1
 
 echo Resetting TCP/IP stack, Winsock, and proxies
 netsh int ip reset >> "%LOG_FILE%" 2>&1
@@ -568,13 +558,11 @@ echo Applying security hardening registry settings
 reg import "Files\Security\EnhanceSecurity.reg" >> "%LOG_FILE%" 2>&1
 
 echo Disabling unsafe Windows features
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Security\DisableUnsafeFeature.ps1" "%LOG_FILE%"
+call :RUN_PS1 "Security\DisableUnsafeFeature.ps1" "%LOG_FILE%"
 
 echo Disabling unsafe Windows services
-for %%S in ("mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP") do (
-    call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
-    call :SC_CONFIGURE "%%S" "disabled" >> "%LOG_FILE%" 2>&1
-)
+call :NET_EACH stop "mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP" >> "%LOG_FILE%" 2>&1
+call :SC_EACH disabled "mrxsmb10" "RemoteRegistry" "SNMP" "SNMPTRAP" >> "%LOG_FILE%" 2>&1
 
 echo Removing temporary default user account
 net user defaultuser0 /delete >> "%LOG_FILE%" 2>&1
@@ -606,40 +594,12 @@ set "GPU_KEY=HKCU\Software\Policies"
 set "INF_FILE=%SYSTEMROOT%\inf\defltbase.inf"
 set "SEC_BACKUP=%TARGET_FOLDER%\SecurityBackup.inf"
 
-set "HKLM_POLICIES=1"
-set "HKCU_POLICIES=1"
 set "DEFLTBASE_INF=1"
-
-set "HKLM_POL_SUCCESS=1"
-set "HKCU_POL_SUCCESS=1"
 set "SEC_POL_SUCCESS=1"
 
 echo.
-reg query "%GP_KEY%" >nul 2>&1
-if !errorlevel! equ 0 (
-    set "HKLM_POLICIES=0"
-    echo Backing up HKLM Policies registry key
-    reg export "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        set "HKLM_POL_SUCCESS=0"
-        echo [ERROR] Failed to back up: %GP_KEY%
-        echo Skipping deletion for this key
-        echo.
-    )
-)
-
-reg query "%GPU_KEY%" >nul 2>&1
-if !errorlevel! equ 0 (
-    set "HKCU_POLICIES=0"
-    echo Backing up HKCU Policies registry key
-    reg export "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        set "HKCU_POL_SUCCESS=0"
-        echo [ERROR] Failed to back up: %GPU_KEY%
-        echo Skipping deletion for this key
-        echo.
-    )
-)
+call :BACKUP_POLICY_KEY "%GP_KEY%" "%TARGET_FOLDER%\HKLM_Policies_Backup.reg" "HKLM"
+call :BACKUP_POLICY_KEY "%GPU_KEY%" "%TARGET_FOLDER%\HKCU_Policies_Backup.reg" "HKCU"
 
 if exist "%INF_FILE%" (
     set "DEFLTBASE_INF=0"
@@ -653,39 +613,11 @@ if exist "%INF_FILE%" (
     )
 )
 
-if exist "%GP_DIR%" (
-    echo Moving and backing up GroupPolicy folder
-    robocopy "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo [ERROR] Failed to move: %GP_DIR%
-        echo Skipping folder movement
-    )
-)
+call :MOVE_FOLDER "%GP_DIR%" "%TARGET_FOLDER%\GroupPolicy" "Moving and backing up GroupPolicy folder" "move"
+call :MOVE_FOLDER "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" "Moving and backing up GroupPolicyUsers folder" "move"
 
-if exist "%GPU_DIR%" (
-    echo Moving and backing up GroupPolicyUsers folder
-    robocopy "%GPU_DIR%" "%TARGET_FOLDER%\GroupPolicyUsers" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo [ERROR] Failed to move: %GPU_DIR%
-        echo Skipping folder movement
-    )
-)
-
-if "!HKLM_POLICIES!"=="0" if "!HKLM_POL_SUCCESS!"=="1" (
-    echo Deleting HKLM Policies registry key
-    reg delete "%GP_KEY%" /f >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Failed to delete: %GP_KEY%
-    )
-)
-
-if "!HKCU_POLICIES!"=="0" if "!HKCU_POL_SUCCESS!"=="1" (
-    echo Deleting HKCU Policies registry key
-    reg delete "%GPU_KEY%" /f >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Failed to delete: %GPU_KEY%
-    )
-)
+call :DELETE_POLICY_KEY "%GP_KEY%" "HKLM"
+call :DELETE_POLICY_KEY "%GPU_KEY%" "HKCU"
 
 if "!DEFLTBASE_INF!"=="0" if "!SEC_POL_SUCCESS!"=="1" (
     echo Applying default security policy baseline
@@ -703,8 +635,7 @@ echo Backup files saved in: %TARGET_FOLDER%
 call :LOG & goto PRIVACY_SECURITY_MENU
 
 :POLICIES_RESTORE
-echo.
-call :CHOICE "WARNING: Restoring previous Group Policy settings will overwrite current changes. Press (N) if you are unsure"
+call :CONFIRM "WARNING: Restoring previous Group Policy settings will overwrite current changes"
 if errorlevel 2 goto PRIVACY_SECURITY_MENU
 
 call :PATH_DIR "Security" "RestoreAllPolicies"
@@ -735,37 +666,11 @@ echo No backup files found to restore
 call :LOG & goto PRIVACY_SECURITY_MENU
 
 :FOUND_POLICIES_BACKUP
-if exist "%BACKUP_GP%" (
-    echo Restoring GroupPolicy folder
-    robocopy "%BACKUP_GP%" "%GP_DIR%" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo [ERROR] Failed to restore: %BACKUP_GP%
-    )
-)
+call :MOVE_FOLDER "%BACKUP_GP%" "%GP_DIR%" "Restoring GroupPolicy folder" "restore"
+call :MOVE_FOLDER "%BACKUP_GPU%" "%GPU_DIR%" "Restoring GroupPolicyUsers folder" "restore"
 
-if exist "%BACKUP_GPU%" (
-    echo Restoring GroupPolicyUsers folder
-    robocopy "%BACKUP_GPU%" "%GPU_DIR%" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
-    if !errorlevel! geq 8 (
-        echo [ERROR] Failed to restore: %BACKUP_GPU%
-    )
-)
-
-if exist "%HKLM_POL_BACKUP%" (
-    echo Restoring HKLM Policies registry keys
-    reg import "%HKLM_POL_BACKUP%" >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Failed to restore: %HKLM_POL_BACKUP%
-    )
-)
-
-if exist "%HKCU_POL_BACKUP%" (
-    echo Restoring HKCU Policies registry keys
-    reg import "%HKCU_POL_BACKUP%" >> "%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Failed to restore: %HKCU_POL_BACKUP%
-    )
-)
+call :IMPORT_REG_BACKUP "%HKLM_POL_BACKUP%" "Restoring HKLM Policies registry keys"
+call :IMPORT_REG_BACKUP "%HKCU_POL_BACKUP%" "Restoring HKCU Policies registry keys"
 
 if exist "%SEC_BACKUP%" (
     echo Restoring security policy baseline
@@ -814,7 +719,7 @@ nbtstat -RR >> "%LOG_FILE%" 2>&1
 arp -d * >> "%LOG_FILE%" 2>&1
 
 echo Stopping network services
-for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+call :NET_EACH stop "dot3svc" "netman" "WlanSvc" "WwanSvc" >> "%LOG_FILE%" 2>&1
 
 echo Resetting TCP/IP stack, Winsock, and proxies
 netsh int ip reset >> "%LOG_FILE%" 2>&1
@@ -830,17 +735,17 @@ netsh interface ipv6 delete neighbors >> "%LOG_FILE%" 2>&1
 netsh interface ipv6 delete destinationcache >> "%LOG_FILE%" 2>&1
 
 echo Restoring network services to default startup
-for %%S in ("Dhcp" "dnscache" "nlasvc" "WlanSvc") do call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
-for %%S in ("dot3svc" "netman" "netprofm" "WwanSvc") do call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
+call :SC_EACH auto "Dhcp" "dnscache" "nlasvc" "WlanSvc" >> "%LOG_FILE%" 2>&1
+call :SC_EACH demand "dot3svc" "netman" "netprofm" "WwanSvc" >> "%LOG_FILE%" 2>&1
 
 echo Starting network services
-for %%S in ("dot3svc" "netman" "WlanSvc" "WwanSvc") do call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
+call :NET_EACH start "dot3svc" "netman" "WlanSvc" "WwanSvc" >> "%LOG_FILE%" 2>&1
 
 :: Wait for services to stabilize before restarting the adapters
 timeout /t 3 /nobreak >nul
 
 echo Restarting active network adapters
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\RestartInterfaces.ps1" "%LOG_FILE%"
+call :RUN_PS1 "Network\RestartInterfaces.ps1" "%LOG_FILE%"
 
 call :LOG & goto NETWORK_MENU
 
@@ -931,7 +836,7 @@ call :INVALID "(0-10)" & goto DNS_MENU
 call :PATH_DIR "Network" "DNS"
 echo.
 echo Setting %DNS_NAME% on all connected interfaces
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDNS.ps1" ^
+call :RUN_PS1 "Network\SetDNS.ps1" ^
     -DnsIPv4Primary "%DNS_IPv4_1%" ^
     -DnsIPv4Secondary "%DNS_IPv4_2%" ^
     -DnsIPv6Primary "%DNS_IPv6_1%" ^
@@ -941,17 +846,17 @@ call :LOG & goto DNS_MENU
 
 :SET_DHCP
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\SetDHCP.ps1"
+call :RUN_PS1 "Network\SetDHCP.ps1"
 call :GO & goto DNS_MENU
 
 :DNS_SERVER_TEST
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSTest.ps1"
+call :RUN_PS1 "Network\DNSTest.ps1"
 call :GO & goto DNS_MENU
 
 :DNS_STATUS
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\DNSStatus.ps1"
+call :RUN_PS1 "Network\DNSStatus.ps1"
 call :GO & goto DNS_MENU
 
 :WIFI_PASSWORDS
@@ -959,7 +864,7 @@ call :CREATE_FILE "Network" "Wi-Fi_Passwords.log"
 if errorlevel 1 goto NETWORK_MENU
 
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Network\WifiPassword.ps1" "%TARGET_FILE%"
+call :RUN_PS1 "Network\WifiPassword.ps1" "%TARGET_FILE%"
 echo.
 echo Wi-Fi passwords file saved in: %TARGET_FILE%
 call :GO & goto NETWORK_MENU
@@ -1074,7 +979,7 @@ call :GO & goto CHOCO_MENU
 call :CONFIRM "WARNING: This will remove ALL Microsoft Store apps"
 if errorlevel 2 goto PACKAGES_MENU
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Packages\Remove_All_MS.ps1"
+call :RUN_PS1 "Packages\Remove_All_MS.ps1"
 call :GO & goto PACKAGES_MENU
 
 
@@ -1267,7 +1172,7 @@ call :GO & goto CUSTOMIZATION_MENU
 :NOTIFY_DISABLE
 echo.
 echo Disabling notification services
-for %%S in ("WpnService" "WpnUserService") do call :SC_CONFIGURE "%%S" "disabled" >nul 2>&1
+call :SC_EACH disabled "WpnService" "WpnUserService" >nul 2>&1
 
 echo Disabling notifications via registry
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1 /f >nul 2>&1
@@ -1277,7 +1182,7 @@ call :GO & goto CUSTOMIZATION_MENU
 :NOTIFY_ENABLE
 echo.
 echo Enabling notification services
-for %%S in ("WpnService" "WpnUserService") do call :SC_CONFIGURE "%%S" "auto" >nul 2>&1
+call :SC_EACH auto "WpnService" "WpnUserService" >nul 2>&1
 
 echo Enabling notifications via registry
 reg delete "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /f >nul 2>&1
@@ -1484,7 +1389,7 @@ echo Enabling System Restore via registry
 reg import "Files\System\EnableRestorePoint.reg" >> "%LOG_FILE%" 2>&1
 
 echo Stopping restore point services
-for %%S in ("VSS" "swprv") do call :NET_CONTROL "%%S" "stop" >> "%LOG_FILE%" 2>&1
+call :NET_EACH stop "VSS" "swprv" >> "%LOG_FILE%" 2>&1
 
 echo Re-registering VSS-related system libraries
 for %%D in (ole32.dll oleaut32.dll vss_ps.dll stdprov.dll vssui.dll) do (
@@ -1499,14 +1404,10 @@ echo Registering VSS service
 vssvc /register >> "%LOG_FILE%" 2>&1
 
 echo Starting restore point services
-for %%S in ("VSS" "swprv") do (
-    call :SC_CONFIGURE "%%S" "demand" >> "%LOG_FILE%" 2>&1
-    call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
-)
-for %%S in ("RpcSs" "CryptSvc" "EventLog" "EventSystem" "Schedule") do (
-    call :SC_CONFIGURE "%%S" "auto" >> "%LOG_FILE%" 2>&1
-    call :NET_CONTROL "%%S" "start" >> "%LOG_FILE%" 2>&1
-)
+call :SC_EACH demand "VSS" "swprv" >> "%LOG_FILE%" 2>&1
+call :NET_EACH start "VSS" "swprv" >> "%LOG_FILE%" 2>&1
+call :SC_EACH auto "RpcSs" "CryptSvc" "EventLog" "EventSystem" "Schedule" >> "%LOG_FILE%" 2>&1
+call :NET_EACH start "RpcSs" "CryptSvc" "EventLog" "EventSystem" "Schedule" >> "%LOG_FILE%" 2>&1
 
 echo Checking VSS writers status
 vssadmin list writers >> "%LOG_FILE%" 2>&1
@@ -1553,7 +1454,7 @@ if exist "%TARGET_FOLDER%\*.hive" (
         echo.
         echo Backup saved in: %TARGET_FOLDER%
     ) else (
-        powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\CompressHiveFiles.ps1" "%TARGET_FOLDER%" "%LOG_FILE%"
+        call :RUN_PS1 "System\CompressHiveFiles.ps1" "%TARGET_FOLDER%" "%LOG_FILE%"
     )
 ) else (
     echo No hive files were created. Backup failed
@@ -1587,7 +1488,7 @@ call :GO & goto ACTIVATION_MENU
 
 :CHECK_ACTIVATION
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\System\ActivationStatus.ps1"
+call :RUN_PS1 "System\ActivationStatus.ps1"
 call :GO & goto ACTIVATION_MENU
 
 
@@ -1660,11 +1561,29 @@ call :GO & goto DISM_MENU
 :DISM_RESTORE_HEALTH
 cls
 echo Use Windows Update servers to download clean repair files?
-call :CHOICE "(Select 'N' to specify a local install.wim path)"
+call :CHOICE "(Select 'N' to specify a local install.wim/esd path)"
 if errorlevel 2 (
     set "SRC="
-    set /p "SRC=Enter path to install.wim/install.esd source: "
-    dism /Online /Cleanup-Image /RestoreHealth /Source:"!SRC!" /LimitAccess
+    set "IDX="
+    set /p "SRC=Enter path to install.wim/install.esd: "
+
+    if not exist "!SRC!" (
+        echo [ERROR] File not found: !SRC!
+        call :GO & goto DISM_MENU
+    )
+
+    :: Determining the type based on the extension
+    set "SRC_TYPE=WIM"
+    if /i "!SRC:~-4!"==".esd" set "SRC_TYPE=ESD"
+
+    :: View available indexes
+    echo.
+    dism /Get-WimInfo /WimFile:"!SRC!" | findstr /i "Index Name"
+
+    echo.
+    set /p "IDX=Enter the Index matching your Windows edition: "
+
+    dism /Online /Cleanup-Image /RestoreHealth /Source:!SRC_TYPE!:"!SRC!":!IDX! /LimitAccess
 ) else (
     dism /Online /Cleanup-Image /RestoreHealth
 )
@@ -1707,12 +1626,7 @@ call :INVALID "(0-4)" & goto CHKDSK_MENU
 
 :DRIVE_LETTER
 cls
-set "VOL_TARGET="
-set "VOL_FS="
-for /f "tokens=1,2 delims=|" %%a in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskVolumes.ps1" -Drive') do (
-    set "VOL_TARGET=%%a"
-    set "VOL_FS=%%b"
-)
+call :PICK_VOLUME -Drive
 
 if "%VOL_TARGET%"=="0" goto CHKDSK_MENU
 if not defined VOL_TARGET (
@@ -1726,13 +1640,7 @@ goto CHOOSE_MODE
 :HIDDEN_VOLUMES
 cls
 echo Listing all detected volumes, including hidden / unlettered partitions
-
-set "VOL_TARGET="
-set "VOL_FS="
-for /f "tokens=1,2 delims=|" %%a in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskVolumes.ps1" -Pick') do (
-    set "VOL_TARGET=%%a"
-    set "VOL_FS=%%b"
-)
+call :PICK_VOLUME -Pick
 
 if "%VOL_TARGET%"=="0" goto CHKDSK_MENU
 if not defined VOL_TARGET (
@@ -1789,7 +1697,7 @@ call :GO & goto CHKDSK_MENU
 
 :SMART_RUN
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskSmart.ps1"
+call :RUN_PS1 "Tools\DiskSmart.ps1"
 call :GO & goto CHKDSK_MENU
 
 :MEMORY_DIAG
@@ -1827,7 +1735,7 @@ call :GO & goto OTHER_MENU
 
 :DELETE_SCRIPT_DATA
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Other\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
+call :RUN_PS1 "Other\DeleteScriptData.ps1" "%PROGRAMDATA%\WinTweaks"
 call :GO & goto OTHER_MENU
 
 
@@ -1961,6 +1869,51 @@ if exist "%TARGET_FOLDER%" (
 )
 exit /b
 
+:MOVE_FOLDER
+:: Usage: call :MOVE_FOLDER "<source>" "<destination>" "<message>" "<verb used in the error text>"
+if not exist "%~1" exit /b 0
+echo %~3
+robocopy "%~1" "%~2" /E /COPYALL /MOVE /R:0 /W:0 >> "%LOG_FILE%" 2>&1
+if !errorlevel! geq 8 (
+    echo [ERROR] Failed to %~4: %~1
+    exit /b 1
+)
+exit /b 0
+
+:BACKUP_POLICY_KEY
+:: Usage: call :BACKUP_POLICY_KEY "<key>" "<backup file>" "<HKLM|HKCU>"
+:: Sets <HKLM|HKCU>_DELETE=1 only when the key exists and its backup succeeded
+set "%~3_DELETE=0"
+reg query "%~1" >nul 2>&1
+if errorlevel 1 exit /b 0
+
+echo Backing up %~3 Policies registry key
+reg export "%~1" "%~2" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+    echo [ERROR] Failed to back up: %~1
+    echo Skipping deletion for this key
+    echo.
+    exit /b 1
+)
+set "%~3_DELETE=1"
+exit /b 0
+
+:DELETE_POLICY_KEY
+:: Usage: call :DELETE_POLICY_KEY "<key>" "<HKLM|HKCU>"
+if not "!%~2_DELETE!"=="1" exit /b 0
+echo Deleting %~2 Policies registry key
+reg delete "%~1" /f >> "%LOG_FILE%" 2>&1
+if errorlevel 1 echo [ERROR] Failed to delete: %~1
+exit /b 0
+
+:IMPORT_REG_BACKUP
+:: Usage: call :IMPORT_REG_BACKUP "<reg file>" "<message>"
+if not exist "%~1" exit /b 0
+echo %~2
+reg import "%~1" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 echo [ERROR] Failed to restore: %~1
+exit /b 0
+
 :DELETE_FILES
 if exist "%~2" (
     echo %~1
@@ -1983,10 +1936,17 @@ if exist "%~2" (
 )
 exit /b
 
+:RUN_PS1
+:: Usage: call :RUN_PS1 "<path under Files\>.ps1" [up to 8 arguments]
+set "PS1_FILE=%~1"
+shift
+powershell -NoProfile -ExecutionPolicy Bypass -File "Files\%PS1_FILE%" %1 %2 %3 %4 %5 %6 %7 %8
+exit /b
+
 :INFO_SCRIPT
 call :PATH_DIR "%~1" "%~2"
 cls
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\%~1\%~2.ps1" "%LOG_FILE%"
+call :RUN_PS1 "%~1\%~2.ps1" "%LOG_FILE%"
 call :LOG
 exit /b
 
@@ -2063,6 +2023,26 @@ if !errorlevel! equ 0 (
 )
 exit /b
 
+:SC_EACH
+:: Usage: call :SC_EACH <startup type> "service1" "service2" ...
+set "SC_MODE=%~1"
+shift
+:SC_EACH_LOOP
+if "%~1"=="" exit /b 0
+call :SC_CONFIGURE "%~1" "%SC_MODE%"
+shift
+goto SC_EACH_LOOP
+
+:NET_EACH
+:: Usage: call :NET_EACH <start|stop> "service1" "service2" ...
+set "NET_MODE=%~1"
+shift
+:NET_EACH_LOOP
+if "%~1"=="" exit /b 0
+call :NET_CONTROL "%~1" "%NET_MODE%"
+shift
+goto NET_EACH_LOOP
+
 :RUNNING_BROWSERS
 :: List of browser processes to check
 set "BROWSERS=chrome.exe brave.exe msedge.exe firefox.exe"
@@ -2077,25 +2057,39 @@ for %%A in (%BROWSERS%) do (
 )
 exit /b
 
+:CLOSE_BROWSERS
+echo Closing browsers
+for %%B in (%BROWSERS%) do taskkill /IM "%%B" /F /T >nul 2>&1
+timeout /t 2 >nul
+exit /b
+
+:FOR_EACH_CHROMIUM
+:: Usage: call :FOR_EACH_CHROMIUM :CALLBACK_LABEL
+:: The callback receives: <profile root relative to %LOCALAPPDATA%> <display name>
+call %~1 "Google\Chrome\User Data" "Google Chrome"
+call %~1 "Microsoft\Edge\User Data" "Microsoft Edge"
+call %~1 "BraveSoftware\Brave-Browser\User Data" "Brave"
+exit /b
+
+:CLEAN_CHROMIUM_CACHE
+if not exist "%LOCALAPPDATA%\%~1" exit /b 0
+echo Cleaning %~2
+for /d %%P in ("%LOCALAPPDATA%\%~1\*") do (
+    for %%D in (Cache "Code Cache" GPUCache ShaderCache "Media Cache" "Download Service") do (
+        call :CLEAN_DIR "%%P\%%~D"
+    )
+)
+exit /b 0
+
+:DELETE_CHROMIUM_DATA
+call :DELETE_FOLDERS "Cleaning %~2 data" "%LOCALAPPDATA%\%~1"
+exit /b 0
+
 :CLEAN_BROWSER_CACHES
 set "EMPTY=%TEMP%\__empty_%RANDOM%"
 md "%EMPTY%" >nul 2>&1
 
-:: Chromium-based browsers (Chrome, Edge, Brave)
-for %%X in (
-    "Google\Chrome\User Data|Google Chrome"
-    "Microsoft\Edge\User Data|Microsoft Edge"
-    "BraveSoftware\Brave-Browser\User Data|Brave"
-) do for /f "tokens=1,2 delims=|" %%A in ("%%~X") do (
-    if exist "%LOCALAPPDATA%\%%A" (
-        echo Cleaning %%B
-        for /d %%P in ("%LOCALAPPDATA%\%%A\*") do (
-            for %%D in (Cache "Code Cache" GPUCache ShaderCache "Media Cache" "Download Service") do (
-                call :CLEAN_DIR "%%P\%%~D"
-            )
-        )
-    )
-)
+call :FOR_EACH_CHROMIUM :CLEAN_CHROMIUM_CACHE
 
 :: Mozilla Firefox
 if exist "%APPDATA%\Mozilla\Firefox" (
@@ -2168,7 +2162,7 @@ if errorlevel 2 exit /b 1
 
 echo.
 echo Installing Chocolatey
-powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Packages\InstallChoco.ps1"
+call :RUN_PS1 "Packages\InstallChoco.ps1"
 call "%ALLUSERSPROFILE%\chocolatey\bin\RefreshEnv.cmd" >nul
 
 where choco >nul 2>&1
@@ -2365,6 +2359,16 @@ if defined invalid (
     echo.
     echo Invalid or out-of-range input:!invalid!
     pause
+)
+exit /b
+
+:PICK_VOLUME
+:: Usage: call :PICK_VOLUME <-Drive|-Pick>   (sets VOL_TARGET and VOL_FS)
+set "VOL_TARGET="
+set "VOL_FS="
+for /f "tokens=1,2 delims=|" %%a in ('powershell -NoProfile -ExecutionPolicy Bypass -File "Files\Tools\DiskVolumes.ps1" %~1') do (
+    set "VOL_TARGET=%%a"
+    set "VOL_FS=%%b"
 )
 exit /b
 
